@@ -1,9 +1,15 @@
 import "dotenv/config";
 import cors from "cors";
+import express from "express";
+import mongoose from "mongoose";
 
-const express = require("express");
-const mongoose = require("mongoose");
-const authRoutes = require("./routes/auth");
+// Importe as rotas individuais
+import * as alunoRoutes from "./routes/aluno";
+import * as consultaRoutes from "./routes/consulta";
+import * as pacienteRoutes from "./routes/paciente";
+import * as professorRoutes from "./routes/professor";
+import * as userRoutes from "./routes/user";
+import * as secretarioRoutes from "./routes/secretario";
 
 const app = express();
 const port = 8080;
@@ -43,7 +49,12 @@ mongoose.connect(server).then(
 
 // Rotas:
 app.use(express.json());
-app.use("/auth", authRoutes);
+app.use("/aluno", alunoRoutes.router);
+app.use("/consulta", consultaRoutes.router);
+app.use("/paciente", pacienteRoutes.router);
+app.use("/professor", professorRoutes.router);
+app.use("/user", userRoutes.router);
+app.use("/secretario", secretarioRoutes.router);
 
 // Escutar servidor na porta 3000:
 app.listen(port, () => {
