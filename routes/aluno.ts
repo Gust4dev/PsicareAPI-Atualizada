@@ -1,25 +1,25 @@
-import express from "express";
+import { Router } from 'express';
 import {
-    createAluno,
-    getAluno,
-    getAlunoById,
-    getAlunosSelect,
-    getAlunosByIdProfessor,
-    patchAluno,
-  PatchAlunoArquivo,
-  deleteAluno,
-} from "../controllers/aluno";
+  criarAluno,
+  listarAlunos,
+  obterAlunoPorID,
+  listarNomesAlunos,
+  listarAlunosPorProfessorID,
+  atualizarAluno,
+  arquivarAluno,
+  deletarAluno,
+} from '../controllers/aluno';
 
-const router = express.Router();
+const router = Router();
 
-// Rotas Aluno
-router.post("/registroAluno", createAluno);
-router.get("/getAlunos", getAluno);
-router.get("/getAlunoById/:id", getAlunoById);
-router.get("/getAlunosSelect", getAlunosSelect);
-router.get("/getAlunosByIdProfessor/:id", getAlunosByIdProfessor);
-router.patch("/attAluno/:id", patchAluno);
-router.patch("/arquivarAluno/:id", PatchAlunoArquivo);
-router.delete("/deleteAluno/:id", deleteAluno);
+// Rotas alunos
+router.post('/', criarAluno);
+router.get('/', listarAlunos);
+router.get('/:id', obterAlunoPorID);
+router.get('/select', listarNomesAlunos);
+router.get('/professor/:id', listarAlunosPorProfessorID);
+router.patch('/:id', atualizarAluno);
+router.patch('/:id/archive', arquivarAluno);
+router.delete('/:id', deletarAluno);
 
-export { router };
+export default router;
