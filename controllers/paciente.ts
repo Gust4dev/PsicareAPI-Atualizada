@@ -41,6 +41,11 @@ export async function criarPaciente(req: Request, res: Response) {
     return res.status(400).send("Já existe um paciente com este CPF.");
   }
 
+ const alunoOcupado = await Paciente.findOne({alunoUnieva});
+ if(alunoOcupado) {
+  return res.status(400).send("Esse aluno já está trabalhando com um paciente")
+ }
+
   // criar paciente
   const novoPaciente = new Paciente({
     nome,
