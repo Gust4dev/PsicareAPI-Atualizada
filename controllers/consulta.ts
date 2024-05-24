@@ -2,19 +2,6 @@ import { Request, Response } from "express";
 import Consulta from "../models/consulta";
 import mongoose from "mongoose";
 
-function validarCamposObrigatorios(
-  campos: { field: any; message: string }[],
-  res: Response
-): boolean {
-  for (const { field, message } of campos) {
-    if (!field) {
-      res.status(400).send(message);
-      return false;
-    }
-  }
-  return true;
-}
-
 export async function criarConsulta(req: Request, res: Response) {
   const {
     pacienteID,
@@ -50,7 +37,7 @@ export async function criarConsulta(req: Request, res: Response) {
   try {
     await novaConsulta.save();
     return res.status(201).send("Consulta criada com sucesso.");
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).send("Não foi possível criar a consulta.");
   }
@@ -60,7 +47,7 @@ export async function listarConsultas(req: Request, res: Response) {
   try {
     const consultas = await Consulta.find({});
     res.json(consultas);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -76,7 +63,7 @@ export async function obterConsultaPorID(req: Request, res: Response) {
       return res.status(404).send("Consulta não encontrada.");
     }
     res.json(consulta);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -89,7 +76,7 @@ export async function listarConsultasPorPacienteID(
     const pacienteID = req.params.id;
     const consultas = await Consulta.find({ pacienteID });
     res.json(consultas);
-  } catch (error) {
+  } catch (error: any) {
     res
       .status(500)
       .json({ error: "Erro ao buscar consultas por ID do paciente." });
@@ -113,7 +100,7 @@ export async function atualizarConsulta(req: Request, res: Response) {
     }
 
     res.json(consultaAtualizada);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -134,7 +121,7 @@ export async function deletarConsulta(req: Request, res: Response) {
       message: "Consulta excluída com sucesso.",
       consulta: consultaExcluida,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: "Erro interno do servidor." });
   }
 }

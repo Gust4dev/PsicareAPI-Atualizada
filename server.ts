@@ -4,10 +4,10 @@ import express from "express";
 import mongoose from "mongoose";
 
 // Importe as rotas individuais
-import * as alunoRoutes from "./routes/aluno";
-import * as consultaRoutes from "./routes/consulta";
-import * as pacienteRoutes from "./routes/paciente";
-import * as professorRoutes from "./routes/professor";
+import alunoRoutes from "./routes/aluno";
+import consultaRoutes from "./routes/consulta";
+import pacienteRoutes from "./routes/paciente";
+import professorRoutes from "./routes/professor";
 import * as userRoutes from "./routes/user";
 import * as secretarioRoutes from "./routes/secretario";
 
@@ -49,10 +49,10 @@ mongoose.connect(server).then(
 
 // Rotas:
 app.use(express.json());
-app.use("/aluno", alunoRoutes.router);
-app.use("/consulta", consultaRoutes.router);
-app.use("/paciente", pacienteRoutes.router);
-app.use("/professor", professorRoutes.router);
+app.use("/aluno", alunoRoutes);
+app.use("/consulta", consultaRoutes);
+app.use("/paciente", pacienteRoutes);
+app.use("/professor", professorRoutes);
 app.use("/user", userRoutes.router);
 app.use("/secretario", secretarioRoutes.router);
 

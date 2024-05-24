@@ -35,7 +35,7 @@ export async function criarPaciente(req: Request, res: Response) {
     arquivado,
   } = req.body;
 
-// Verificar se o cpf já existe no bd
+  // Verificar se o cpf já existe no bd
   const pacienteExistente = await Paciente.findOne({ cpf });
   if (pacienteExistente) {
     return res.status(400).send("Já existe um paciente com este CPF.");
@@ -77,7 +77,7 @@ export async function criarPaciente(req: Request, res: Response) {
   try {
     await novoPaciente.save();
     return res.status(201).send("Paciente cadastrado com sucesso.");
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res.status(500).send("Erro ao cadastrar o paciente.");
   }
@@ -88,7 +88,7 @@ export async function listarPacientes(req: Request, res: Response) {
   try {
     const pacientes = await Paciente.find({});
     res.json(pacientes);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: "Erro ao buscar pacientes." });
   }
 }
@@ -104,7 +104,7 @@ export async function obterPacientePorID(req: Request, res: Response) {
       return res.status(404).send("Paciente não encontrado.");
     }
     res.json(paciente);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: "Erro ao buscar paciente." });
   }
 }
@@ -113,8 +113,10 @@ export async function listarPacientesPorIDAluno(req: Request, res: Response) {
     const alunoID = req.params.id;
     const pacientes = await Paciente.find({ quemEncaminhouID: alunoID });
     res.json(pacientes);
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar pacientes por ID do aluno." });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar pacientes por ID do aluno." });
   }
 }
 
@@ -124,12 +126,16 @@ export async function atualizarPaciente(req: Request, res: Response) {
     if (!mongoose.Types.ObjectId.isValid(pacienteID)) {
       return res.status(400).send("ID de paciente inválido.");
     }
-    const pacienteAtualizado = await Paciente.findByIdAndUpdate(pacienteID, req.body, { new: true });
+    const pacienteAtualizado = await Paciente.findByIdAndUpdate(
+      pacienteID,
+      req.body,
+      { new: true }
+    );
     if (!pacienteAtualizado) {
       return res.status(404).send("Paciente não encontrado.");
     }
     res.json(pacienteAtualizado);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: "Erro ao atualizar paciente." });
   }
 }
@@ -141,13 +147,21 @@ export async function atualizarStatusArquivado(req: Request, res: Response) {
       return res.status(400).send("ID de paciente inválido.");
     }
     const { arquivado } = req.body;
-    const pacienteAtualizado = await Paciente.findByIdAndUpdate(pacienteID, { arquivado }, { new: true });
+    const pacienteAtualizado = await Paciente.findByIdAndUpdate(
+      pacienteID,
+      { arquivado },
+      { new: true }
+    );
     if (!pacienteAtualizado) {
       return res.status(404).send("Paciente não encontrado.");
     }
     res.json(pacienteAtualizado);
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao atualizar o status de arquivado do paciente." });
+  } catch (error: any) {
+    res
+      .status(500)
+      .json({
+        message: "Erro ao atualizar o status de arquivado do paciente.",
+      });
   }
 }
 
@@ -167,7 +181,7 @@ export async function deletePaciente(request: Request, response: Response) {
       message: "Paciente excluído com sucesso",
       paciente: pacienteEncontrado,
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return response.status(500).json({ error: "Erro interno do servidor" });
   }

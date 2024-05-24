@@ -1,40 +1,24 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const professorSchema = new mongoose.Schema (
-    {
-        createdAt: {
-            type: Date,
-            default: Date.now(),
-          },
-          nome: {
-            type: String,
-            required: true,
-            trim: true,
-          },
-          cpf: {
-            type: String,
-            required: true,
-          },
-          telefoneContato: {
-            type: String,
-            required: true,
-          },
-          email: {
-            type: String,
-            required: true,
-          },
-          disciplina: {
-            type: String,
-            required: true,
-            trim: true,
-          },
-          arquivado: {
-            type: Boolean,
-            default: false,
-            required:false,
-          },
-    },
-    { timestamps: true }
+interface ProfessorInterface extends Document {
+  nome: string;
+  cpf: string;
+  telefoneContato: string;
+  email: string;
+  disciplina: string;
+  arquivado: boolean;
+}
+
+const professorSchema: Schema = new Schema(
+  {
+    nome: { type: String, required: true },
+    cpf: { type: String, required: true, unique: true },
+    telefoneContato: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    disciplina: { type: String, required: true },
+    arquivado: { type: Boolean, default: false },
+  },
+  { timestamps: true }
 );
 
-export default mongoose.model("Professor", professorSchema);
+export default mongoose.model<ProfessorInterface>("Professor", professorSchema);

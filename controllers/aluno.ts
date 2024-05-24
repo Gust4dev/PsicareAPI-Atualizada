@@ -33,7 +33,7 @@ export async function criarAluno(req: Request, res: Response) {
   try {
     await newAluno.save();
     return res.status(201).send("Cadastro do aluno criado com sucesso.");
-  } catch (error) {
+  } catch (error: any) {
     console.error(error);
     return res
       .status(500)
@@ -45,7 +45,7 @@ export async function listarAlunos(req: Request, res: Response) {
   try {
     const alunos = await Aluno.find({});
     res.json(alunos);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -57,7 +57,7 @@ export async function obterAlunoPorID(req: Request, res: Response) {
       return res.status(404).send("Aluno não encontrado");
     }
     res.json(alunoData);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -66,7 +66,7 @@ export async function listarNomesAlunos(req: Request, res: Response) {
   try {
     const alunos = await Aluno.find({}, "nome");
     res.json(alunos);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -76,7 +76,7 @@ export async function listarAlunosPorProfessorID(req: Request, res: Response) {
     const professorID = req.params.id;
     const alunos = await Aluno.find({ professorID });
     res.json(alunos);
-  } catch (error) {
+  } catch (error: any) {
     res
       .status(500)
       .json({ error: "Erro ao buscar alunos por ID do professor." });
@@ -95,7 +95,7 @@ export async function atualizarAluno(req: Request, res: Response) {
     }
 
     res.json(alunoAtualizado);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -116,7 +116,7 @@ export async function arquivarAluno(req: Request, res: Response) {
     }
 
     res.json(alunoAtualizado);
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
 }
@@ -135,7 +135,7 @@ export async function deletarAluno(req: Request, res: Response) {
       message: "Aluno excluído com sucesso",
       aluno: alunoExcluido,
     });
-  } catch (error) {
+  } catch (error: any) {
     res.status(500).json({ error: "Erro interno do servidor" });
   }
 }
