@@ -17,6 +17,7 @@ interface ConsultaInterface extends Document {
   statusDaConsulta?: string;
   createAt: Date;
   AlunoID: string;
+  sala: string;
 }
 
 const RecorrenciaSchema: Schema = new Schema({
@@ -38,6 +39,7 @@ const ConsultaSchema: Schema = new Schema({
   statusDaConsulta: { type: String },
   createAt: { type: Date, default: Date.now },
   AlunoID: { type: String, required: true },
+  sala: { type: String, required: true },
 });
 
 export default mongoose.model<ConsultaInterface>("Consulta", ConsultaSchema);

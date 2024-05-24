@@ -16,6 +16,7 @@ export async function criarConsulta(req: Request, res: Response) {
     observacao,
     statusDaConsulta,
     AlunoID,
+    sala,
   } = req.body;
 
   // Nova consulta
@@ -32,7 +33,14 @@ export async function criarConsulta(req: Request, res: Response) {
     observacao,
     statusDaConsulta,
     AlunoID,
+    sala,
   });
+
+  // Verificar se a sala está disponível
+  const consultasNaSala = await Consulta.find({ sala });
+  if (consultasNaSala.length >= 10) {
+    return res.status(400).json({ error: "Sala ocupada. Escolha outra sala." });
+  }
 
   try {
     await novaConsulta.save();
@@ -42,6 +50,7 @@ export async function criarConsulta(req: Request, res: Response) {
     return res.status(500).send("Não foi possível criar a consulta.");
   }
 }
+
 // Funcoes consulta
 export async function listarConsultas(req: Request, res: Response) {
   try {
