@@ -31,24 +31,6 @@ export async function criarConsulta(req: Request, res: Response) {
     AlunoID,
   } = req.body;
 
-  const camposObrigatorios = [
-    { field: pacienteID, message: "Insira o ID do paciente." },
-    { field: pacienteNome, message: "Insira o nome do paciente." },
-    { field: title, message: "Insira o título da consulta." },
-    { field: start, message: "Insira a data de início da consulta." },
-    { field: end, message: "Insira a data de término da consulta." },
-    { field: resourceID, message: "Insira o ID do recurso." },
-    {
-      field: consultaRecorrenteID,
-      message: "Insira o ID da consulta recorrente.",
-    },
-    { field: TipoDeConsulta, message: "Insira o tipo de consulta." },
-    { field: observacao, message: "Insira a observação da consulta." },
-    { field: AlunoID, message: "Insira o ID do aluno responsável." },
-  ];
-
-  if (!validarCamposObrigatorios(camposObrigatorios, res)) return;
-
   // Nova consulta
   const novaConsulta = new Consulta({
     pacienteID,

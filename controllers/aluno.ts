@@ -15,38 +15,6 @@ export async function criarAluno(req: Request, res: Response) {
     arquivado,
   } = req.body;
 
-  // validar campos
-  function validarCamposObrigatorios(
-    campos: { field: any; message: string }[],
-    res: Response
-  ) {
-    for (const { field, message } of campos) {
-      if (!field) {
-        res.status(400).send(message);
-        return false;
-      }
-    }
-    return true;
-  }
-  const camposObrigatorios = [
-    { field: matricula, message: "Insira sua matrícula." },
-    { field: periodo, message: "Insira o período de aulas." },
-    { field: nome, message: "Insira seu nome." },
-    { field: cpf, message: "CPF inválido." },
-    { field: telefoneContato, message: "Insira seu número de contato." },
-    { field: professorID, message: "Insira o ID do professor." },
-    { field: email, message: "E-mail inválido." },
-  ];
-
-  if (!validarCamposObrigatorios(camposObrigatorios, res)) return;
-  if (!nome.split(" ")[1]) {
-    return res.status(400).send("Insira seu nome completo.");
-  }
-  const existingAluno = await Aluno.findOne({ cpf }).lean();
-  if (existingAluno) {
-    return res.status(400).send("Já existe um aluno no BD com esse CPF.");
-  }
-
   // funções aluno
   const newAluno = new Aluno({
     matricula,

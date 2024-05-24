@@ -35,26 +35,6 @@ export async function criarPaciente(req: Request, res: Response) {
     arquivado,
   } = req.body;
 
-  function validarCamposObrigatorios(campos: { field: any; message: string }[], res: Response): boolean {
-    for (const { field, message } of campos) {
-      if (!field) {
-        res.status(400).send(message);
-        return false;
-      }
-    }
-    return true;
-  }
-  
-  const camposObrigatorios = [
-    { field: nome, message: "Insira o nome do paciente." },
-    { field: cpf, message: "Insira o CPF do paciente." },
-    { field: dataDeNascimento, message: "Insira a data de nascimento do paciente." },
-    { field: email, message: "Insira o e-mail do paciente." },
-    { field: telefoneContato, message: "Insira o telefone de contato do paciente." },
-  ];
-
-  if (!validarCamposObrigatorios(camposObrigatorios, res)) return;
-
 // Verificar se o cpf já existe no bd
   const pacienteExistente = await Paciente.findOne({ cpf });
   if (pacienteExistente) {
