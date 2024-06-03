@@ -13,6 +13,7 @@ interface AlunoInterface extends Document {
   cpf: string;
   arquivado: boolean;
   role: string;
+  cargo: number;
 }
 
 const AlunoSchema: Schema = new Schema(
@@ -29,6 +30,7 @@ const AlunoSchema: Schema = new Schema(
     cpf: { type: String, required: true, unique: true },
     arquivado: { type: Boolean, default: false },
     role: { type: String, default: "Estudante" },
+    cargo: { type: Number, required: true},
   },
   { timestamps: true }
 );

@@ -7,6 +7,7 @@ interface ProfessorInterface extends Document {
   email: string;
   disciplina: string;
   arquivado: boolean;
+  cargo: number;
 }
 
 const professorSchema: Schema = new Schema(
@@ -17,6 +18,7 @@ const professorSchema: Schema = new Schema(
     email: { type: String, required: true, unique: true },
     disciplina: { type: String, required: true },
     arquivado: { type: Boolean, default: false },
+    cargo: { type: Number, required: true },
   },
   { timestamps: true }
 );

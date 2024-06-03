@@ -30,6 +30,7 @@ interface PacienteInterface extends Document {
   alunoUnieva?: boolean;
   funcionarioUnieva?: boolean;
   arquivado: boolean;
+  cargo: number;
 }
 
 const PacienteSchema: Schema = new Schema(
@@ -63,6 +64,7 @@ const PacienteSchema: Schema = new Schema(
     alunoUnieva: { type: Boolean },
     funcionarioUnieva: { type: Boolean },
     arquivado: { type: Boolean, default: false },
+    cargo: { type: Number, required: true },
   },
   { timestamps: true }
 );
