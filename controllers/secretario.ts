@@ -1,157 +1,128 @@
-import { Request, response, Response } from "express";
+import { Request, Response } from "express";
 import Secretario from "../models/secretario";
-import secretario from "../models/secretario";
+import mongoose from "mongoose";
 
-// Funçoes Secretario:
-// Metodo POST:
-export async function createSecretario(request: Request, response: Response) {
-    const { nome, cpf, telefoneContato, email, turno, arquivado } = request.body;
-  
-    if (!nome) {
-      return response.status(203).send("Insira seu nome.");
+// Funções Secretario
+// Método POST
+export async function createSecretario(req: Request, res: Response) {
+  const { nome, cpf, telefoneContato, email, turno, arquivado } = req.body;
+
+  try {
+    // Verificar se o cpf já existe no banco de dados
+    const secretarioExistente = await Secretario.findOne({ cpf });
+    if (secretarioExistente) {
+      return res.status(400).send("Já existe um secretário com este CPF.");
     }
-  
-    if (!cpf) {
-      return response.status(203).send("CPF inválido.");
-    }
-  
-    if (!telefoneContato) {
-      return response.status(203).send("Insira seu numero de contato.");
-    }
-  
-    if (!email) {
-      return response.status(203).send("E-mail inválido.");
-    }
-  
-    if (!turno) {
-      return response.status(203).send("Selecione  seu turno.");
-    }
-  
-    // Verificando se a segunda parte do nome existe:
-    if (!nome.split(" ")[1]) {
-      return response.status(203).send("Insira seu nome completo.");
-    }
-  
-    // Criação de um novo Secretario:
-    const createSecretario = new Secretario({
+
+    // Criar novo secretário
+    const novoSecretario = new Secretario({
       nome,
       cpf,
       telefoneContato,
       email,
       turno,
+      arquivado,
     });
-  
-    // Se já existe um usuário no BD, o sistema para antes de tentar salvar.
-    const SecretarioInDatabaseByCpf = await Secretario.findOne({ cpf }).lean();
-    if (SecretarioInDatabaseByCpf?.cpf) {
-      return response
-        .status(203)
-        .send("Já existe um usuário no BD com esse cpf.");
-    }
-  
-    // Salvamento do novo usuário no banco de dados:
-    try {
-      await createSecretario.save();
-      return response
-        .status(200)
-        .send("Cadastro de secretario criado com sucesso.");
-    } catch (e) {
-      console.error(e);
-      return response
-        .status(203)
-        .send("Não foi possivel criar Cadastro de secretario.");
-    }
+
+    await novoSecretario.save();
+    return res.status(201).send("Secretário cadastrado com sucesso.");
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).send("Erro ao cadastrar o secretário.");
   }
-  
-  // Metodo GET:
-  export async function getSecretarios(req: Request, res: Response) {
-    try {
-      secretario
-        .find({})
-        .then((data) => {
-          res.json(data);
-        })
-        .catch((error) => {
-          res.json({ message: error });
-        });
-    } catch (error) {
-      res.json({ message: error });
-    }
+}
+
+// Método GET
+export async function listSecretarios(req: Request, res: Response) {
+  try {
+    const secretarios = await Secretario.find({});
+    res.json(secretarios);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao buscar secretários." });
   }
-  
-  export async function getSecretarioById(req: Request, res: Response) {
-    try {
-      if (!secretario) {
-        throw new Error("secretario object is undefined");
-      }
-  
-      const secretarioData = await secretario.findById(req.params.id);
-  
-      if (!secretarioData) {
-        throw new Error("secretario not found");
-      }
-  
-      res.json(secretarioData);
-    } catch (error: any) {
-      res.json({ message: error.message });
+}
+
+export async function getSecretarioByID(req: Request, res: Response) {
+  try {
+    const secretarioID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
+      return res.status(400).send("ID de secretário inválido.");
     }
-  }
-  
-  // Metodo PATCH:
-  export async function patchSecretario(request: Request, response: Response) {
-    try {
-      const id = request.params.id;
-      const { nome, cpf, telefoneContato, email, turno } = request.body;
-  
-      const res = await secretario.findByIdAndUpdate(id, {
-        nome,
-        cpf,
-        telefoneContato,
-        email,
-        turno,
-      });
-      response.send({ status: "ok", ocorrencias: res });
-    } catch (error) {
-      console.error(error);
+    const secretario = await Secretario.findById(secretarioID);
+    if (!secretario) {
+      return res.status(404).send("Secretário não encontrado.");
     }
+    res.json(secretario);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao buscar secretário." });
   }
-  
-  export async function patchSecretarioArquivo(
-    request: Request,
-    response: Response
-  ) {
-    try {
-      const id = request.params.id;
-      const { arquivado } = request.body;
-  
-      const res = await secretario.findByIdAndUpdate(id, {
-        arquivado,
-      });
-      response.send({ status: "ok", ocorrencias: res });
-    } catch (error) {
-      console.error(error);
+}
+
+// Método PATCH
+export async function updateSecretario(req: Request, res: Response) {
+  try {
+    const secretarioID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
+      return res.status(400).send("ID de secretário inválido.");
     }
-  }
-  
-  // Metodo DELETE:
-  export async function deleteSecretario(request: Request, response: Response) {
-    try {
-      const id = request.params.id;
-  
-      const secretarioEncontrado = await secretario.findById(id);
-  
-      if (!secretarioEncontrado) {
-        return response.status(404).json({ error: "Secretario não encontrado" });
-      }
-  
-      const secretarioExcluido = await secretario.findByIdAndDelete(id);
-  
-      return response.json({
-        message: "Secretario excluído com sucesso",
-        secretario: secretarioExcluido,
-      });
-    } catch (error) {
-      console.error(error);
-      return response.status(500).json({ error: "Erro interno do servidor" });
+    const secretarioAtualizado = await Secretario.findByIdAndUpdate(
+      secretarioID,
+      req.body,
+      { new: true }
+    );
+    if (!secretarioAtualizado) {
+      return res.status(404).send("Secretário não encontrado.");
     }
+    res.json(secretarioAtualizado);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao atualizar secretário." });
   }
+}
+
+export async function updateStatusArquivadoSecretario(req: Request, res: Response) {
+  try {
+    const secretarioID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
+      return res.status(400).send("ID de secretário inválido.");
+    }
+    const { arquivado } = req.body;
+    const secretarioAtualizado = await Secretario.findByIdAndUpdate(
+      secretarioID,
+      { arquivado },
+      { new: true }
+    );
+    if (!secretarioAtualizado) {
+      return res.status(404).send("Secretário não encontrado.");
+    }
+    res.json(secretarioAtualizado);
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Erro ao atualizar o status de arquivado do secretário.",
+    });
+  }
+}
+
+// Método DELETE
+export async function deleteSecretario(req: Request, res: Response) {
+  try {
+    const secretarioID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
+      return res.status(400).send("ID de secretário inválido.");
+    }
+
+    const secretarioEncontrado = await Secretario.findById(secretarioID);
+    if (!secretarioEncontrado) {
+      return res.status(404).json({ error: "Secretário não encontrado." });
+    }
+
+    await Secretario.findByIdAndDelete(secretarioID);
+
+    return res.json({
+      message: "Secretário excluído com sucesso.",
+      secretario: secretarioEncontrado,
+    });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: "Erro interno do servidor." });
+  }
+}

@@ -1,48 +1,42 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
-const userSchema = new mongoose.Schema(
-    {
-      createdAt: {
-        type: Date,
-        default: Date.now(),
-      },
-      nome: {
-        type: String,
-        trim: true,
-      },
-      cpf: {
-        type: Number,
-        unique: true
-      },
-      role: {
-        type: String,
-        enum: ["admin", "student", "secretary", "professor"],
-      },
-      matricula: {
-        type: Number
-      },
-      periodoCursado: {
-        type: Number
-      },
-      disciplina: {
-        type: String
-      },
-      idOrientador: {
-        type: Number
-      },
-      disciplinaMinistrada: {
-        type: String
-      },
-      idSecretaria: {
-        type: Number
-      },
-      senha: {
-        type: String,
-        min: 6,
-        max: 64,
-      },
+interface UserInterface extends Document {
+  nome: string;
+  cpf: string;
+  email: string;
+  senha: string;
+  role: "admin" | "student" | "secretary" | "professor";
+  cargo: number;
+  matricula?: string;
+  periodoCursado?: number;
+  disciplina?: string;
+  idOrientador?: mongoose.Types.ObjectId;
+  disciplinaMinistrada?: string;
+  idSecretaria?: mongoose.Types.ObjectId;
+  arquivado: boolean;
+}
+
+const UserSchema: Schema = new Schema(
+  {
+    nome: { type: String, required: true },
+    cpf: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    senha: { type: String, required: true, minlength: 6, maxlength: 64 },
+    role: {
+      type: String,
+      enum: ["admin", "student", "secretary", "professor"],
+      required: true,
     },
-    { timestamps: true }
-  );
+    cargo: { type: Number, required: true },
+    matricula: { type: String },
+    periodoCursado: { type: Number },
+    disciplina: { type: String },
+    idOrientador: { type: mongoose.Types.ObjectId, ref: "User" },
+    disciplinaMinistrada: { type: String },
+    idSecretaria: { type: mongoose.Types.ObjectId, ref: "User" },
+    arquivado: { type: Boolean, default: false },
+  },
+  { timestamps: true }
+);
 
-export default mongoose.model("User", userSchema);
+export default mongoose.model<UserInterface>("User", UserSchema);

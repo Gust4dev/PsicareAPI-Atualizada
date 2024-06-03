@@ -1,20 +1,21 @@
-import express from "express";
-const router = express.Router();
+import { Router } from "express";
 import {
   createSecretario,
-  getSecretarioById,
-  getSecretarios,
-  patchSecretario,
-  patchSecretarioArquivo,
+  listSecretarios,
+  getSecretarioByID,
+  updateSecretario,
+  updateStatusArquivadoSecretario,
   deleteSecretario,
 } from "../controllers/secretario";
 
-// Rotas Secretario
-router.post("/registroSecretario", createSecretario);
-router.get("/getSecretarios", getSecretarios);
-router.get("/getSecretarioById/:id", getSecretarioById);
-router.patch("/attSecretario/:id", patchSecretario);
-router.patch("/arquivarSecretario", patchSecretarioArquivo);
-router.delete("/deleteSecretario/:id", deleteSecretario);
+const router = Router();
 
-export { router };
+// Rotas secretários
+router.post("/", createSecretario);
+router.get("/", listSecretarios);
+router.get("/:id", getSecretarioByID);
+router.patch("/:id", updateSecretario);
+router.patch("/:id/arquivado", updateStatusArquivadoSecretario);
+router.delete("/:id", deleteSecretario);
+
+export { router as secretarioRouter };
