@@ -6,8 +6,11 @@ import {
   atualizarConsulta,
   deletarConsulta,
 } from '../controllers/consulta';
+import { authMiddleware } from '../middleware/auth_midd';
+
 
 const router = Router();
+router.use(authMiddleware);
 
 // Rotas consulta
 router.post('/', criarConsulta);

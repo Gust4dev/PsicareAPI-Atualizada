@@ -1,12 +1,12 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User from './models/User';
+import User from "../models/user";
 
 const SECRET = process.env.JWT_SECRET || 'defaultSecret';
 
 interface AuthenticatedRequest extends Request {
   user?: string | object;
-  cargo?: number; // Adicione esta propriedade
+  cargo?: number;
 }
 
 // Middleware de autenticação
@@ -26,14 +26,13 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     }
 
     req.user = user;
-    req.cargo = user.cargo; // Adicione o cargo ao objeto req
+    req.cargo = user.cargo;
     next();
   } catch (error) {
     return res.status(401).send('Token inválido.');
   }
 }
 
-// Middleware de autorização
 export function authorize(requiredCargo: number) {
   return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
     if (req.cargo === undefined || req.cargo > requiredCargo) {

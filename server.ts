@@ -2,16 +2,16 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
-import swaggerJsDoc from "swagger-jsdoc"; // Corrigindo a importação
-import swaggerUi from "swagger-ui-express"; // Corrigindo a importação
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 // Importe as rotas individuais
 import alunoRoutes from "./routes/aluno";
 import consultaRoutes from "./routes/consulta";
 import pacienteRoutes from "./routes/paciente";
 import professorRoutes from "./routes/professor";
-import { userRouter } from "./routes/user"; // Importando o roteador do usuário
-import { secretarioRouter } from "./routes/secretario"; // Importando o roteador do secretário
+import { userRouter } from "./routes/user";
+import { secretarioRouter } from "./routes/secretario";
 
 dotenv.config();
 
@@ -34,7 +34,7 @@ mongoose.connect(server).then(
 const swaggerOptions = {
   swaggerDefinition: {
     info: {
-      title: "API-Psicologia-FTT",
+      title: "PsicareApi",
       version: "1.0.0",
       description: "API do sistema para o curso de Psicologia da UniEvangélica",
     },
@@ -42,7 +42,7 @@ const swaggerOptions = {
   apis: ["./routes/*.ts"],
 };
 
-const swaggerDocs = swaggerJsDoc(swaggerOptions); // Corrigindo a criação do objeto
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
 app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
 
 // Middlewares
@@ -54,8 +54,8 @@ app.use("/aluno", alunoRoutes);
 app.use("/consulta", consultaRoutes);
 app.use("/paciente", pacienteRoutes);
 app.use("/professor", professorRoutes);
-app.use("/user", userRouter); // Usando o roteador do usuário
-app.use("/secretario", secretarioRouter); // Usando o roteador do secretário
+app.use("/user", userRouter);
+app.use("/secretario", secretarioRouter);
 
 // Escutar servidor na porta especificada
 app.listen(port, () => {

@@ -1,15 +1,26 @@
-import express from "express";
-import * as pacienteController from "../controllers/paciente";
+import { Router } from 'express';
+import {
+  criarPaciente,
+  listarPacientes,
+  obterPacientePorID,
+  listarPacientesPorIDAluno,
+  atualizarPaciente,
+  atualizarStatusArquivado,
+  deletePaciente
+} from '../controllers/paciente';
+import { authMiddleware } from '../middleware/auth_midd';
 
-const router = express.Router();
+const router = Router();
+router.use(authMiddleware);
 
-router.post("/", pacienteController.criarPaciente);
-router.get("/", pacienteController.listarPacientes);
-router.get("/:id", pacienteController.obterPacientePorID);
-router.get("/aluno/:id", pacienteController.listarPacientesPorIDAluno);
-router.get("/select", pacienteController.listarPacientes);
-router.patch("/:id", pacienteController.atualizarPaciente);
-router.patch("/:id/arquivar", pacienteController.atualizarStatusArquivado);
-router.delete("/:id", pacienteController.deletePaciente);
+// Rotas para Pacientes
+router.post('/', criarPaciente);
+router.get('/', listarPacientes);
+router.get('/:id', obterPacientePorID);
+router.get('/aluno/:id', listarPacientesPorIDAluno);
+router.get('/select', listarPacientes);
+router.patch('/:id', atualizarPaciente);
+router.patch('/:id/arquivar', atualizarStatusArquivado);
+router.delete('/:id', deletePaciente);
 
 export default router;

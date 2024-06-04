@@ -8,8 +8,11 @@ import {
   atualizarStatusArquivado,
   deleteUser,
 } from "../controllers/user";
+import { authMiddleware } from '../middleware/auth_midd';
+
 
 const router = Router();
+router.use(authMiddleware);
 
 // Rotas usuários
 router.post("/", createUser);

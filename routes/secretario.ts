@@ -7,8 +7,11 @@ import {
   updateStatusArquivadoSecretario,
   deleteSecretario,
 } from "../controllers/secretario";
+import { authMiddleware } from '../middleware/auth_midd';
+
 
 const router = Router();
+router.use(authMiddleware);
 
 // Rotas secretários
 router.post("/", createSecretario);
