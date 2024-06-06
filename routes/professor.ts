@@ -8,11 +8,9 @@ import {
   patchProfessorArquivo,
   deleteProfessor,
 } from '../controllers/professor';
-import { authMiddleware } from '../middleware/auth_midd';
 
 
 const router = Router();
-router.use(authMiddleware);
 
 // Routes for Professors
 router.post('/', createProfessor);

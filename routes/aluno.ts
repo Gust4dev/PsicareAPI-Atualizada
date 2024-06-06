@@ -9,11 +9,9 @@ import {
   arquivarAluno,
   deletarAluno,
 } from '../controllers/aluno';
-import { authMiddleware } from '../middleware/auth_midd';
 
 
 const router = Router();
-router.use(authMiddleware);
 
 // Rotas alunos
 router.post('/', criarAluno);

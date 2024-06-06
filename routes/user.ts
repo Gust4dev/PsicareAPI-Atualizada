@@ -8,16 +8,12 @@ import {
   atualizarStatusArquivado,
   deleteUser,
 } from "../controllers/user";
-import { authMiddleware } from '../middleware/auth_midd';
 
 const router = Router();
 
 // Rota de login não protegida
 router.post("/login", loginUser);
 router.post("/", createUser);
-
-// Middleware de autenticação
-router.use(authMiddleware);
 
 // Rotas protegidas
 router.get("/", listarUsers);
