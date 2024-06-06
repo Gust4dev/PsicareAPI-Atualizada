@@ -88,11 +88,7 @@ export async function loginUser(req: Request, res: Response) {
 
     // Gerar token JWT
     const token = jwt.sign({ cpf }, JWT_SECRET!, { expiresIn: "1h" });
-    return res.status(200).send({
-      auth: true,
-      token,
-      user: userInDatabase,
-    });
+    return res.status(200).json({ token });
   } catch (error: any) {
     console.error(error);
     return res.status(500).send("Erro ao realizar login.");

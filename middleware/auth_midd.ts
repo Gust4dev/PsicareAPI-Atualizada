@@ -1,43 +1,25 @@
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import User from "../models/user";
+import dotenv from 'dotenv';
+import { AuthRequest } from "../middleware/authRequest";
 
-const SECRET = process.env.JWT_SECRET || 'defaultSecret';
+dotenv.config();
 
-interface AuthenticatedRequest extends Request {
-  user?: string | object;
-  cargo?: number;
-}
+const JWT_SECRET = process.env.JWT_SECRET || 'your_jwt_secret';
 
-// Middleware de autenticação
-export async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
-  const token = req.headers['x-access-token'] as string;
+export const authMiddleware = (req: AuthRequest, res: Response, next: NextFunction) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
 
   if (!token) {
-    return res.status(403).send('Token não fornecido.');
+    return res.status(403).json({ message: 'Token não fornecido' });
   }
 
   try {
-    const decoded: any = jwt.verify(token, SECRET);
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(401).send('Usuário não encontrado.');
-    }
-
-    req.user = user;
-    req.cargo = user.cargo;
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
     next();
   } catch (error) {
-    return res.status(401).send('Token inválido.');
+    return res.status(401).json({ message: 'Token inválido' });
   }
-}
-
-export function authorize(requiredCargo: number) {
-  return (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-    if (req.cargo === undefined || req.cargo > requiredCargo) {
-      return res.status(403).send('Acesso negado.');
-    }
-    next();
-  };
-}
+};

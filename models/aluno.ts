@@ -1,6 +1,8 @@
 import mongoose, { Document, Schema } from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 interface AlunoInterface extends Document {
+  id: string;
   nome: string;
   email: string;
   dataNascimento: Date;
@@ -18,6 +20,7 @@ interface AlunoInterface extends Document {
 
 const AlunoSchema: Schema = new Schema(
   {
+    id: { type: String, default: uuidv4, unique: true},
     nome: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     dataNascimento: { type: Date, required: true },

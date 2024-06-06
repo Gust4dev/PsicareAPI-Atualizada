@@ -10,13 +10,16 @@ import {
 } from "../controllers/user";
 import { authMiddleware } from '../middleware/auth_midd';
 
-
 const router = Router();
+
+// Rota de login não protegida
+router.post("/login", loginUser);
+router.post("/", createUser);
+
+// Middleware de autenticação
 router.use(authMiddleware);
 
-// Rotas usuários
-router.post("/", createUser);
-router.post("/login", loginUser);
+// Rotas protegidas
 router.get("/", listarUsers);
 router.get("/:id", obterUserPorID);
 router.patch("/:id", patchUser);
