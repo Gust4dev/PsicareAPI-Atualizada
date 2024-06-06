@@ -3,9 +3,7 @@ import { v4 as uuidv4 } from "uuid";
 
 interface ConsultaInterface extends Document {
   id: string;
-  pacienteID: string;
-  pacienteNome: string;
-  title: string;
+  Nome: string;
   start: Date;
   end: Date;
   resourceID: string;
@@ -30,8 +28,7 @@ const RecorrenciaSchema: Schema = new Schema({
 
 const ConsultaSchema: Schema = new Schema({
   id: { type: String, default: uuidv4, unique: true},
-  pacienteNome: { type: String, required: true },
-  title: { type: String, required: true },
+  Nome: { type: String, required: true },
   start: { type: Date, required: true },
   end: { type: Date, required: true },
   resourceID: { type: String, required: true },
