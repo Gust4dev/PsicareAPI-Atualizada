@@ -1,11 +1,25 @@
-import express from "express";
-const router = express.Router();
-import { createUser, loginUser } from "../controllers/user";
+import { Router } from "express";
+import {
+  createUser,
+  loginUser,
+  listarUsers,
+  obterUserPorID,
+  patchUser,
+  atualizarStatusArquivado,
+  deleteUser,
+} from "../controllers/user";
 
-// Rota User:
-router.post("/register", createUser);
+const router = Router();
 
-// Rota Login:
+// Rota de login não protegida
 router.post("/login", loginUser);
+router.post("/", createUser);
 
-export { router };
+// Rotas protegidas
+router.get("/", listarUsers);
+router.get("/:id", obterUserPorID);
+router.patch("/:id", patchUser);
+router.patch("/:id/arquivado", atualizarStatusArquivado);
+router.delete("/:id", deleteUser);
+
+export { router as userRouter };

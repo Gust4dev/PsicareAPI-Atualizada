@@ -1,12 +1,24 @@
-import { Request, response, Response } from "express";
+import { Request, Response } from "express";
 import User from "../models/user";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-const JWT_SECRET =
-  "URWzLAYqnM63NDxcGnskMDnT1GanhVcAJpp6ylI5xio5otZMp2zLQ4ddYjOaT9F3";
-// Funçoes User:
-// Metodo POST:
-export async function createUser(request: Request, response: Response) {
+import mongoose from "mongoose";
+import dotenv from "dotenv";
+
+// Carregar as variáveis de ambiente do arquivo .env
+dotenv.config();
+
+// Obter o valor de JWT_SECRET do arquivo .env
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error("JWT_SECRET não definido no arquivo .env");
+  process.exit(1);
+}
+
+// Funções User
+// Método POST: criar usuário
+export async function createUser(req: Request, res: Response) {
   const {
     nome,
     cpf,
@@ -18,149 +30,158 @@ export async function createUser(request: Request, response: Response) {
     disciplinaMinistrada,
     idSecretaria,
     senha,
-  } = request.body;
+    cargo,
+    arquivado,
+  } = req.body;
 
-  if (!nome) {
-    return response.status(203).send("Insira seu nome.");
-  }
-
-  if (!cpf) {
-    return response.status(203).send("CPF inválido.");
-  }
-
-  if (!role) {
-    return response.status(203).send("Insira sua função.");
-  }
-
-  if (!matricula) {
-    return response.status(203).send("Insira sua matrícula.");
-  }
-
-  if (!periodoCursado) {
-    return response.status(203).send("Insira o periodo sendo cursado.");
-  }
-
-  if (!disciplina) {
-    return response.status(203).send("Insira a disciplina.");
-  }
-
-  if (!idOrientador) {
-    return response.status(203).send("Insira o id do orientador.");
-  }
-
-  if (!disciplinaMinistrada) {
-    return response.status(203).send("Insira a disciplina ministrada.");
-  }
-
-  if (!idSecretaria) {
-    return response.status(203).send("Insira a id da secretária.");
-  }
-
-  if (!senha) {
-    return response.status(203).send("Senha inválida.");
-  }
-
-  if (senha.lenght < 8) {
-    return response
-      .status(203)
-      .send("Senha inválida. Deve possuir mais de 8 caracteres.");
-  }
-
-  // Verificando se a segunda parte do nome existe:
-  if (!nome.split(" ")[1]) {
-    return response.status(203).send("Insira seu nome completo.");
-  }
-
-  // Criptografia da senha:
-  const senhaCriptografada = await bcrypt.hash(senha, 10);
-
-  // Criação de um novo usuário:
-  const user = await new User({
-    nome,
-    cpf,
-    role,
-    matricula,
-    periodoCursado,
-    disciplina,
-    idOrientador,
-    disciplinaMinistrada,
-    idSecretaria,
-    senha: senhaCriptografada,
-  });
-
-  // Se já existe um usuário no BD, o sistema para antes de tentar salvar.
-  const userInDatabaseByCpf = await User.findOne({ cpf }).lean();
-  if (userInDatabaseByCpf?.cpf) {
-    return response
-      .status(203)
-      .send("Já existe um usuário no BD com esse cpf.");
-  }
-
-  // Salvamento do novo usuário no banco de dados:
   try {
-    await user.save();
-    return response.status(200).send("Usuário criado com sucesso.");
-  } catch (e) {
-    console.error(e);
-    return response.status(203).send("Não foi possivel criar usuário.");
+    // Verificar se o cpf já existe no banco de dados
+    const userExistente = await User.findOne({ cpf });
+    if (userExistente) {
+      return res.status(400).send("Já existe um usuário com este CPF.");
+    }
+
+    // Criptografia da senha
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+    // Criar novo usuário
+    const novoUser = new User({
+      nome,
+      cpf,
+      role,
+      matricula,
+      periodoCursado,
+      disciplina,
+      idOrientador,
+      disciplinaMinistrada,
+      idSecretaria,
+      senha: senhaCriptografada,
+      cargo,
+      arquivado,
+    });
+
+    await novoUser.save();
+    return res.status(201).send("Usuário criado com sucesso.");
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).send("Erro ao criar o usuário.");
   }
 }
 
-// Funçoes User:
-// Metodo POST:
-export async function loginUser(request: Request, response: Response) {
-  const { cpf, password } = request.body;
-  if (!cpf) {
-    return response.status(203).send("CPF inválido.");
+// Método POST: login de usuário
+export async function loginUser(req: Request, res: Response) {
+  const { cpf, senha } = req.body;
+
+  try {
+    const userInDatabase = await User.findOne({ cpf }).lean();
+
+    // Verificar se o usuário existe no banco de dados
+    if (!userInDatabase) {
+      return res.status(400).send("Usuário não encontrado.");
+    }
+
+    // Comparar a senha fornecida com a senha criptografada armazenada no banco de dados
+    const isSenhaValida = await bcrypt.compare(senha, userInDatabase.senha);
+    if (!isSenhaValida) {
+      return res.status(400).send("Senha incorreta.");
+    }
+
+    // Gerar token JWT
+    const token = jwt.sign({ cpf }, JWT_SECRET!, { expiresIn: "1h" });
+    return res.status(200).json({ token });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).send("Erro ao realizar login.");
   }
+}
 
-  if (!password) {
-    return response.status(203).send("Senha inválida.");
+// Método GET: listar usuários
+export async function listarUsers(req: Request, res: Response) {
+  try {
+    const users = await User.find({});
+    res.json(users);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao buscar usuários." });
   }
+}
 
-  if (password.lenght < 8) {
-    return response
-      .status(203)
-      .send("Senha inválida. Deve possuir mais de 8 caracteres.");
+// Método GET: obter usuário por ID
+export async function obterUserPorID(req: Request, res: Response) {
+  try {
+    const userID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(userID)) {
+      return res.status(400).send("ID de usuário inválido.");
+    }
+    const user = await User.findById(userID);
+    if (!user) {
+      return res.status(404).send("Usuário não encontrado.");
+    }
+    res.json(user);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao buscar usuário." });
   }
+}
 
-  const userInDatabaseByCpf = await User.findOne({ cpf }).lean();
-
-  // Vendo se usuário existe no DB:
-  if (!userInDatabaseByCpf) {
-    return response
-      .status(203)
-      .send("Não foi possivel encontrar um usuário com esse CPF.");
+// Método PATCH: atualizar usuário
+export async function patchUser(req: Request, res: Response) {
+  try {
+    const userID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(userID)) {
+      return res.status(400).send("ID de usuário inválido.");
+    }
+    const userAtualizado = await User.findByIdAndUpdate(userID, req.body, {
+      new: true,
+    });
+    if (!userAtualizado) {
+      return res.status(404).send("Usuário não encontrado.");
+    }
+    res.json(userAtualizado);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao atualizar usuário." });
   }
+}
 
-  // Vendo se senha existe no DB:
-  if (!userInDatabaseByCpf.senha) {
-    return response.status(203).send("erro");
-  }
-
-  const databaseSenhaCriptografada = userInDatabaseByCpf.senha;
-  const booleanReqSenhaCriptografada = await bcrypt.compare(
-    password,
-    databaseSenhaCriptografada
-  ); // 'senha' aqui, é a que vem no request.
-
-  // Se a comparação for 'false', retorna senha incorreta.
-  if (!booleanReqSenhaCriptografada) {
-    return response.status(203).send("Senha incorreta.");
-  }
-  const token = jwt.sign({ email: cpf }, JWT_SECRET, {
-    expiresIn: "1h",
-  });
-  console.log("Fez login e gerou token.");
-  if (response.status(201)) {
-    return response.status(200).send({
-      auth: true,
-      token: token,
-      user: userInDatabaseByCpf,
+// Método PATCH: atualizar status arquivado
+export async function atualizarStatusArquivado(req: Request, res: Response) {
+  try {
+    const userID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(userID)) {
+      return res.status(400).send("ID de usuário inválido.");
+    }
+    const { arquivado } = req.body;
+    const userAtualizado = await User.findByIdAndUpdate(userID, { arquivado }, { new: true });
+    if (!userAtualizado) {
+      return res.status(404).send("Usuário não encontrado.");
+    }
+    res.json(userAtualizado);
+  } catch (error: any) {
+    res.status(500).json({
+      message: "Erro ao atualizar o status de arquivado do usuário.",
     });
   }
-  // Se comparação for 'true', retorna que pode acessar o sistema.
-  return response
-    .status(200)
-    .send("Login feito com sucesso. Usuário pode acessar o sistema.");
+}
+
+// Método DELETE: deletar usuário
+export async function deleteUser(req: Request, res: Response) {
+  try {
+    const userID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(userID)) {
+      return res.status(400).send("ID de usuário inválido.");
+    }
+
+    const userEncontrado = await User.findById(userID);
+    if (!userEncontrado) {
+      return res.status(404).json({ error: "Usuário não encontrado." });
+    }
+
+    await User.findByIdAndDelete(userID);
+
+    return res.json({
+      message: "Usuário excluído com sucesso.",
+      user: userEncontrado,
+    });
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: "Erro interno do servidor." });
+  }
 }

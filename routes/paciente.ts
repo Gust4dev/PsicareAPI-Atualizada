@@ -1,24 +1,24 @@
-import express from "express";
-const router = express.Router();
+import { Router } from 'express';
 import {
-  createPaciente,
-  getPaciente,
-  getPacienteById,
-  getPacientesByIdAluno,
-  patchPaciente,
-  patchPacienteArquivo,
-  deletePaciente,
-  getPacientesSelect,
-} from "../controllers/paciente";
+  criarPaciente,
+  listarPacientes,
+  obterPacientePorID,
+  listarPacientesPorIDAluno,
+  atualizarPaciente,
+  atualizarStatusArquivado,
+  deletePaciente
+} from '../controllers/paciente';
 
-// Rotas Paciente
-router.post("/registroPaciente", createPaciente);
-router.get("/getPacientes", getPaciente);
-router.get("/getPacienteById/:id", getPacienteById);
-router.get("/getPacientesByIdAluno/:id", getPacientesByIdAluno);
-router.get("/getPacientesSelect", getPacientesSelect);
-router.patch("/attPaciente/:id", patchPaciente);
-router.patch("/arquivarPacientes", patchPacienteArquivo);
-router.delete("/deletePaciente/:id", deletePaciente);
+const router = Router();
 
-export { router };
+// Rotas para Pacientes
+router.post('/', criarPaciente);
+router.get('/', listarPacientes);
+router.get('/:id', obterPacientePorID);
+router.get('/aluno/:id', listarPacientesPorIDAluno);
+router.get('/select', listarPacientes);
+router.patch('/:id', atualizarPaciente);
+router.patch('/:id/arquivar', atualizarStatusArquivado);
+router.delete('/:id', deletePaciente);
+
+export default router;

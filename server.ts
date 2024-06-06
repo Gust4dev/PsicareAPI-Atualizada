@@ -1,62 +1,63 @@
-import "dotenv/config";
-import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import swaggerJsDoc from "swagger-jsdoc";
+import swaggerUi from "swagger-ui-express";
 
 // Importe as rotas individuais
-import * as alunoRoutes from "./routes/aluno";
-import * as consultaRoutes from "./routes/consulta";
-import * as pacienteRoutes from "./routes/paciente";
-import * as professorRoutes from "./routes/professor";
-import * as userRoutes from "./routes/user";
-import * as secretarioRoutes from "./routes/secretario";
+import alunoRoutes from "./routes/aluno";
+import consultaRoutes from "./routes/consulta";
+import pacienteRoutes from "./routes/paciente";
+import professorRoutes from "./routes/professor";
+import { userRouter } from "./routes/user";
+import { secretarioRouter } from "./routes/secretario";
+
+dotenv.config();
 
 const app = express();
-const port = 8080;
+const port = process.env.PORT || 8080;
 
-// Variáveis da documentação
-const swaggerJsDoc = require("swagger-jsdoc");
-const swaggerUi = require("swagger-ui-express");
+// Variáveis de ambiente
+const { DB_USER, DB_PASSWORD, DB_CLUSTER_INFO, JWT_SECRET } = process.env;
+const server = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_INFO}`;
 
-const swaggerOptions = {
-  swaggerDefinition: {
-    info: {
-      title: "API-Psicologia-FTT",
-      version: "1.0.0",
-      description: "API do sistema para o curso de Psicologia da UniEvangélica",
-    },
-  },
-  apis: ["server.ts", "./routes/*.ts"],
-};
-
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
-app.use(cors());
-
-// Valores de acesso em .env:
-const user = process.env.DB_USER;
-const password = process.env.DB_PASSWORD;
-const clusterInfo = process.env.DB_CLUSTER_INFO;
-const server = `mongodb+srv://gustavosantos:admin123@db-psicare.qd3tyih.mongodb.net/`;
-
-// Conexão com o BD:
+// Conexão com o BD
 mongoose.connect(server).then(
   () => {
-    console.log("Database connection successfull!");
+    console.log("Database connection successful!");
   },
   (e: Error) => console.error(e)
 );
 
-// Rotas:
-app.use(express.json());
-app.use("/aluno", alunoRoutes.router);
-app.use("/consulta", consultaRoutes.router);
-app.use("/paciente", pacienteRoutes.router);
-app.use("/professor", professorRoutes.router);
-app.use("/user", userRoutes.router);
-app.use("/secretario", secretarioRoutes.router);
+// Configuração do Swagger
+const swaggerOptions = {
+  swaggerDefinition: {
+    info: {
+      title: "PsicareApi",
+      version: "1.0.0",
+      description: "API do sistema para o curso de Psicologia da UniEvangélica",
+    },
+  },
+  apis: ["./routes/*.ts"],
+};
 
-// Escutar servidor na porta 3000:
+const swaggerDocs = swaggerJsDoc(swaggerOptions);
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+
+// Middlewares
+app.use(cors());
+app.use(express.json());
+
+// Rotas
+app.use("/aluno", alunoRoutes);
+app.use("/consulta", consultaRoutes);
+app.use("/paciente", pacienteRoutes);
+app.use("/professor", professorRoutes);
+app.use("/user", userRouter);
+app.use("/secretario", secretarioRouter);
+
+// Escutar servidor na porta especificada
 app.listen(port, () => {
   console.log(`App está rodando na porta ${port}`);
 });

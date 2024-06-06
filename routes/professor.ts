@@ -1,22 +1,24 @@
-import express from "express";
-const router = express.Router();
+import { Router } from 'express';
 import {
   createProfessor,
   getProfessores,
   getProfessorById,
+  getProfessoresSelect,
   patchProfessor,
   patchProfessorArquivo,
   deleteProfessor,
-  getProfessoresSelect,
-} from "../controllers/professor";
+} from '../controllers/professor';
 
-// Rotas Professor
-router.post("/registroProfessor", createProfessor);
-router.get("/getProfessores", getProfessores);
-router.get("/getProfessorById/:id", getProfessorById);
-router.get("/getProfessoresSelect", getProfessoresSelect);
-router.patch("/attProfessor/:id", patchProfessor);
-router.patch("/arquivarProfessor", patchProfessorArquivo);
-router.delete("/deleteProfessor/:id", deleteProfessor);
 
-export { router };
+const router = Router();
+
+// Routes for Professors
+router.post('/', createProfessor);
+router.get('/', getProfessores);
+router.get('/:id', getProfessorById);
+router.get('/select', getProfessoresSelect);
+router.patch('/:id', patchProfessor);
+router.patch('/:id/archive', patchProfessorArquivo);
+router.delete('/:id', deleteProfessor);
+
+export default router;

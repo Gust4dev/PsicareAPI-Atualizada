@@ -1,16 +1,20 @@
-import express from "express";
-const router = express.Router();
+import { Router } from 'express';
 import {
-  createConsulta,
-  getConsultas,
-  patchConsulta,
-  deleteConsulta,
-} from "../controllers/consulta";
+  criarConsulta,
+  listarConsultas,
+  obterConsultaPorID,
+  atualizarConsulta,
+  deletarConsulta,
+} from '../controllers/consulta';
 
-// Rotas Consulta
-router.post("/registrarConsulta", createConsulta);
-router.get("/getConsulta", getConsultas);
-router.patch("/attConsulta/:id", patchConsulta);
-router.delete("/deleteConsulta/:id", deleteConsulta);
 
-export { router };
+const router = Router();
+
+// Rotas consulta
+router.post('/', criarConsulta);
+router.get('/', listarConsultas);
+router.get('/:id', obterConsultaPorID);
+router.patch('/:id', atualizarConsulta);
+router.delete('/:id', deletarConsulta);
+
+export default router;

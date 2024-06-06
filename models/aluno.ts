@@ -1,57 +1,37 @@
-import mongoose from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
-const alunoSchema = new mongoose.Schema (
-    {
-        createdAt: {
-            type: Date,
-            default: Date.now(),    
-          },
-          matricula: {
-            type: String,
-            required: true,
-          },
-          periodo: {
-            type: String,
-            require: true,  
-          },
-          nome: {
-            type: String,
-            required: true,
-            trim: true,
-          },
-          cpf: {
-            type: String,
-            required: true,
-          },
-          telefoneContato: {
-            type: String,
-            required: true,
-          },
-          professorID: {
-            type: mongoose.Schema.Types.ObjectId,
-            required: true,
-          },
-          professorNome: {
-            type: String,
-            required: true,
-          },
-          professorDisciplina: {
-            type: String,
-            ref:"Professor",
-            required: true,
-          },
-          email: {
-            type: String,
-            required: true,
-          },
-          arquivado: {
-            type: Boolean,
-            default: false,
-            required:false,
-          },
-          
-    },
-    { timestamps: true }
+interface AlunoInterface extends Document {
+  id: string;
+  nome: string;
+  email: string;
+  matricula: string;
+  semestre: number;
+  dataIngresso: Date;
+  telefone: string;
+  endereco?: string;
+  cpf: string;
+  arquivado: boolean;
+  role: string;
+  cargo: number;
+}
+
+const AlunoSchema: Schema = new Schema(
+  {
+    id: { type: String, default: uuidv4, unique: true },
+    nome: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    matricula: { type: String, required: true, unique: true },
+    semestre: { type: Number, required: true },
+    dataIngresso: { type: Date, required: true },
+    telefone: { type: String, required: true },
+    endereco: { type: String },
+    cpf: { type: String, required: true, unique: true },
+    arquivado: { type: Boolean, default: false },
+    role: { type: String, default: "Estudante" },
+    cargo: { type: Number, required: true },
+  },
+  { timestamps: true }
 );
 
-export default mongoose.model("Aluno", alunoSchema);
+export default mongoose.model<AlunoInterface>("Aluno", AlunoSchema);
