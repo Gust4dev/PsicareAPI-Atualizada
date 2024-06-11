@@ -31,7 +31,6 @@ export async function createUser(req: Request, res: Response) {
     idSecretaria,
     senha,
     cargo,
-    arquivado,
   } = req.body;
 
   try {
@@ -57,7 +56,6 @@ export async function createUser(req: Request, res: Response) {
       idSecretaria,
       senha: senhaCriptografada,
       cargo,
-      arquivado,
     });
 
     await novoUser.save();
@@ -141,26 +139,6 @@ export async function patchUser(req: Request, res: Response) {
   }
 }
 
-// Método PATCH: atualizar status arquivado
-export async function atualizarStatusArquivado(req: Request, res: Response) {
-  try {
-    const userID = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(userID)) {
-      return res.status(400).send("ID de usuário inválido.");
-    }
-    const { arquivado } = req.body;
-    const userAtualizado = await User.findByIdAndUpdate(userID, { arquivado }, { new: true });
-    if (!userAtualizado) {
-      return res.status(404).send("Usuário não encontrado.");
-    }
-    res.json(userAtualizado);
-  } catch (error: any) {
-    res.status(500).json({
-      message: "Erro ao atualizar o status de arquivado do usuário.",
-    });
-  }
-}
-
 // Método DELETE: deletar usuário
 export async function deleteUser(req: Request, res: Response) {
   try {
@@ -183,5 +161,15 @@ export async function deleteUser(req: Request, res: Response) {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({ error: "Erro interno do servidor." });
+  }
+}
+
+// Metodo para receber ultimo usuario criado
+export const obterUltimoUserCriado = async (req: Request, res: Response) => {
+  try {
+    const ultimoUser = await User.findOne().sort({ createdAt: -1 });
+    res.json(ultimoUser);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar o último usuário criado' });
   }
 }

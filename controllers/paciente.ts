@@ -32,7 +32,6 @@ export async function criarPaciente(req: Request, res: Response) {
     tipoDeTratamento,
     alunoUnieva,
     funcionarioUnieva,
-    arquivado,
   } = req.body;
 
   // Verificar se o cpf já existe no bd
@@ -41,10 +40,12 @@ export async function criarPaciente(req: Request, res: Response) {
     return res.status(400).send("Já existe um paciente com este CPF.");
   }
 
- const alunoOcupado = await Paciente.findOne({alunoUnieva});
- if(alunoOcupado) {
-  return res.status(400).send("Esse aluno já está trabalhando com um paciente")
- }
+  const alunoOcupado = await Paciente.findOne({ alunoUnieva });
+  if (alunoOcupado) {
+    return res
+      .status(400)
+      .send("Esse aluno já está trabalhando com um paciente");
+  }
 
   // criar paciente
   const novoPaciente = new Paciente({
@@ -76,7 +77,6 @@ export async function criarPaciente(req: Request, res: Response) {
     tipoDeTratamento,
     alunoUnieva,
     funcionarioUnieva,
-    arquivado,
   });
 
   try {
@@ -145,35 +145,9 @@ export async function atualizarPaciente(req: Request, res: Response) {
   }
 }
 
-export async function atualizarStatusArquivado(req: Request, res: Response) {
-  try {
-    const pacienteID = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(pacienteID)) {
-      return res.status(400).send("ID de paciente inválido.");
-    }
-    const { arquivado } = req.body;
-    const pacienteAtualizado = await Paciente.findByIdAndUpdate(
-      pacienteID,
-      { arquivado },
-      { new: true }
-    );
-    if (!pacienteAtualizado) {
-      return res.status(404).send("Paciente não encontrado.");
-    }
-    res.json(pacienteAtualizado);
-  } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        message: "Erro ao atualizar o status de arquivado do paciente.",
-      });
-  }
-}
-
 export async function deletePaciente(request: Request, response: Response) {
   try {
     const pacienteID = request.params.id;
-
     const pacienteEncontrado = await Paciente.findById(pacienteID);
 
     if (!pacienteEncontrado) {
@@ -191,3 +165,18 @@ export async function deletePaciente(request: Request, response: Response) {
     return response.status(500).json({ error: "Erro interno do servidor" });
   }
 }
+
+// Metodo para receber ultimo paciente criado
+export const obterUltimoPacienteCriado = async (
+  req: Request,
+  res: Response
+) => {
+  try {
+    const ultimoPaciente = await Paciente.findOne().sort({ createdAt: -1 });
+    res.json(ultimoPaciente);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar o último paciente criado" });
+  }
+};

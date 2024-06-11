@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 // Funções Secretario
 // Método POST
 export async function createSecretario(req: Request, res: Response) {
-  const { id, nome, cpf, telefone, email, turno, arquivado } = req.body;
+  const { id, nome, cpf, telefone, email, turno } = req.body;
 
   try {
     // Verificar se o cpf já existe no banco de dados
@@ -22,7 +22,6 @@ export async function createSecretario(req: Request, res: Response) {
       telefone,
       email,
       turno,
-      arquivado,
     });
 
     await novoSecretario.save();
@@ -80,32 +79,6 @@ export async function updateSecretario(req: Request, res: Response) {
   }
 }
 
-export async function updateStatusArquivadoSecretario(
-  req: Request,
-  res: Response
-) {
-  try {
-    const secretarioID = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
-      return res.status(400).send("ID de secretário inválido.");
-    }
-    const { arquivado } = req.body;
-    const secretarioAtualizado = await Secretario.findByIdAndUpdate(
-      secretarioID,
-      { arquivado },
-      { new: true }
-    );
-    if (!secretarioAtualizado) {
-      return res.status(404).send("Secretário não encontrado.");
-    }
-    res.json(secretarioAtualizado);
-  } catch (error: any) {
-    res.status(500).json({
-      message: "Erro ao atualizar o status de arquivado do secretário.",
-    });
-  }
-}
-
 // Método DELETE
 export async function deleteSecretario(req: Request, res: Response) {
   try {
@@ -128,5 +101,15 @@ export async function deleteSecretario(req: Request, res: Response) {
   } catch (error: any) {
     console.error(error);
     return res.status(500).json({ error: "Erro interno do servidor." });
+  }
+}
+
+// Metodo para receber ultimo secretario criado
+export const obterUltimoSecretarioCriado = async (req: Request, res: Response) => {
+  try {
+    const ultimoSecretario = await Secretario.findOne().sort({ createdAt: -1 });
+    res.json(ultimoSecretario);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar o último secretario criado' });
   }
 }

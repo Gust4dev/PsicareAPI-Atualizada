@@ -4,8 +4,8 @@ import {
   listSecretarios,
   getSecretarioByID,
   updateSecretario,
-  updateStatusArquivadoSecretario,
   deleteSecretario,
+  obterUltimoSecretarioCriado,
 } from "../controllers/secretario";
 
 
@@ -16,7 +16,8 @@ router.post("/", createSecretario);
 router.get("/", listSecretarios);
 router.get("/:id", getSecretarioByID);
 router.patch("/:id", updateSecretario);
-router.patch("/:id/arquivado", updateStatusArquivadoSecretario);
 router.delete("/:id", deleteSecretario);
+router.get('/ultimo', obterUltimoSecretarioCriado);
 
-export { router as secretarioRouter };
+export default router;
+

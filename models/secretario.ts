@@ -6,7 +6,6 @@ interface SecretarioInterface extends Document {
   email: string;
   cpf: string;
   telefone: string;
-  arquivado: boolean;
   role: string;
   cargo: number;
   turno: string;
@@ -20,7 +19,6 @@ const SecretarioSchema: Schema = new Schema(
     cpf: { type: String, required: true, unique: true },
     telefone: { type: String, required: true },
     turno: { type: String, required: true },
-    arquivado: { type: Boolean, default: false },
     role: { type: String, default: "Secretário" },
     cargo: { type: Number, default: 1 },
   },

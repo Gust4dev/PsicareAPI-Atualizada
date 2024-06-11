@@ -5,8 +5,8 @@ import {
   getProfessorById,
   getProfessoresSelect,
   patchProfessor,
-  patchProfessorArquivo,
   deleteProfessor,
+  obterUltimoProfessorCriado,
 } from '../controllers/professor';
 
 
@@ -18,7 +18,7 @@ router.get('/', getProfessores);
 router.get('/:id', getProfessorById);
 router.get('/select', getProfessoresSelect);
 router.patch('/:id', patchProfessor);
-router.patch('/:id/archive', patchProfessorArquivo);
 router.delete('/:id', deleteProfessor);
+router.get('/ultimo', obterUltimoProfessorCriado);
 
 export default router;

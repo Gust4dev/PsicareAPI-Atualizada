@@ -5,8 +5,8 @@ import {
   listarUsers,
   obterUserPorID,
   patchUser,
-  atualizarStatusArquivado,
   deleteUser,
+  obterUltimoUserCriado,
 } from "../controllers/user";
 
 const router = Router();
@@ -19,7 +19,7 @@ router.post("/", createUser);
 router.get("/", listarUsers);
 router.get("/:id", obterUserPorID);
 router.patch("/:id", patchUser);
-router.patch("/:id/arquivado", atualizarStatusArquivado);
 router.delete("/:id", deleteUser);
+router.get('/ultimo', obterUltimoUserCriado);
 
-export { router as userRouter };
+export default router;

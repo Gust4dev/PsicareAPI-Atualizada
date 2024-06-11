@@ -7,12 +7,11 @@ export async function criarAluno(req: Request, res: Response) {
     periodo,
     nome,
     cpf,
-    telefoneContato,
+    telefone,
     professorID,
     professorNome,
     professorDisciplina,
     email,
-    arquivado,
   } = req.body;
 
   // funções aluno
@@ -21,12 +20,11 @@ export async function criarAluno(req: Request, res: Response) {
     periodo,
     nome,
     cpf,
-    telefoneContato,
+    telefone,
     professorID,
     professorNome,
     professorDisciplina,
     email,
-    arquivado,
     role: "Estudante",
   });
 
@@ -100,27 +98,6 @@ export async function atualizarAluno(req: Request, res: Response) {
   }
 }
 
-export async function arquivarAluno(req: Request, res: Response) {
-  try {
-    const id = req.params.id;
-    const { arquivado } = req.body;
-
-    const alunoAtualizado = await Aluno.findByIdAndUpdate(
-      id,
-      { arquivado },
-      { new: true }
-    );
-
-    if (!alunoAtualizado) {
-      return res.status(404).send("Aluno não encontrado");
-    }
-
-    res.json(alunoAtualizado);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-}
-
 export async function deletarAluno(req: Request, res: Response) {
   try {
     const id = req.params.id;
@@ -137,5 +114,15 @@ export async function deletarAluno(req: Request, res: Response) {
     });
   } catch (error: any) {
     res.status(500).json({ error: "Erro interno do servidor" });
+  }
+}
+
+// Metodo para receber ultimo aluno criado
+export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
+  try {
+    const ultimoAluno = await Aluno.findOne().sort({ createdAt: -1 });
+    res.json(ultimoAluno);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar o último aluno criado' });
   }
 }

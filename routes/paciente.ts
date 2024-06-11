@@ -5,8 +5,8 @@ import {
   obterPacientePorID,
   listarPacientesPorIDAluno,
   atualizarPaciente,
-  atualizarStatusArquivado,
-  deletePaciente
+  deletePaciente,
+  obterUltimoPacienteCriado,
 } from '../controllers/paciente';
 
 const router = Router();
@@ -18,7 +18,7 @@ router.get('/:id', obterPacientePorID);
 router.get('/aluno/:id', listarPacientesPorIDAluno);
 router.get('/select', listarPacientes);
 router.patch('/:id', atualizarPaciente);
-router.patch('/:id/arquivar', atualizarStatusArquivado);
 router.delete('/:id', deletePaciente);
+router.get('/ultimo', obterUltimoPacienteCriado);
 
 export default router;

@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface UserInterface extends Document {
+  id: number;
   nome: string;
   cpf: string;
   email: string;
@@ -13,11 +14,11 @@ interface UserInterface extends Document {
   idOrientador?: mongoose.Types.ObjectId;
   disciplinaMinistrada?: string;
   idSecretaria?: mongoose.Types.ObjectId;
-  arquivado: boolean;
 }
 
 const UserSchema: Schema = new Schema(
   {
+    id: { type: Number, unique: true },
     nome: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },
@@ -27,14 +28,13 @@ const UserSchema: Schema = new Schema(
       enum: ["admin", "student", "secretary", "professor"],
       required: true,
     },
-    cargo: { type: Number, required: true },
+    cargo: { type: Number, default: 1 },
     matricula: { type: String },
     periodoCursado: { type: Number },
     disciplina: { type: String },
     idOrientador: { type: mongoose.Types.ObjectId, ref: "User" },
     disciplinaMinistrada: { type: String },
     idSecretaria: { type: mongoose.Types.ObjectId, ref: "User" },
-    arquivado: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

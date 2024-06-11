@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface ConsultaInterface extends Document {
+  id: number;
   Nome: string;
   start: Date;
   end: Date;
@@ -16,7 +17,6 @@ interface ConsultaInterface extends Document {
   createAt: Date;
   AlunoID: string;
   sala: string;
-  cargo: number;
 }
 
 const RecorrenciaSchema: Schema = new Schema({
@@ -25,6 +25,7 @@ const RecorrenciaSchema: Schema = new Schema({
 });
 
 const ConsultaSchema: Schema = new Schema({
+  id: { type: Number, unique: true },
   Nome: { type: String, required: true },
   start: { type: Date, required: true },
   end: { type: Date, required: true },
@@ -37,7 +38,8 @@ const ConsultaSchema: Schema = new Schema({
   createAt: { type: Date, default: Date.now },
   AlunoID: { type: String, required: true },
   sala: { type: String, required: true },
-  cargp: {type: Number, required: true },
-});
+},
+  { timestamps: true }
+);
 
 export default mongoose.model<ConsultaInterface>("Consulta", ConsultaSchema);

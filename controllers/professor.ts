@@ -1,14 +1,13 @@
 import { Request, Response } from "express";
 import Professor from "../models/professor";
-import aluno from "../models/aluno";
 
 export async function createProfessor(req: Request, res: Response) {
   try {
-    const { nome, cpf, telefoneContato, email, disciplina } = req.body;
+    const { nome, cpf, telefone, email, disciplina } = req.body;
     const newProfessor = new Professor({
       nome,
       cpf,
-      telefoneContato,
+      telefone,
       email,
       disciplina,
     });
@@ -78,27 +77,6 @@ export async function patchProfessor(req: Request, res: Response) {
   }
 }
 
-export async function patchProfessorArquivo(req: Request, res: Response) {
-  try {
-    const { arquivado } = req.body;
-    const updatedProfessor = await Professor.findByIdAndUpdate(
-      req.params.id,
-      { arquivado },
-      { new: true }
-    );
-    if (!updatedProfessor) {
-      return res.status(404).json({ message: "Professor não encontrado." });
-    }
-    res.json({
-      message: "Professor arquivado com sucesso.",
-      professor: updatedProfessor,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao arquivar professor." });
-  }
-}
-
 export async function deleteProfessor(req: Request, res: Response) {
   try {
     const deletedProfessor = await Professor.findByIdAndDelete(req.params.id);
@@ -112,5 +90,15 @@ export async function deleteProfessor(req: Request, res: Response) {
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: "Erro ao excluir professor." });
+  }
+}
+
+// Metodo para receber ultimo professor criado
+export const obterUltimoProfessorCriado = async (req: Request, res: Response) => {
+  try {
+    const ultimoProfessor = await Professor.findOne().sort({ createdAt: -1 });
+    res.json(ultimoProfessor);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar o último professor criado' });
   }
 }

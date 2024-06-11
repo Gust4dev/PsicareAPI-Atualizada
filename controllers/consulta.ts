@@ -134,3 +134,13 @@ export async function deletarConsulta(req: Request, res: Response) {
     res.status(500).json({ error: "Erro interno do servidor." });
   }
 }
+
+// Metodo para receber ultima consulta criada
+export const obterUltimaConsultaCriada = async (req: Request, res: Response) => {
+  try {
+    const ultimaConsulta = await Consulta.findOne().sort({ createdAt: -1 });
+    res.json(ultimaConsulta);
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar a última consulta criada' });
+  }
+}

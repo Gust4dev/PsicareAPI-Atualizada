@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface PacienteInterface extends Document {
+  id: number;
   nomeCompleto: string;
   cpf: string;
   dataDeNascimento: Date;
@@ -29,12 +30,11 @@ interface PacienteInterface extends Document {
   tipoDeTratamento: string;
   alunoUnieva?: boolean;
   funcionarioUnieva?: boolean;
-  arquivado: boolean;
-  cargo: number;
 }
 
 const PacienteSchema: Schema = new Schema(
   {
+    id: { type: Number, unique: true },
     nomeCompleto: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
     dataDeNascimento: { type: Date, required: true },
@@ -63,8 +63,6 @@ const PacienteSchema: Schema = new Schema(
     tipoDeTratamento: { type: String, required: true },
     alunoUnieva: { type: Boolean },
     funcionarioUnieva: { type: Boolean },
-    arquivado: { type: Boolean, default: false },
-    cargo: { type: Number, required: true },
   },
   { timestamps: true }
 );

@@ -1,24 +1,24 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface ProfessorInterface extends Document {
+  id: number;
   nome: string;
   cpf: string;
   telefoneContato: string;
   email: string;
   disciplina: string;
-  arquivado: boolean;
   cargo: number;
 }
 
 const professorSchema: Schema = new Schema(
   {
+    id: { type: Number, unique: true },
     nome: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
     telefoneContato: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     disciplina: { type: String, required: true },
-    arquivado: { type: Boolean, default: false },
-    cargo: { type: Number, required: true },
+    cargo: { type: Number, default: 3 },
   },
   { timestamps: true }
 );

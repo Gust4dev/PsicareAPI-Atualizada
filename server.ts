@@ -5,13 +5,13 @@ import dotenv from "dotenv";
 import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
-// Importe as rotas individuais
+// rotas
 import alunoRoutes from "./routes/aluno";
 import consultaRoutes from "./routes/consulta";
 import pacienteRoutes from "./routes/paciente";
 import professorRoutes from "./routes/professor";
-import { userRouter } from "./routes/user";
-import { secretarioRouter } from "./routes/secretario";
+import secretarioRouter from "./routes/secretario";
+import userRouter from "./routes/user";
 
 dotenv.config();
 
@@ -19,7 +19,7 @@ const app = express();
 const port = process.env.PORT || 8080;
 
 // Variáveis de ambiente
-const { DB_USER, DB_PASSWORD, DB_CLUSTER_INFO, JWT_SECRET } = process.env;
+const { DB_USER, DB_PASSWORD, DB_CLUSTER_INFO, } = process.env;
 const server = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_INFO}`;
 
 // Conexão com o BD

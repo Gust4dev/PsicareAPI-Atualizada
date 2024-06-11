@@ -6,8 +6,8 @@ import {
   listarNomesAlunos,
   listarAlunosPorProfessorID,
   atualizarAluno,
-  arquivarAluno,
   deletarAluno,
+  obterUltimoAlunoCriado,
 } from "../controllers/aluno";
 import { authMiddleware } from "../middleware/auth";
 
@@ -20,7 +20,7 @@ router.get("/:id", obterAlunoPorID);
 router.get("/select", listarNomesAlunos);
 router.get("/professor/:id", listarAlunosPorProfessorID);
 router.patch("/:id", atualizarAluno);
-router.patch("/:id/archive", arquivarAluno);
 router.delete("/:id", deletarAluno);
+router.get('/ultimo', obterUltimoAlunoCriado);
 
 export default router;
