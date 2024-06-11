@@ -1,8 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 
 interface UserInterface extends Document {
-  id: string;
   nome: string;
   cpf: string;
   email: string;
@@ -20,7 +18,6 @@ interface UserInterface extends Document {
 
 const UserSchema: Schema = new Schema(
   {
-    id: { type: String, default: uuidv4, unique: true },
     nome: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
     email: { type: String, required: true, unique: true },

@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
   criarAluno,
   listarAlunos,
@@ -8,19 +8,19 @@ import {
   atualizarAluno,
   arquivarAluno,
   deletarAluno,
-} from '../controllers/aluno';
-
+} from "../controllers/aluno";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
 // Rotas alunos
-router.post('/', criarAluno);
-router.get('/', listarAlunos);
-router.get('/:id', obterAlunoPorID);
-router.get('/select', listarNomesAlunos);
-router.get('/professor/:id', listarAlunosPorProfessorID);
-router.patch('/:id', atualizarAluno);
-router.patch('/:id/archive', arquivarAluno);
-router.delete('/:id', deletarAluno);
+router.post("/", authMiddleware(2), criarAluno);
+router.get("/", authMiddleware(4), listarAlunos);
+router.get("/:id",  obterAlunoPorID);
+router.get("/select", listarNomesAlunos);
+router.get("/professor/:id", listarAlunosPorProfessorID);
+router.patch("/:id", atualizarAluno);
+router.patch("/:id/archive", arquivarAluno);
+router.delete("/:id", deletarAluno);
 
 export default router;

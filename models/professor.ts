@@ -1,8 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
-// import { v4 as uuidv4 } from "uuid";
 
 interface ProfessorInterface extends Document {
-  // id: string;
   nome: string;
   cpf: string;
   telefoneContato: string;
@@ -14,7 +12,6 @@ interface ProfessorInterface extends Document {
 
 const professorSchema: Schema = new Schema(
   {
-    // id: { type: String, default: uuidv4, unique: true },
     nome: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
     telefoneContato: { type: String, required: true },

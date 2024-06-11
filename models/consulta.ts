@@ -1,8 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 
 interface ConsultaInterface extends Document {
-  id: string;
   Nome: string;
   start: Date;
   end: Date;
@@ -27,7 +25,6 @@ const RecorrenciaSchema: Schema = new Schema({
 });
 
 const ConsultaSchema: Schema = new Schema({
-  id: { type: String, default: uuidv4, unique: true},
   Nome: { type: String, required: true },
   start: { type: Date, required: true },
   end: { type: Date, required: true },

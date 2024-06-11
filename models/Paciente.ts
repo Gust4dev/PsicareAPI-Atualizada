@@ -1,8 +1,6 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { v4 as uuidv4 } from "uuid";
 
 interface PacienteInterface extends Document {
-  id: string;
   nomeCompleto: string;
   cpf: string;
   dataDeNascimento: Date;
@@ -37,7 +35,6 @@ interface PacienteInterface extends Document {
 
 const PacienteSchema: Schema = new Schema(
   {
-    id: { type: String, default: uuidv4, unique: true },
     nomeCompleto: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
     dataDeNascimento: { type: Date, required: true },
