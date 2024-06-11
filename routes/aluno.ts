@@ -15,8 +15,8 @@ const router = Router();
 
 // Rotas alunos
 router.post("/", authMiddleware(2), criarAluno);
-router.get("/", authMiddleware(4), listarAlunos);
-router.get("/:id",  obterAlunoPorID);
+router.get("/", listarAlunos);
+router.get("/:id", obterAlunoPorID);
 router.get("/select", listarNomesAlunos);
 router.get("/professor/:id", listarAlunosPorProfessorID);
 router.patch("/:id", atualizarAluno);

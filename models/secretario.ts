@@ -1,6 +1,7 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface SecretarioInterface extends Document {
+  id: number;
   nome: string;
   email: string;
   cpf: string;
@@ -13,6 +14,7 @@ interface SecretarioInterface extends Document {
 
 const SecretarioSchema: Schema = new Schema(
   {
+    id: {type: Number, unique: true, required: true },
     nome: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     cpf: { type: String, required: true, unique: true },
@@ -20,7 +22,7 @@ const SecretarioSchema: Schema = new Schema(
     turno: { type: String, required: true },
     arquivado: { type: Boolean, default: false },
     role: { type: String, default: "Secretário" },
-    cargo: { type: Number, required: true },
+    cargo: { type: Number, default: 1 },
   },
   { timestamps: true }
 );

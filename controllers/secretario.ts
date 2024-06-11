@@ -5,7 +5,7 @@ import mongoose from "mongoose";
 // Funções Secretario
 // Método POST
 export async function createSecretario(req: Request, res: Response) {
-  const { nome, cpf, telefoneContato, email, turno, arquivado } = req.body;
+  const { id, nome, cpf, telefone, email, turno, arquivado } = req.body;
 
   try {
     // Verificar se o cpf já existe no banco de dados
@@ -16,9 +16,10 @@ export async function createSecretario(req: Request, res: Response) {
 
     // Criar novo secretário
     const novoSecretario = new Secretario({
+      id,
       nome,
       cpf,
-      telefoneContato,
+      telefone,
       email,
       turno,
       arquivado,
@@ -79,7 +80,10 @@ export async function updateSecretario(req: Request, res: Response) {
   }
 }
 
-export async function updateStatusArquivadoSecretario(req: Request, res: Response) {
+export async function updateStatusArquivadoSecretario(
+  req: Request,
+  res: Response
+) {
   try {
     const secretarioID = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
