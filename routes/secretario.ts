@@ -8,7 +8,6 @@ import {
   obterUltimoSecretarioCriado,
 } from "../controllers/secretario";
 
-
 const router = Router();
 
 // Rotas secretários
@@ -17,7 +16,6 @@ router.get("/", listSecretarios);
 router.get("/:id", getSecretarioByID);
 router.patch("/:id", updateSecretario);
 router.delete("/:id", deleteSecretario);
-router.get('/ultimo', obterUltimoSecretarioCriado);
+router.get("/ultimo/criado", obterUltimoSecretarioCriado);
 
 export default router;
-

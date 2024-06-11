@@ -20,6 +20,6 @@ router.get("/", listarUsers);
 router.get("/:id", obterUserPorID);
 router.patch("/:id", patchUser);
 router.delete("/:id", deleteUser);
-router.get('/ultimo', obterUltimoUserCriado);
+router.get('/ultimo/criado', obterUltimoUserCriado);
 
 export default router;

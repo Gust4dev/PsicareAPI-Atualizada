@@ -19,6 +19,6 @@ router.get('/aluno/:id', listarPacientesPorIDAluno);
 router.get('/select', listarPacientes);
 router.patch('/:id', atualizarPaciente);
 router.delete('/:id', deletePaciente);
-router.get('/ultimo', obterUltimoPacienteCriado);
+router.get('/ultimo/criado', obterUltimoPacienteCriado);
 
 export default router;

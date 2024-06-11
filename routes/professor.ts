@@ -19,6 +19,6 @@ router.get('/:id', getProfessorById);
 router.get('/select', getProfessoresSelect);
 router.patch('/:id', patchProfessor);
 router.delete('/:id', deleteProfessor);
-router.get('/ultimo', obterUltimoProfessorCriado);
+router.get('/ultimo/criado', obterUltimoProfessorCriado);
 
 export default router;

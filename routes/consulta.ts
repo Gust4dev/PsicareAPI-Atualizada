@@ -17,6 +17,6 @@ router.get('/', listarConsultas);
 router.get('/:id', obterConsultaPorID);
 router.patch('/:id', atualizarConsulta);
 router.delete('/:id', deletarConsulta);
-router.get('/ultima', obterUltimaConsultaCriada);
+router.get('/ultima/criada', obterUltimaConsultaCriada);
 
 export default router;

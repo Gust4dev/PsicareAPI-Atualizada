@@ -21,6 +21,6 @@ router.get("/select", listarNomesAlunos);
 router.get("/professor/:id", listarAlunosPorProfessorID);
 router.patch("/:id", atualizarAluno);
 router.delete("/:id", deletarAluno);
-router.get('/ultimo', obterUltimoAlunoCriado);
+router.get('/ultimo/criado', obterUltimoAlunoCriado);
 
 export default router;
