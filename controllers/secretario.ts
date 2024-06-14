@@ -116,7 +116,7 @@ export const obterUltimoSecretarioCriado = async (req: Request, res: Response) =
 
 export const listarSecretarioPaginados = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string, 10) || 1;
-  const limit = parseInt(req.query.limit as string, 10) || 10;
+  const limit: number = 15;
 
   try {
     const secretarios = await Secretario.find()

@@ -94,18 +94,23 @@ export async function deleteProfessor(req: Request, res: Response) {
 }
 
 // Metodo para receber ultimo professor criado
-export const obterUltimoProfessorCriado = async (req: Request, res: Response) => {
+export const obterUltimoProfessorCriado = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const ultimoProfessor = await Professor.findOne().sort({ createdAt: -1 });
     res.json(ultimoProfessor);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar o último professor criado' });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar o último professor criado" });
   }
-}
+};
 
 export const listarProfessorPaginados = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string, 10) || 1;
-  const limit = parseInt(req.query.limit as string, 10) || 10;
+  const limit: number = 15;
 
   try {
     const professores = await Professor.find()
@@ -121,6 +126,8 @@ export const listarProfessorPaginados = async (req: Request, res: Response) => {
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar pacientes paginados', error });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar pacientes paginados", error });
   }
 };

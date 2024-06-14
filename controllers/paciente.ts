@@ -183,7 +183,7 @@ export const obterUltimoPacienteCriado = async (
 
 export const listarPacientePaginados = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string, 10) || 1;
-  const limit = parseInt(req.query.limit as string, 10) || 10;
+  const limit: number = 15;
 
   try {
     const pacientes = await Paciente.find()

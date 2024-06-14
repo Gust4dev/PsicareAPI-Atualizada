@@ -147,7 +147,7 @@ export const obterUltimaConsultaCriada = async (req: Request, res: Response) => 
 
 export const listarConsultaPaginadas = async (req: Request, res: Response): Promise<void> => {
   const page: number = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = parseInt(req.query.limit as string, 10) || 10;
+  const limit: number = 15;
 
   try {
     const [consulta, total] = await Promise.all([
