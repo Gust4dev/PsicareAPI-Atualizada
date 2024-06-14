@@ -89,12 +89,27 @@ export async function criarPaciente(req: Request, res: Response) {
 }
 
 // Funções paciente
-export async function listarPacientes(req: Request, res: Response) {
+export const listarPacientes = async (req: Request, res: Response) => {
+  const { q } = req.query;
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 15;
+
   try {
-    const pacientes = await Paciente.find({});
-    res.json(pacientes);
-  } catch (error: any) {
-    res.status(500).json({ message: "Erro ao buscar pacientes." });
+    const searchQuery = q ? { nome: { $regex: q, $options: 'i' } } : {};
+    const pacientes = await Paciente.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Paciente.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      pacientes,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar pacientes', error });
   }
 }
 

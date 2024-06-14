@@ -51,15 +51,30 @@ export async function criarConsulta(req: Request, res: Response) {
   }
 }
 
-// Funcoes consulta
-export async function listarConsultas(req: Request, res: Response) {
+export const listarConsultas = async (req: Request, res: Response) => {
+  const { q } = req.query; 
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 15; 
+
   try {
-    const consultas = await Consulta.find({});
-    res.json(consultas);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    const searchQuery = q ? { descricao: { $regex: q, $options: 'i' } } : {};
+    const consultas = await Consulta.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Consulta.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      consultas,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar consultas', error });
   }
 }
+
 
 export async function obterConsultaPorID(req: Request, res: Response) {
   try {

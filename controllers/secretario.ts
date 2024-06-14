@@ -33,12 +33,28 @@ export async function createSecretario(req: Request, res: Response) {
 }
 
 // Método GET
-export async function listSecretarios(req: Request, res: Response) {
+export const listSecretarios = async (req: Request, res: Response) => {
+  const { q } = req.query;
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 15;
+
   try {
-    const secretarios = await Secretario.find({});
-    res.json(secretarios);
-  } catch (error: any) {
-    res.status(500).json({ message: "Erro ao buscar secretários." });
+    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
+
+    const secretarios = await Secretario.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Secretario.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      secretarios,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: "Erro ao buscar secretários", error });
   }
 }
 
@@ -105,16 +121,24 @@ export async function deleteSecretario(req: Request, res: Response) {
 }
 
 // Metodo para receber ultimo secretario criado
-export const obterUltimoSecretarioCriado = async (req: Request, res: Response) => {
+export const obterUltimoSecretarioCriado = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const ultimoSecretario = await Secretario.findOne().sort({ createdAt: -1 });
     res.json(ultimoSecretario);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar o último secretario criado' });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar o último secretario criado" });
   }
-}
+};
 
-export const listarSecretarioPaginados = async (req: Request, res: Response) => {
+export const listarSecretarioPaginados = async (
+  req: Request,
+  res: Response
+) => {
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
@@ -132,6 +156,8 @@ export const listarSecretarioPaginados = async (req: Request, res: Response) => 
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar pacientes paginados', error });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar pacientes paginados", error });
   }
 };

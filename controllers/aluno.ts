@@ -39,12 +39,27 @@ export async function criarAluno(req: Request, res: Response) {
   }
 }
 
-export async function listarAlunos(req: Request, res: Response) {
+export const listarAlunos = async (req: Request, res: Response) => {
+  const { q } = req.query;
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 15;
+
   try {
-    const alunos = await Aluno.find({});
-    res.json(alunos);
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    const searchQuery = q ? { nome: { $regex: q, $options: 'i' } } : {};
+    const alunos = await Aluno.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Aluno.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      alunos,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar alunos', error });
   }
 }
 

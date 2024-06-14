@@ -23,13 +23,27 @@ export async function createProfessor(req: Request, res: Response) {
   }
 }
 
-export async function getProfessores(req: Request, res: Response) {
+export const listarProfessores = async (req: Request, res: Response) => {
+  const { q } = req.query;
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 15;
+
   try {
-    const professores = await Professor.find({});
-    res.json(professores);
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao buscar professores." });
+    const searchQuery = q ? { nome: { $regex: q, $options: 'i' } } : {};
+    const professores = await Professor.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Professor.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      professores,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar professores', error });
   }
 }
 
