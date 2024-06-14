@@ -6,6 +6,7 @@ import {
   atualizarConsulta,
   deletarConsulta,
   obterUltimaConsultaCriada,
+  listarConsultaPaginadas,
 } from '../controllers/consulta';
 
 
@@ -14,6 +15,7 @@ const router = Router();
 // Rotas consulta
 router.post('/', criarConsulta);
 router.get('/', listarConsultas);
+router.get('/paginado', listarConsultaPaginadas);
 router.get('/:id', obterConsultaPorID);
 router.patch('/:id', atualizarConsulta);
 router.delete('/:id', deletarConsulta);

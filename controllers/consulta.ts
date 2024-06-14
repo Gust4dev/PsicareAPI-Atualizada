@@ -144,3 +144,23 @@ export const obterUltimaConsultaCriada = async (req: Request, res: Response) => 
     res.status(500).json({ message: 'Erro ao buscar a última consulta criada' });
   }
 }
+
+export const listarConsultaPaginadas = async (req: Request, res: Response): Promise<void> => {
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = parseInt(req.query.limit as string, 10) || 10;
+
+  try {
+    const [consulta, total] = await Promise.all([
+      Consulta.find().skip((page - 1) * limit).limit(limit),
+      Consulta.countDocuments()
+    ]);
+
+    res.json({
+      consulta,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar consulta paginados' });
+  }
+};

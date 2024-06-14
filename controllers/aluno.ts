@@ -126,3 +126,23 @@ export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
     res.status(500).json({ message: 'Erro ao buscar o último aluno criado' });
   }
 }
+
+export const listarAlunosPaginados = async (req: Request, res: Response): Promise<void> => {
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = parseInt(req.query.limit as string, 10) || 10;
+
+  try {
+    const [alunos, total] = await Promise.all([
+      Aluno.find().skip((page - 1) * limit).limit(limit),
+      Aluno.countDocuments()
+    ]);
+
+    res.json({
+      alunos,
+      totalPages: Math.ceil(total / limit),
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar alunos paginados' });
+  }
+};

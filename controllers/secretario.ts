@@ -113,3 +113,25 @@ export const obterUltimoSecretarioCriado = async (req: Request, res: Response) =
     res.status(500).json({ message: 'Erro ao buscar o último secretario criado' });
   }
 }
+
+export const listarSecretarioPaginados = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
+
+  try {
+    const secretarios = await Secretario.find()
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Secretario.countDocuments();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      secretarios,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar pacientes paginados', error });
+  }
+};

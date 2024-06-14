@@ -179,4 +179,26 @@ export const obterUltimoPacienteCriado = async (
       .status(500)
       .json({ message: "Erro ao buscar o último paciente criado" });
   }
+}
+
+export const listarPacientePaginados = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = parseInt(req.query.limit as string, 10) || 10;
+
+  try {
+    const pacientes = await Paciente.find()
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Paciente.countDocuments();
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      pacientes,
+      totalPages,
+      currentPage: page,
+    });
+  } catch (error) {
+    res.status(500).json({ message: 'Erro ao buscar pacientes paginados', error });
+  }
 };
