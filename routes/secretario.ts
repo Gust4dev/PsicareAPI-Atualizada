@@ -7,7 +7,7 @@ import {
   deleteSecretario,
   obterUltimoSecretarioCriado,
   listarSecretarioPaginados,
-  deletarSecretariosSelecionados ,
+  deletarSecretariosSelecionados,
 } from "../controllers/secretario";
 
 const router = Router();

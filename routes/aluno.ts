@@ -9,6 +9,7 @@ import {
   deletarAluno,
   obterUltimoAlunoCriado,
   listarAlunosPaginados,
+  deletarAlunoSelecionados,
 } from "../controllers/aluno";
 import { authMiddleware } from "../middleware/auth";
 
@@ -23,6 +24,7 @@ router.get("/select", listarNomesAlunos);
 router.get("/professor/:id", listarAlunosPorProfessorID);
 router.patch("/:id", atualizarAluno);
 router.delete("/:id", deletarAluno);
+router.delete('/', deletarAlunoSelecionados);
 router.get("/ultimo/criado", obterUltimoAlunoCriado);
 
 export default router;

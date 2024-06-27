@@ -8,6 +8,7 @@ import {
   deleteProfessor,
   obterUltimoProfessorCriado,
   listarProfessorPaginados,
+  deletarProfessorSelecionados,
 } from '../controllers/professor';
 
 
@@ -20,7 +21,8 @@ router.get("/paginado", listarProfessorPaginados);
 router.get('/:id', getProfessorById);
 router.get('/select', getProfessoresSelect);
 router.patch('/:id', patchProfessor);
-router.delete('/:id', deleteProfessor);
 router.get('/ultimo/criado', obterUltimoProfessorCriado);
+router.delete('/:id', deleteProfessor);
+router.delete('/', deletarProfessorSelecionados);
 
 export default router;

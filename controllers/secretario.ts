@@ -56,7 +56,7 @@ export const listSecretarios = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar secretários", error });
   }
-};
+}
 
 export async function getSecretarioByID(req: Request, res: Response) {
   try {
@@ -133,7 +133,7 @@ export const obterUltimoSecretarioCriado = async (
       .status(500)
       .json({ message: "Erro ao buscar o último secretario criado" });
   }
-};
+}
 
 export const listarSecretarioPaginados = async (
   req: Request,
@@ -161,7 +161,7 @@ export const listarSecretarioPaginados = async (
       .status(500)
       .json({ message: "Erro ao buscar pacientes paginados", error });
   }
-};
+}
 
 export const deletarSecretariosSelecionados = async (
   req: Request,
@@ -172,7 +172,6 @@ export const deletarSecretariosSelecionados = async (
   if (!ids || !Array.isArray(ids)) {
     return res.status(400).json({ message: "IDs inválidos fornecidos" });
   }
-
   try {
     const result = await Secretario.deleteMany({ _id: { $in: ids } });
     if (result.deletedCount === 0) {
@@ -180,12 +179,9 @@ export const deletarSecretariosSelecionados = async (
         .status(404)
         .json({ message: "Nenhum secretário encontrado para deletar" });
     }
-
-    res
-      .status(200)
-      .json({
-        message: `${result.deletedCount} secretários deletados com sucesso`,
-      });
+    res.status(200).json({
+      message: `${result.deletedCount} secretários deletados com sucesso`,
+    });
   } catch (error) {
     res.status(500).json({ message: "Erro ao deletar secretários", error });
   }

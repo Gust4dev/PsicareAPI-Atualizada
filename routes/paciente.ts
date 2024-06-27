@@ -8,6 +8,7 @@ import {
   deletePaciente,
   obterUltimoPacienteCriado,
   listarPacientePaginados,
+  deletarPacienteSelecionados,
 } from '../controllers/paciente';
 
 const router = Router();
@@ -20,7 +21,8 @@ router.get('/:id', obterPacientePorID);
 router.get('/aluno/:id', listarPacientesPorIDAluno);
 router.get('/select', listarPacientes);
 router.patch('/:id', atualizarPaciente);
-router.delete('/:id', deletePaciente);
 router.get('/ultimo/criado', obterUltimoPacienteCriado);
+router.delete('/:id', deletePaciente);
+router.delete('/', deletarPacienteSelecionados);
 
 export default router;
