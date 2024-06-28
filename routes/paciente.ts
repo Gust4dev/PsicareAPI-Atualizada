@@ -20,8 +20,8 @@ router.get("/paginado", listarPacientePaginados);
 router.get('/:id', obterPacientePorID);
 router.get('/aluno/:id', listarPacientesPorIDAluno);
 router.get('/select', listarPacientes);
-router.patch('/:id', atualizarPaciente);
 router.get('/ultimo/criado', obterUltimoPacienteCriado);
+router.patch('/:id', atualizarPaciente);
 router.delete('/:id', deletePaciente);
 router.delete('/', deletarPacienteSelecionados);
 

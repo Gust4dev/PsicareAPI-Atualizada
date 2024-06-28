@@ -18,8 +18,8 @@ router.post("/", createUser);
 // Rotas protegidas
 router.get("/", listarUsers);
 router.get("/:id", obterUserPorID);
+router.get('/ultimo/criado', obterUltimoUserCriado);
 router.patch("/:id", patchUser);
 router.delete("/:id", deleteUser);
-router.get('/ultimo/criado', obterUltimoUserCriado);
 
 export default router;

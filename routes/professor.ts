@@ -20,8 +20,8 @@ router.get('/', listarProfessores);
 router.get("/paginado", listarProfessorPaginados);
 router.get('/:id', getProfessorById);
 router.get('/select', getProfessoresSelect);
-router.patch('/:id', patchProfessor);
 router.get('/ultimo/criado', obterUltimoProfessorCriado);
+router.patch('/:id', patchProfessor);
 router.delete('/:id', deleteProfessor);
 router.delete('/', deletarProfessorSelecionados);
 
