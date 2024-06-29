@@ -3,8 +3,9 @@ import Professor from "../models/professor";
 
 export async function createProfessor(req: Request, res: Response) {
   try {
-    const { nome, cpf, telefone, email, disciplina } = req.body;
+    const { id, nome, cpf, telefone, email, disciplina } = req.body;
     const newProfessor = new Professor({
+      id,
       nome,
       cpf,
       telefone,
@@ -22,6 +23,7 @@ export async function createProfessor(req: Request, res: Response) {
       .json({ error: "Não foi possível criar o cadastro de professor." });
   }
 }
+
 
 export const listarProfessores = async (req: Request, res: Response) => {
   const { q } = req.query;
