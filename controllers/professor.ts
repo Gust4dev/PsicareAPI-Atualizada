@@ -24,14 +24,13 @@ export async function createProfessor(req: Request, res: Response) {
   }
 }
 
-
 export const listarProfessores = async (req: Request, res: Response) => {
   const { q } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
-    const searchQuery = q ? { nome: { $regex: q, $options: 'i' } } : {};
+    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
     const professores = await Professor.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit);
@@ -45,9 +44,9 @@ export const listarProfessores = async (req: Request, res: Response) => {
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar professores', error });
+    res.status(500).json({ message: "Erro ao buscar professores", error });
   }
-}
+};
 
 export async function getProfessorById(req: Request, res: Response) {
   try {
@@ -59,6 +58,31 @@ export async function getProfessorById(req: Request, res: Response) {
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: "Erro ao buscar professor." });
+  }
+}
+
+export async function atualizarProfessor(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const { cpf, ...updateData } = req.body;
+
+    if (await Professor.exists({ cpf, _id: { $ne: id } })) {
+      return res.status(400).send("Já existe um professor com este CPF.");
+    }
+
+    const professorAtualizado = await Professor.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+
+    if (!professorAtualizado) {
+      return res.status(404).send("Professor não encontrado");
+    }
+
+    res.json(professorAtualizado);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -146,7 +170,7 @@ export const listarProfessorPaginados = async (req: Request, res: Response) => {
       .status(500)
       .json({ message: "Erro ao buscar pacientes paginados", error });
   }
-}
+};
 
 export const deletarProfessorSelecionados = async (
   req: Request,

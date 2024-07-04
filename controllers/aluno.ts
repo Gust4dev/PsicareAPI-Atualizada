@@ -45,7 +45,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
   const limit: number = 15;
 
   try {
-    const searchQuery = q ? { nome: { $regex: q, $options: 'i' } } : {};
+    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
     const alunos = await Aluno.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit);
@@ -59,9 +59,9 @@ export const listarAlunos = async (req: Request, res: Response) => {
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar alunos', error });
+    res.status(500).json({ message: "Erro ao buscar alunos", error });
   }
-}
+};
 
 export async function obterAlunoPorID(req: Request, res: Response) {
   try {
@@ -98,15 +98,19 @@ export async function listarAlunosPorProfessorID(req: Request, res: Response) {
 
 export async function atualizarAluno(req: Request, res: Response) {
   try {
-    const id = req.params.id;
-    const alunoAtualizado = await Aluno.findByIdAndUpdate(id, req.body, {
+    const { id } = req.params;
+    const { cpf, ...updateData } = req.body;
+
+    if (await Aluno.exists({ cpf, _id: { $ne: id } })) {
+      return res.status(400).send("Já existe um aluno com este CPF.");
+    }
+    const alunoAtualizado = await Aluno.findByIdAndUpdate(id, updateData, {
       new: true,
     });
 
     if (!alunoAtualizado) {
       return res.status(404).send("Aluno não encontrado");
     }
-
     res.json(alunoAtualizado);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -138,18 +142,23 @@ export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
     const ultimoAluno = await Aluno.findOne().sort({ createdAt: -1 });
     res.json(ultimoAluno);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar o último aluno criado' });
+    res.status(500).json({ message: "Erro ao buscar o último aluno criado" });
   }
-}
+};
 
-export const listarAlunosPaginados = async (req: Request, res: Response): Promise<void> => {
+export const listarAlunosPaginados = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
     const [alunos, total] = await Promise.all([
-      Aluno.find().skip((page - 1) * limit).limit(limit),
-      Aluno.countDocuments()
+      Aluno.find()
+        .skip((page - 1) * limit)
+        .limit(limit),
+      Aluno.countDocuments(),
     ]);
 
     res.json({
@@ -158,14 +167,11 @@ export const listarAlunosPaginados = async (req: Request, res: Response): Promis
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar alunos paginados' });
+    res.status(500).json({ message: "Erro ao buscar alunos paginados" });
   }
-}
+};
 
-export const deletarAlunoSelecionados = async (
-  req: Request,
-  res: Response
-) => {
+export const deletarAlunoSelecionados = async (req: Request, res: Response) => {
   const { ids } = req.body;
 
   if (!ids || !Array.isArray(ids)) {

@@ -56,6 +56,30 @@ export const listSecretarios = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar secretários", error });
   }
+};
+
+export async function atualizarSecretario(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+    const { cpf, ...updateData } = req.body;
+
+    if (await Secretario.exists({ cpf, _id: { $ne: id } })) {
+      return res.status(400).send("Já existe um secretário com este CPF.");
+    }
+    const secretarioAtualizado = await Secretario.findByIdAndUpdate(
+      id,
+      updateData,
+      { new: true }
+    );
+
+    if (!secretarioAtualizado) {
+      return res.status(404).send("Secretário não encontrado");
+    }
+
+    res.json(secretarioAtualizado);
+  } catch (error: any) {
+    res.status(500).json({ message: error.message });
+  }
 }
 
 export async function getSecretarioByID(req: Request, res: Response) {
@@ -133,7 +157,7 @@ export const obterUltimoSecretarioCriado = async (
       .status(500)
       .json({ message: "Erro ao buscar o último secretario criado" });
   }
-}
+};
 
 export const listarSecretarioPaginados = async (
   req: Request,
@@ -161,7 +185,7 @@ export const listarSecretarioPaginados = async (
       .status(500)
       .json({ message: "Erro ao buscar pacientes paginados", error });
   }
-}
+};
 
 export const deletarSecretariosSelecionados = async (
   req: Request,

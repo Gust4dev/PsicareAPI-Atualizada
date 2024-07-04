@@ -95,7 +95,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
   const limit: number = 15;
 
   try {
-    const searchQuery = q ? { nome: { $regex: q, $options: 'i' } } : {};
+    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
     const pacientes = await Paciente.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit);
@@ -109,9 +109,9 @@ export const listarPacientes = async (req: Request, res: Response) => {
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar pacientes', error });
+    res.status(500).json({ message: "Erro ao buscar pacientes", error });
   }
-}
+};
 
 export async function obterPacientePorID(req: Request, res: Response) {
   try {
@@ -142,21 +142,26 @@ export async function listarPacientesPorIDAluno(req: Request, res: Response) {
 
 export async function atualizarPaciente(req: Request, res: Response) {
   try {
-    const pacienteID = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(pacienteID)) {
-      return res.status(400).send("ID de paciente inválido.");
+    const { id } = req.params;
+    const { cpf, ...updateData } = req.body;
+
+    if (await Paciente.exists({ cpf, _id: { $ne: id } })) {
+      return res.status(400).send("Já existe um paciente com este CPF.");
     }
+
     const pacienteAtualizado = await Paciente.findByIdAndUpdate(
-      pacienteID,
-      req.body,
+      id,
+      updateData,
       { new: true }
     );
+
     if (!pacienteAtualizado) {
-      return res.status(404).send("Paciente não encontrado.");
+      return res.status(404).send("Paciente não encontrado");
     }
+
     res.json(pacienteAtualizado);
   } catch (error: any) {
-    res.status(500).json({ message: "Erro ao atualizar paciente." });
+    res.status(500).json({ message: error.message });
   }
 }
 
@@ -194,7 +199,7 @@ export const obterUltimoPacienteCriado = async (
       .status(500)
       .json({ message: "Erro ao buscar o último paciente criado" });
   }
-}
+};
 
 export const listarPacientePaginados = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string, 10) || 1;
@@ -214,9 +219,11 @@ export const listarPacientePaginados = async (req: Request, res: Response) => {
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar pacientes paginados', error });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar pacientes paginados", error });
   }
-}
+};
 
 export const deletarPacienteSelecionados = async (
   req: Request,
