@@ -4,19 +4,23 @@ import mongoose from "mongoose";
 
 // Funções Secretario
 // Método POST
-export async function createSecretario(req: Request, res: Response) {
-  const { id, nome, cpf, telefone, email, turno } = req.body;
-
+export async function criarSecretario(req: Request, res: Response) {
   try {
-    // Verificar se o cpf já existe no banco de dados
-    const secretarioExistente = await Secretario.findOne({ cpf });
-    if (secretarioExistente) {
+    const { nome, cpf, telefone, email, turno } = req.body;
+
+    // Verificar se o email já existe
+    const secretarioExistenteEmail = await Secretario.exists({ email });
+    if (secretarioExistenteEmail) {
+      return res.status(400).send("Já existe um secretário com este email.");
+    }
+
+    // Verificar se o CPF já existe
+    const secretarioExistenteCPF = await Secretario.exists({ cpf });
+    if (secretarioExistenteCPF) {
       return res.status(400).send("Já existe um secretário com este CPF.");
     }
 
-    // Criar novo secretário
-    const novoSecretario = new Secretario({
-      id,
+    const newSecretario = new Secretario({
       nome,
       cpf,
       telefone,
@@ -24,11 +28,15 @@ export async function createSecretario(req: Request, res: Response) {
       turno,
     });
 
-    await novoSecretario.save();
-    return res.status(201).send("Secretário cadastrado com sucesso.");
+    await newSecretario.save();
+    res
+      .status(201)
+      .json({ message: "Cadastro de secretário criado com sucesso." });
   } catch (error: any) {
     console.error(error);
-    return res.status(500).send("Erro ao cadastrar o secretário.");
+    res
+      .status(500)
+      .json({ error: "Não foi possível criar o cadastro de secretário." });
   }
 }
 
@@ -61,11 +69,26 @@ export const listSecretarios = async (req: Request, res: Response) => {
 export async function atualizarSecretario(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { cpf, ...updateData } = req.body;
+    const { cpf, email, ...updateData } = req.body;
 
-    if (await Secretario.exists({ cpf, _id: { $ne: id } })) {
+    // Verificar se o email já existe
+    const secretarioExistenteEmail = await Secretario.exists({
+      email,
+      _id: { $ne: id },
+    });
+    if (secretarioExistenteEmail) {
+      return res.status(400).send("Já existe um secretário com este email.");
+    }
+
+    // Verificar se o CPF já existe
+    const secretarioExistenteCPF = await Secretario.exists({
+      cpf,
+      _id: { $ne: id },
+    });
+    if (secretarioExistenteCPF) {
       return res.status(400).send("Já existe um secretário com este CPF.");
     }
+
     const secretarioAtualizado = await Secretario.findByIdAndUpdate(
       id,
       updateData,

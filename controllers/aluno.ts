@@ -2,40 +2,56 @@ import { Request, Response } from "express";
 import Aluno from "../models/aluno";
 
 export async function criarAluno(req: Request, res: Response) {
-  const {
-    matricula,
-    periodo,
-    nome,
-    cpf,
-    telefone,
-    professorID,
-    professorNome,
-    professorDisciplina,
-    email,
-  } = req.body;
-
-  // funções aluno
-  const newAluno = new Aluno({
-    matricula,
-    periodo,
-    nome,
-    cpf,
-    telefone,
-    professorID,
-    professorNome,
-    professorDisciplina,
-    email,
-    role: "Estudante",
-  });
-
   try {
+    const {
+      matricula,
+      periodo,
+      nome,
+      cpf,
+      telefone,
+      professorID,
+      professorNome,
+      professorDisciplina,
+      email,
+    } = req.body;
+
+    // Verificar se o CPF já existe
+    const alunoExistenteCPF = await Aluno.exists({ cpf });
+    if (alunoExistenteCPF) {
+      return res.status(400).send("Já existe um aluno com este CPF.");
+    }
+
+    // Verificar se a matrícula já existe
+    const alunoExistenteMatricula = await Aluno.exists({ matricula });
+    if (alunoExistenteMatricula) {
+      return res.status(400).send("Já existe um aluno com esta matrícula.");
+    }
+
+    // Verificar se o email já existe
+    const alunoExistenteEmail = await Aluno.exists({ email });
+    if (alunoExistenteEmail) {
+      return res.status(400).send("Já existe um aluno com este email.");
+    }
+
+    const newAluno = new Aluno({
+      matricula,
+      periodo,
+      nome,
+      cpf,
+      telefone,
+      professorID,
+      professorNome,
+      professorDisciplina,
+      email,
+    });
+
     await newAluno.save();
-    return res.status(201).send("Cadastro do aluno criado com sucesso.");
+    res.status(201).json({ message: "Cadastro de aluno criado com sucesso." });
   } catch (error: any) {
     console.error(error);
-    return res
+    res
       .status(500)
-      .send("Não foi possível realizar o cadastro do aluno.");
+      .json({ error: "Não foi possível criar o cadastro de aluno." });
   }
 }
 
@@ -99,11 +115,26 @@ export async function listarAlunosPorProfessorID(req: Request, res: Response) {
 export async function atualizarAluno(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { cpf, ...updateData } = req.body;
+    const { cpf, email, matricula, ...updateData } = req.body;
 
-    if (await Aluno.exists({ cpf, _id: { $ne: id } })) {
-      return res.status(400).send("Já existe um aluno com este CPF.");
+    // Verificar duplicidade de email e matrícula
+    const alunoExistente = await Aluno.findOne({
+      _id: { $ne: id },
+      $or: [{ email }, { cpf }, { matricula }],
+    });
+
+    if (alunoExistente) {
+      if (alunoExistente.email === email) {
+        return res.status(400).send("Já existe um aluno com este email.");
+      }
+      if (alunoExistente.cpf === cpf) {
+        return res.status(400).send("Já existe um aluno com este CPF.");
+      }
+      if (alunoExistente.matricula === matricula) {
+        return res.status(400).send("Já existe um aluno com esta matrícula.");
+      }
     }
+
     const alunoAtualizado = await Aluno.findByIdAndUpdate(id, updateData, {
       new: true,
     });
@@ -111,6 +142,7 @@ export async function atualizarAluno(req: Request, res: Response) {
     if (!alunoAtualizado) {
       return res.status(404).send("Aluno não encontrado");
     }
+
     res.json(alunoAtualizado);
   } catch (error: any) {
     res.status(500).json({ message: error.message });

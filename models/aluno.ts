@@ -1,32 +1,24 @@
 import mongoose, { Document, Schema } from "mongoose";
 
 interface AlunoInterface extends Document {
-  id: number;
-  nome: string;
-  email: string;
   matricula: string;
-  semestre: number;
-  dataIngresso: Date;
-  telefone: string;
-  endereco?: string;
+  periodo: number;
+  nome: string;
   cpf: string;
-  role: string;
-  cargo: number;
+  telefone: string;
+  professor: string;
+  email: string;
 }
 
 const AlunoSchema: Schema = new Schema(
   {
-    id: { type: Number, unique: true },
-    nome: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
     matricula: { type: String, required: true, unique: true },
-    semestre: { type: Number, required: true },
-    dataIngresso: { type: Date, required: true },
-    telefone: { type: String, required: true },
-    endereco: { type: String },
+    periodo: { type: Number, required: true },
+    nome: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
-    role: { type: String, default: "Estudante" },
-    cargo: { type: Number, default: 4 },
+    telefone: { type: String, required: true },
+    professor: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
   },
   { timestamps: true }
 );

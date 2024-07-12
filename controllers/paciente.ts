@@ -3,88 +3,90 @@ import Paciente from "../models/Paciente";
 import mongoose from "mongoose";
 
 export async function criarPaciente(req: Request, res: Response) {
-  const {
-    nome,
-    cpf,
-    dataDeNascimento,
-    email,
-    telefoneContato,
-    sexo,
-    estadoCivil,
-    religiao,
-    rendaFamiliar,
-    profissao,
-    outroContato,
-    nomeDoContatoResponsavel,
-    menorDeIdade,
-    naturalidade,
-    nacionalidade,
-    enderecoCep,
-    enderecoLogradouro,
-    enderecoBairro,
-    enderecoComplemento,
-    enderecoCidade,
-    enderecoUF,
-    dataInicioTratamento,
-    dataTerminoTratamento,
-    quemEncaminhouID,
-    quemEncaminhouNome,
-    tipoDeTratamento,
-    alunoUnieva,
-    funcionarioUnieva,
-  } = req.body;
-
-  // Verificar se o cpf já existe no bd
-  const pacienteExistente = await Paciente.findOne({ cpf });
-  if (pacienteExistente) {
-    return res.status(400).send("Já existe um paciente com este CPF.");
-  }
-
-  const alunoOcupado = await Paciente.findOne({ alunoUnieva });
-  if (alunoOcupado) {
-    return res
-      .status(400)
-      .send("Esse aluno já está trabalhando com um paciente");
-  }
-
-  // criar paciente
-  const novoPaciente = new Paciente({
-    nome,
-    cpf,
-    dataDeNascimento,
-    email,
-    telefoneContato,
-    sexo,
-    estadoCivil,
-    religiao,
-    rendaFamiliar,
-    profissao,
-    outroContato,
-    nomeDoContatoResponsavel,
-    menorDeIdade,
-    naturalidade,
-    nacionalidade,
-    enderecoCep,
-    enderecoLogradouro,
-    enderecoBairro,
-    enderecoComplemento,
-    enderecoCidade,
-    enderecoUF,
-    dataInicioTratamento,
-    dataTerminoTratamento,
-    quemEncaminhouID,
-    quemEncaminhouNome,
-    tipoDeTratamento,
-    alunoUnieva,
-    funcionarioUnieva,
-  });
-
   try {
-    await novoPaciente.save();
-    return res.status(201).send("Paciente cadastrado com sucesso.");
+    const {
+      nome,
+      cpf,
+      idade,
+      email,
+      telefoneContato,
+      sexo,
+      estadoCivil,
+      religiao,
+      rendaFamiliar,
+      profissao,
+      outroContato,
+      nomeDoContatoResponsavel,
+      menorDeIdade,
+      naturalidade,
+      nacionalidade,
+      enderecoCep,
+      enderecoLogradouro,
+      enderecoBairro,
+      enderecoComplemento,
+      enderecoCidade,
+      enderecoUF,
+      dataInicioTratamento,
+      dataTerminoTratamento,
+      quemEncaminhouID,
+      quemEncaminhouNome,
+      tipoDeTratamento,
+      alunoUnieva,
+      funcionarioUnieva,
+    } = req.body;
+
+    // Verificar se o email já existe
+    const pacienteExistenteEmail = await Paciente.exists({ email });
+    if (pacienteExistenteEmail) {
+      return res.status(400).send("Já existe um paciente com este email.");
+    }
+
+    // Verificar se o CPF já existe
+    const pacienteExistenteCPF = await Paciente.exists({ cpf });
+    if (pacienteExistenteCPF) {
+      return res.status(400).send("Já existe um paciente com este CPF.");
+    }
+
+    const newPaciente = new Paciente({
+      nome,
+      cpf,
+      idade,
+      email,
+      telefoneContato,
+      sexo,
+      estadoCivil,
+      religiao,
+      rendaFamiliar,
+      profissao,
+      outroContato,
+      nomeDoContatoResponsavel,
+      menorDeIdade,
+      naturalidade,
+      nacionalidade,
+      enderecoCep,
+      enderecoLogradouro,
+      enderecoBairro,
+      enderecoComplemento,
+      enderecoCidade,
+      enderecoUF,
+      dataInicioTratamento,
+      dataTerminoTratamento,
+      quemEncaminhouID,
+      quemEncaminhouNome,
+      tipoDeTratamento,
+      alunoUnieva,
+      funcionarioUnieva,
+    });
+
+    await newPaciente.save();
+    res
+      .status(201)
+      .json({ message: "Cadastro de paciente criado com sucesso." });
   } catch (error: any) {
     console.error(error);
-    return res.status(500).send("Erro ao cadastrar o paciente.");
+    res
+      .status(500)
+      .json({ error: "Não foi possível criar o cadastro de paciente." });
   }
 }
 
@@ -143,9 +145,23 @@ export async function listarPacientesPorIDAluno(req: Request, res: Response) {
 export async function atualizarPaciente(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { cpf, ...updateData } = req.body;
+    const { cpf, email, ...updateData } = req.body;
 
-    if (await Paciente.exists({ cpf, _id: { $ne: id } })) {
+    // Verificar se o email já existe
+    const pacienteExistenteEmail = await Paciente.exists({
+      email,
+      _id: { $ne: id },
+    });
+    if (pacienteExistenteEmail) {
+      return res.status(400).send("Já existe um paciente com este email.");
+    }
+
+    // Verificar se o CPF já existe
+    const pacienteExistenteCPF = await Paciente.exists({
+      cpf,
+      _id: { $ne: id },
+    });
+    if (pacienteExistenteCPF) {
       return res.status(400).send("Já existe um paciente com este CPF.");
     }
 

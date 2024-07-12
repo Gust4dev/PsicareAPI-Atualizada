@@ -1,9 +1,22 @@
 import { Request, Response } from "express";
 import Professor from "../models/professor";
 
-export async function createProfessor(req: Request, res: Response) {
+export async function criarProfessor(req: Request, res: Response) {
   try {
     const { id, nome, cpf, telefone, email, disciplina } = req.body;
+
+    // Verificar se o email já existe
+    const professorExistenteEmail = await Professor.exists({ email });
+    if (professorExistenteEmail) {
+      return res.status(400).send("Já existe um professor com este email.");
+    }
+
+    // Verificar se o CPF já existe
+    const professorExistenteCPF = await Professor.exists({ cpf });
+    if (professorExistenteCPF) {
+      return res.status(400).send("Já existe um professor com este CPF.");
+    }
+
     const newProfessor = new Professor({
       id,
       nome,
@@ -12,6 +25,7 @@ export async function createProfessor(req: Request, res: Response) {
       email,
       disciplina,
     });
+
     await newProfessor.save();
     res
       .status(201)
@@ -64,9 +78,23 @@ export async function getProfessorById(req: Request, res: Response) {
 export async function atualizarProfessor(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { cpf, ...updateData } = req.body;
+    const { cpf, email, ...updateData } = req.body;
 
-    if (await Professor.exists({ cpf, _id: { $ne: id } })) {
+    // Verificar se o email já existe
+    const professorExistenteEmail = await Professor.exists({
+      email,
+      _id: { $ne: id },
+    });
+    if (professorExistenteEmail) {
+      return res.status(400).send("Já existe um professor com este email.");
+    }
+
+    // Verificar se o CPF já existe
+    const professorExistenteCPF = await Professor.exists({
+      cpf,
+      _id: { $ne: id },
+    });
+    if (professorExistenteCPF) {
       return res.status(400).send("Já existe um professor com este CPF.");
     }
 
