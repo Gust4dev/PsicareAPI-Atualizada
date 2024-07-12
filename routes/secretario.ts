@@ -1,6 +1,6 @@
 import { Router } from "express";
 import {
-  createSecretario,
+  criarSecretario,
   listSecretarios,
   getSecretarioByID,
   updateSecretario,
@@ -13,7 +13,7 @@ import {
 const router = Router();
 
 // Rotas secretários
-router.post("/", createSecretario);
+router.post("/", criarSecretario);
 router.get("/", listSecretarios);
 router.get("/paginado", listarSecretarioPaginados);
 router.get("/:id", getSecretarioByID);

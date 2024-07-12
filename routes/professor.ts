@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import {
-  createProfessor,
+  criarProfessor,
   listarProfessores,
   getProfessorById,
   getProfessoresSelect,
@@ -15,7 +15,7 @@ import {
 const router = Router();
 
 // Routes for Professors
-router.post('/', createProfessor);
+router.post('/', criarProfessor);
 router.get('/', listarProfessores);
 router.get("/paginado", listarProfessorPaginados);
 router.get('/:id', getProfessorById);
