@@ -54,14 +54,11 @@ O servidor estará disponível em [http://localhost:3000](http://localhost:3000)
 
 A PsiCareAPI oferece funcionalidades como cadastro, atualização, leitura e remoção de informações de pacientes, professores, alunos e secretários. O sistema garante a segurança e integridade dos dados armazenados, facilitando a gestão eficiente da clínica.
 
-
+# English
 
 # PsiCareAPI
 
 PsiCareAPI is a backend application developed to manage sensitive information for a psychology clinic. The system allows for the management of patients, professors, students, and secretaries, ensuring data security and efficiency in information processing.
-
-
-# English
 
 ## Technologies Used
 
