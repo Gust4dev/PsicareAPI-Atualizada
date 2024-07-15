@@ -18,17 +18,18 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 8080;
 
-// Variáveis de ambiente
-const { DB_USER, DB_PASSWORD, DB_CLUSTER_INFO, } = process.env;
-const server = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_INFO}`;
+const { DB_USER, DB_PASSWORD, DB_CLUSTER_INFO, DB_NAME } = process.env;
+// uri mongodb
+const dbURI = `mongodb+srv://${DB_USER}:${DB_PASSWORD}@${DB_CLUSTER_INFO}/${DB_NAME}?retryWrites=true&w=majority`;
 
-// Conexão com o BD
-mongoose.connect(server).then(
-  () => {
-    console.log("Database connection successful!");
-  },
-  (e: Error) => console.error(e)
-);
+mongoose
+  .connect(dbURI)
+  .then(() => {
+    console.log("Conexão com o MongoDB Atlas estabelecida com sucesso!");
+  })
+  .catch((error: Error) => {
+    console.error("Erro ao conectar ao MongoDB Atlas:", error);
+  });
 
 // Configuração do Swagger
 const swaggerOptions = {

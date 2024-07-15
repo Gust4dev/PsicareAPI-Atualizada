@@ -3,7 +3,7 @@ import Professor from "../models/professor";
 
 export async function criarProfessor(req: Request, res: Response) {
   try {
-    const { id, nome, cpf, telefone, email, disciplina } = req.body;
+    const { nome, cpf, telefone, email, disciplina } = req.body;
 
     // Verificar se o email já existe
     const professorExistenteEmail = await Professor.exists({ email });
@@ -18,7 +18,6 @@ export async function criarProfessor(req: Request, res: Response) {
     }
 
     const newProfessor = new Professor({
-      id,
       nome,
       cpf,
       telefone,
