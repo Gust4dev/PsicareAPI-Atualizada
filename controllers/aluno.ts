@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import Aluno from "../models/aluno";
+import Professor from "../models/professor";
 
 export async function criarAluno(req: Request, res: Response) {
   try {
@@ -9,9 +10,6 @@ export async function criarAluno(req: Request, res: Response) {
       nome,
       cpf,
       telefone,
-      professorID,
-      professorNome,
-      professorDisciplina,
       email,
     } = req.body;
 
@@ -39,9 +37,6 @@ export async function criarAluno(req: Request, res: Response) {
       nome,
       cpf,
       telefone,
-      professorID,
-      professorNome,
-      professorDisciplina,
       email,
     });
 
@@ -100,15 +95,22 @@ export async function listarNomesAlunos(req: Request, res: Response) {
   }
 }
 
-export async function listarAlunosPorProfessorID(req: Request, res: Response) {
+export async function listarAlunosPorProfessorNome(req: Request, res: Response) {
   try {
-    const professorID = req.params.id;
-    const alunos = await Aluno.find({ professorID });
+    const professorNome = req.params.professorNome;
+
+    const professor = await Professor.findOne({ nome: professorNome });
+    
+    if (!professor) {
+      return res.status(404).json({ error: "Professor não encontrado." });
+    }
+    
+    const alunos = await Aluno.find({ professorID: professor._id });
     res.json(alunos);
   } catch (error: any) {
     res
       .status(500)
-      .json({ error: "Erro ao buscar alunos por ID do professor." });
+      .json({ error: "Erro ao buscar alunos por nome do professor." });
   }
 }
 
