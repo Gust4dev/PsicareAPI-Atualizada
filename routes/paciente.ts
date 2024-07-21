@@ -1,28 +1,29 @@
-import { Router } from 'express';
+import { Router } from "express";
 import {
   criarPaciente,
   listarPacientes,
   obterPacientePorID,
   listarPacientesPorIDAluno,
   atualizarPaciente,
-  deletePaciente,
+  deletarPaciente,
   obterUltimoPacienteCriado,
   listarPacientePaginados,
   deletarPacienteSelecionados,
-} from '../controllers/paciente';
+} from "../controllers/paciente";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
 // Rotas para Pacientes
-router.post('/', criarPaciente);
-router.get('/', listarPacientes);
-router.get("/paginado", listarPacientePaginados);
-router.get('/:id', obterPacientePorID);
-router.get('/aluno/:id', listarPacientesPorIDAluno);
-router.get('/select', listarPacientes);
-router.get('/ultimo/criado', obterUltimoPacienteCriado);
-router.patch('/:id', atualizarPaciente);
-router.delete('/:id', deletePaciente);
-router.delete('/', deletarPacienteSelecionados);
+router.post("/", authMiddleware(1), criarPaciente);
+router.get("/", authMiddleware(2), listarPacientes);
+router.get("/paginado", authMiddleware(2), listarPacientePaginados);
+router.get("/:id", authMiddleware(2), obterPacientePorID);
+router.get("/aluno/:id", authMiddleware(2), listarPacientesPorIDAluno);
+router.get("/select", authMiddleware(2), listarPacientes);
+router.get("/ultimo/criado", authMiddleware(1), obterUltimoPacienteCriado);
+router.patch("/:id", authMiddleware(1), atualizarPaciente);
+router.delete("/:id", authMiddleware(1), deletarPaciente);
+router.delete("/", authMiddleware(1), deletarPacienteSelecionados);
 
 export default router;

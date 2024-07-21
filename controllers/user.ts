@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import User from "../models/user";
+import User, { UserInterface } from "../models/user";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -19,19 +19,7 @@ if (!JWT_SECRET) {
 // Funções User
 // Método POST: criar usuário
 export async function createUser(req: Request, res: Response) {
-  const {
-    nome,
-    cpf,
-    role,
-    matricula,
-    periodoCursado,
-    disciplina,
-    idOrientador,
-    disciplinaMinistrada,
-    idSecretaria,
-    senha,
-    cargo,
-  } = req.body;
+  const { nome, cpf, email, senha } = req.body;
 
   try {
     // Verificar se o cpf já existe no banco de dados
@@ -44,22 +32,21 @@ export async function createUser(req: Request, res: Response) {
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     // Criar novo usuário
-    const novoUser = new User({
+    const novoUser: UserInterface = new User({
       nome,
       cpf,
-      role,
-      matricula,
-      periodoCursado,
-      disciplina,
-      idOrientador,
-      disciplinaMinistrada,
-      idSecretaria,
+      email,
       senha: senhaCriptografada,
-      cargo,
     });
 
+    // Gerar token JWT
+    const token = jwt.sign({ cpf, email }, JWT_SECRET!, { expiresIn: "1h" });
+    novoUser.token = token;
+
     await novoUser.save();
-    return res.status(201).send("Usuário criado com sucesso.");
+    return res
+      .status(201)
+      .send({ message: "Usuário criado com sucesso.", token });
   } catch (error: any) {
     console.error(error);
     return res.status(500).send("Erro ao criar o usuário.");
@@ -71,7 +58,7 @@ export async function loginUser(req: Request, res: Response) {
   const { cpf, senha } = req.body;
 
   try {
-    const userInDatabase = await User.findOne({ cpf }).lean();
+    const userInDatabase = await User.findOne({ cpf }).exec();
 
     // Verificar se o usuário existe no banco de dados
     if (!userInDatabase) {
@@ -85,7 +72,12 @@ export async function loginUser(req: Request, res: Response) {
     }
 
     // Gerar token JWT
-    const token = jwt.sign({ cpf }, JWT_SECRET!, { expiresIn: "1h" });
+    const token = jwt.sign({ cpf, email: userInDatabase.email }, JWT_SECRET!, {
+      expiresIn: "1h",
+    });
+    userInDatabase.token = token;
+    await userInDatabase.save();
+
     return res.status(200).json({ token });
   } catch (error: any) {
     console.error(error);
@@ -93,13 +85,14 @@ export async function loginUser(req: Request, res: Response) {
   }
 }
 
-// Método GET: listar usuários
+// Método GET: listar todos os usuários
 export async function listarUsers(req: Request, res: Response) {
   try {
-    const users = await User.find({});
+    const users = await User.find();
     res.json(users);
   } catch (error: any) {
-    res.status(500).json({ message: "Erro ao buscar usuários." });
+    console.error(error);
+    res.status(500).json({ message: "Erro ao listar usuários." });
   }
 }
 
@@ -170,6 +163,6 @@ export const obterUltimoUserCriado = async (req: Request, res: Response) => {
     const ultimoUser = await User.findOne().sort({ createdAt: -1 });
     res.json(ultimoUser);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar o último usuário criado' });
+    res.status(500).json({ message: "Erro ao buscar o último usuário criado" });
   }
-}
+};

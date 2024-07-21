@@ -181,7 +181,7 @@ export async function atualizarPaciente(req: Request, res: Response) {
   }
 }
 
-export async function deletePaciente(request: Request, response: Response) {
+export async function deletarPaciente(request: Request, response: Response) {
   try {
     const pacienteID = request.params.id;
     const pacienteEncontrado = await Paciente.findById(pacienteID);

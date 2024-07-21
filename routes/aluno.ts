@@ -16,15 +16,15 @@ import { authMiddleware } from "../middleware/auth";
 const router = Router();
 
 // Rotas alunos
-router.post("/", authMiddleware(2), criarAluno);
-router.get("/", listarAlunos);
-router.get("/paginado", listarAlunosPaginados);
-router.get("/:id", obterAlunoPorID);
-router.get("/select", listarNomesAlunos);
-router.get("/professor/:id", listarAlunosPorProfessorID);
-router.get("/ultimo/criado", obterUltimoAlunoCriado);
-router.patch("/:id", atualizarAluno);
-router.delete("/:id", deletarAluno);
-router.delete('/', deletarAlunoSelecionados);
+router.post("/", authMiddleware(1), criarAluno);
+router.get("/", authMiddleware(2), listarAlunos);
+router.get("/paginado", authMiddleware(2), listarAlunosPaginados);
+router.get("/:id", authMiddleware(2), obterAlunoPorID);
+router.get("/select", authMiddleware(2), listarNomesAlunos);
+router.get("/professor/:id", authMiddleware(2), listarAlunosPorProfessorID);
+router.get("/ultimo/criado", authMiddleware(1), obterUltimoAlunoCriado);
+router.patch("/:id", authMiddleware(1), atualizarAluno);
+router.delete("/:id", authMiddleware(1), deletarAluno);
+router.delete("/", authMiddleware(1), deletarAlunoSelecionados);
 
 export default router;

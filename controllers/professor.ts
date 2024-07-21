@@ -144,7 +144,7 @@ export async function patchProfessor(req: Request, res: Response) {
   }
 }
 
-export async function deleteProfessor(req: Request, res: Response) {
+export async function deletarProfessor(req: Request, res: Response) {
   try {
     const deletedProfessor = await Professor.findByIdAndDelete(req.params.id);
     if (!deletedProfessor) {

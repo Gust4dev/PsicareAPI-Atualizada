@@ -1,7 +1,7 @@
-// constants/roles.ts
-export const roles = {
-  1: "admin",
-  2: "secretario",
-  3: "professor",
-  4: "aluno",
+
+export const role = {
+  0: "admin",
+  1: "secretario",
+  2: "professor",
+  3: "aluno",
 };

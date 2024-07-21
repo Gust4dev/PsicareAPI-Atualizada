@@ -143,7 +143,7 @@ export async function updateSecretario(req: Request, res: Response) {
 }
 
 // Método DELETE
-export async function deleteSecretario(req: Request, res: Response) {
+export async function deletarSecretario(req: Request, res: Response) {
   try {
     const secretarioID = req.params.id;
     if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
