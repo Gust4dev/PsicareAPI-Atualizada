@@ -4,15 +4,9 @@ import mongoose from "mongoose";
 
 export async function criarConsulta(req: Request, res: Response) {
   const {
-    pacienteID,
     pacienteNome,
-    title,
-    start,
-    end,
-    resourceID,
     recorrencia,
     consultaRecorrenteID,
-    TipoDeConsulta,
     observacao,
     statusDaConsulta,
     AlunoID,
@@ -21,15 +15,9 @@ export async function criarConsulta(req: Request, res: Response) {
 
   // Nova consulta
   const novaConsulta = new Consulta({
-    pacienteID,
     pacienteNome,
-    title,
-    start,
-    end,
-    resourceID,
     recorrencia,
     consultaRecorrenteID,
-    TipoDeConsulta,
     observacao,
     statusDaConsulta,
     AlunoID,

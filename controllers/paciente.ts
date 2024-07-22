@@ -217,7 +217,7 @@ export const obterUltimoPacienteCriado = async (
   }
 };
 
-export const listarPacientePaginados = async (req: Request, res: Response) => {
+export const listarPacientesPaginados = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
@@ -233,13 +233,14 @@ export const listarPacientePaginados = async (req: Request, res: Response) => {
       pacientes,
       totalPages,
       currentPage: page,
+      totalItems,
     });
   } catch (error) {
     res
       .status(500)
       .json({ message: "Erro ao buscar pacientes paginados", error });
   }
-};
+}
 
 export const deletarPacienteSelecionados = async (
   req: Request,

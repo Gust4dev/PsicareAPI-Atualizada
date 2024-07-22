@@ -206,7 +206,7 @@ export const listarSecretarioPaginados = async (
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Erro ao buscar pacientes paginados", error });
+      .json({ message: "Erro ao buscar secretarios paginados", error });
   }
 };
 

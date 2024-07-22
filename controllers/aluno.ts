@@ -180,30 +180,31 @@ export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
   }
 };
 
-export const listarAlunosPaginados = async (
-  req: Request,
-  res: Response
-): Promise<void> => {
-  const page: number = parseInt(req.query.page as string, 10) || 1;
+export const listarAlunosPaginados = async (req: Request, res: Response) => {
+  const page = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
-    const [alunos, total] = await Promise.all([
-      Aluno.find()
-        .skip((page - 1) * limit)
-        .limit(limit),
-      Aluno.countDocuments(),
-    ]);
+    const alunos = await Aluno.find()
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    const totalItems = await Aluno.countDocuments();
+    const totalPages = Math.ceil(totalItems / limit);
 
     res.json({
       alunos,
-      totalPages: Math.ceil(total / limit),
+      totalPages,
       currentPage: page,
+      totalItems,
     });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar alunos paginados" });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar alunos paginados", error });
   }
 };
+
 
 export const deletarAlunoSelecionados = async (req: Request, res: Response) => {
   const { ids } = req.body;
