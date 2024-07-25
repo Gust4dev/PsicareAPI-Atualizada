@@ -11,11 +11,8 @@ import {
 
 const router = Router();
 
-// Rota de login não protegida
 router.post("/login", loginUser);
 router.post("/", createUser);
-
-// Rotas protegidas
 router.get("/", listarUsers);
 router.get("/:id", obterUserPorID);
 router.get('/ultimo/criado', obterUltimoUserCriado);

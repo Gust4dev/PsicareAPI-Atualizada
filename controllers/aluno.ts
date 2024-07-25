@@ -1,6 +1,21 @@
 import { Request, Response } from "express";
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import dotenv from "dotenv";
 import Aluno from "../models/aluno";
+import User, { UserInterface } from "../models/user";
 import Professor from "../models/professor";
+
+// Carregar as variáveis de ambiente do arquivo .env
+dotenv.config();
+
+// Obter o valor de JWT_SECRET do arquivo .env
+const JWT_SECRET = process.env.JWT_SECRET;
+
+if (!JWT_SECRET) {
+  console.error("JWT_SECRET não definido no arquivo .env");
+  process.exit(1);
+}
 
 export async function criarAluno(req: Request, res: Response) {
   try {
@@ -11,6 +26,7 @@ export async function criarAluno(req: Request, res: Response) {
       cpf,
       telefone,
       email,
+      senha,
     } = req.body;
 
     // Verificar se o CPF já existe
@@ -40,13 +56,30 @@ export async function criarAluno(req: Request, res: Response) {
       email,
     });
 
+    // Criptografia da senha
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+    // Criar novo usuário
+    const novoUser: UserInterface = new User({
+      nome,
+      cpf,
+      email,
+      senha: senhaCriptografada,
+    });
+
+    // Gerar token JWT
+    const token = jwt.sign({ cpf, email }, JWT_SECRET!, { expiresIn: "12h" });
+    novoUser.token = token;
+
     await newAluno.save();
-    res.status(201).json({ message: "Cadastro de aluno criado com sucesso." });
+    await novoUser.save();
+
+    res.status(201).json({ message: "Cadastro de aluno e usuário criado com sucesso." });
   } catch (error: any) {
     console.error(error);
     res
       .status(500)
-      .json({ error: "Não foi possível criar o cadastro de aluno." });
+      .json({ error: "Não foi possível criar o cadastro de aluno e usuário." });
   }
 }
 

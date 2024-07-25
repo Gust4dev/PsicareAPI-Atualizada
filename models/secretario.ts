@@ -6,6 +6,8 @@ interface SecretarioInterface extends Document {
   telefone: string;
   email: string;
   turno: string;
+  senha: string;
+  token: string;
 }
 
 const SecretarioSchema: Schema = new Schema(
@@ -15,6 +17,8 @@ const SecretarioSchema: Schema = new Schema(
     telefone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     turno: { type: String, required: true },
+    senha: { type: String },
+    token: { type: String },
   },
   { timestamps: true }
 );

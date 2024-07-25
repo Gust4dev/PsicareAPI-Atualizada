@@ -5,3 +5,10 @@ export const role = {
   2: "professor",
   3: "aluno",
 };
+
+export const cargo = {
+  admin: 0,
+  secretario: 1,
+  professor: 2,
+  aluno: 3,
+};

@@ -6,6 +6,8 @@ interface ProfessorInterface extends Document {
   telefone: string;
   email: string;
   disciplina: string;
+  senha: string;
+  token: string;
 }
 
 const ProfessorSchema: Schema = new Schema(
@@ -15,6 +17,8 @@ const ProfessorSchema: Schema = new Schema(
     telefone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     disciplina: { type: String, required: true },
+    senha: { type: String },
+    token: { type: String },
   },
   { timestamps: true }
 );

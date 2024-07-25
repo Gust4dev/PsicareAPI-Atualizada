@@ -8,6 +8,8 @@ interface AlunoInterface extends Document {
   telefone: string;
   professor: string;
   email: string;
+  senha: string;
+  token: string;
 }
 
 const AlunoSchema: Schema = new Schema(
@@ -19,6 +21,8 @@ const AlunoSchema: Schema = new Schema(
     telefone: { type: String, required: true },
     professor: { type: String, required: true },
     email: { type: String, required: true, unique: true },
+    senha: { type: String },
+    token: { type: String },
   },
   { timestamps: true }
 );
