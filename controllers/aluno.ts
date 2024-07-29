@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import Aluno from "../models/aluno";
 import User, { UserInterface } from "../models/user";
@@ -17,6 +16,7 @@ if (!JWT_SECRET) {
   process.exit(1);
 }
 
+// Criar um novo aluno
 export async function criarAluno(req: Request, res: Response) {
   try {
     const {
@@ -29,20 +29,17 @@ export async function criarAluno(req: Request, res: Response) {
       senha,
     } = req.body;
 
-    // Verificar se o CPF já existe
+    // Verificações de existência
     const alunoExistenteCPF = await Aluno.exists({ cpf });
+    const alunoExistenteMatricula = await Aluno.exists({ matricula });
+    const alunoExistenteEmail = await Aluno.exists({ email });
+
     if (alunoExistenteCPF) {
       return res.status(400).send("Já existe um aluno com este CPF.");
     }
-
-    // Verificar se a matrícula já existe
-    const alunoExistenteMatricula = await Aluno.exists({ matricula });
     if (alunoExistenteMatricula) {
       return res.status(400).send("Já existe um aluno com esta matrícula.");
     }
-
-    // Verificar se o email já existe
-    const alunoExistenteEmail = await Aluno.exists({ email });
     if (alunoExistenteEmail) {
       return res.status(400).send("Já existe um aluno com este email.");
     }
@@ -56,10 +53,8 @@ export async function criarAluno(req: Request, res: Response) {
       email,
     });
 
-    // Criptografia da senha
+    // Criptografia da senha e criação de novo usuário
     const senhaCriptografada = await bcrypt.hash(senha, 10);
-
-    // Criar novo usuário
     const novoUser: UserInterface = new User({
       nome,
       cpf,
@@ -67,22 +62,18 @@ export async function criarAluno(req: Request, res: Response) {
       senha: senhaCriptografada,
     });
 
-    // Gerar token JWT
-    const token = jwt.sign({ cpf, email }, JWT_SECRET!, { expiresIn: "12h" });
-    novoUser.token = token;
-
+    // Salvar aluno e usuário no banco
     await newAluno.save();
     await novoUser.save();
 
     res.status(201).json({ message: "Cadastro de aluno e usuário criado com sucesso." });
   } catch (error: any) {
     console.error(error);
-    res
-      .status(500)
-      .json({ error: "Não foi possível criar o cadastro de aluno e usuário." });
+    res.status(500).json({ error: "Não foi possível criar o cadastro de aluno e usuário." });
   }
 }
 
+// Listar alunos com paginação
 export const listarAlunos = async (req: Request, res: Response) => {
   const { q } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
@@ -93,7 +84,6 @@ export const listarAlunos = async (req: Request, res: Response) => {
     const alunos = await Aluno.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit);
-
     const totalItems = await Aluno.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -107,6 +97,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
   }
 };
 
+// Obter dados de um aluno por ID
 export async function obterAlunoPorID(req: Request, res: Response) {
   try {
     const alunoData = await Aluno.findById(req.params.id);
@@ -119,6 +110,7 @@ export async function obterAlunoPorID(req: Request, res: Response) {
   }
 }
 
+// Listar nomes de todos os alunos
 export async function listarNomesAlunos(req: Request, res: Response) {
   try {
     const alunos = await Aluno.find({}, "nome");
@@ -128,12 +120,12 @@ export async function listarNomesAlunos(req: Request, res: Response) {
   }
 }
 
+// Listar alunos por nome do professor associado
 export async function listarAlunosPorProfessorNome(req: Request, res: Response) {
   try {
     const professorNome = req.params.professorNome;
-
     const professor = await Professor.findOne({ nome: professorNome });
-    
+
     if (!professor) {
       return res.status(404).json({ error: "Professor não encontrado." });
     }
@@ -141,18 +133,17 @@ export async function listarAlunosPorProfessorNome(req: Request, res: Response) 
     const alunos = await Aluno.find({ professorID: professor._id });
     res.json(alunos);
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ error: "Erro ao buscar alunos por nome do professor." });
+    res.status(500).json({ error: "Erro ao buscar alunos por nome do professor." });
   }
 }
 
+// Atualizar dados de um aluno
 export async function atualizarAluno(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const { cpf, email, matricula, ...updateData } = req.body;
 
-    // Verificar duplicidade de email e matrícula
+    // Verificar duplicidade de email, CPF e matrícula
     const alunoExistente = await Aluno.findOne({
       _id: { $ne: id },
       $or: [{ email }, { cpf }, { matricula }],
@@ -170,9 +161,7 @@ export async function atualizarAluno(req: Request, res: Response) {
       }
     }
 
-    const alunoAtualizado = await Aluno.findByIdAndUpdate(id, updateData, {
-      new: true,
-    });
+    const alunoAtualizado = await Aluno.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!alunoAtualizado) {
       return res.status(404).send("Aluno não encontrado");
@@ -184,6 +173,7 @@ export async function atualizarAluno(req: Request, res: Response) {
   }
 }
 
+// Excluir um aluno
 export async function deletarAluno(req: Request, res: Response) {
   try {
     const id = req.params.id;
@@ -203,7 +193,7 @@ export async function deletarAluno(req: Request, res: Response) {
   }
 }
 
-// Metodo para receber ultimo aluno criado
+// Obter o último aluno criado
 export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
   try {
     const ultimoAluno = await Aluno.findOne().sort({ createdAt: -1 });
@@ -213,6 +203,7 @@ export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
   }
 };
 
+// Listar alunos paginados
 export const listarAlunosPaginados = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
@@ -232,13 +223,11 @@ export const listarAlunosPaginados = async (req: Request, res: Response) => {
       totalItems,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erro ao buscar alunos paginados", error });
+    res.status(500).json({ message: "Erro ao buscar alunos paginados", error });
   }
 };
 
-
+// Deletar alunos selecionados
 export const deletarAlunoSelecionados = async (req: Request, res: Response) => {
   const { ids } = req.body;
 
@@ -250,12 +239,12 @@ export const deletarAlunoSelecionados = async (req: Request, res: Response) => {
     if (result.deletedCount === 0) {
       return res
         .status(404)
-        .json({ message: "Nenhum secretário encontrado para deletar" });
+        .json({ message: "Nenhum aluno encontrado para deletar" });
     }
     res.status(200).json({
-      message: `${result.deletedCount} secretários deletados com sucesso`,
+      message: `${result.deletedCount} alunos deletados com sucesso`,
     });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao deletar secretários", error });
+    res.status(500).json({ message: "Erro ao deletar alunos", error });
   }
 };

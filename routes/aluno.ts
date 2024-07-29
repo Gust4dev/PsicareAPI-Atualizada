@@ -16,7 +16,7 @@ import { authMiddleware } from "../middleware/auth";
 const router = Router();
 
 // Rotas alunos
-router.post("/", authMiddleware(1), criarAluno);
+router.post("/", criarAluno);
 router.get("/", authMiddleware(2), listarAlunos);
 router.get("/paginado", authMiddleware(2), listarAlunosPaginados);
 router.get("/:id", authMiddleware(2), obterAlunoPorID);

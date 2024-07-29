@@ -7,8 +7,8 @@ export interface UserInterface extends Document {
   telefone: string;
   email: string;
   senha: string;
-  cargo: number; // 0=Admin, 1=Secretario, 2=Professor, 3=Aluno
-  token: string;
+  cargo?: number; // 0=Admin, 1=Secretario, 2=Professor, 3=Aluno
+  token?: string;
 }
 
 const UserSchema: Schema = new Schema(

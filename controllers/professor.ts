@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import Professor from "../models/professor";
 import User, { UserInterface } from "../models/user";
@@ -51,19 +50,19 @@ export async function criarProfessor(req: Request, res: Response) {
       senha: senhaCriptografada,
     });
 
-    // Gerar token JWT
-    const token = jwt.sign({ cpf, email }, JWT_SECRET!, { expiresIn: "12h" });
-    novoUser.token = token;
-
     await newProfessor.save();
     await novoUser.save();
 
-    res.status(201).json({ message: "Cadastro de professor e usuário criado com sucesso." });
+    res
+      .status(201)
+      .json({ message: "Cadastro de professor e usuário criado com sucesso." });
   } catch (error: any) {
     console.error(error);
     res
       .status(500)
-      .json({ error: "Não foi possível criar o cadastro de professor e usuário." });
+      .json({
+        error: "Não foi possível criar o cadastro de professor e usuário.",
+      });
   }
 }
 
@@ -225,7 +224,7 @@ export const listarProfessorPaginados = async (req: Request, res: Response) => {
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Erro ao buscar pacientes paginados", error });
+      .json({ message: "Erro ao buscar professores paginados", error });
   }
 };
 

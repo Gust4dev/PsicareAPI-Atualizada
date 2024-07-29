@@ -15,7 +15,7 @@ router.post("/login", loginUser);
 router.post("/", createUser);
 router.get("/", listarUsers);
 router.get("/:id", obterUserPorID);
-router.get('/ultimo/criado', obterUltimoUserCriado);
+router.get("/ultimo/criado", obterUltimoUserCriado);
 router.patch("/:id", patchUser);
 router.delete("/:id", deleteUser);
 

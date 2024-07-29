@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 interface ProfessorInterface extends Document {
   nome: string;
@@ -7,7 +7,6 @@ interface ProfessorInterface extends Document {
   email: string;
   disciplina: string;
   senha: string;
-  token: string;
 }
 
 const ProfessorSchema: Schema = new Schema(
@@ -17,10 +16,9 @@ const ProfessorSchema: Schema = new Schema(
     telefone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     disciplina: { type: String, required: true },
-    senha: { type: String },
-    token: { type: String },
+    senha: { type: String, required: true },
   },
   { timestamps: true }
 );
 
-export default mongoose.model<ProfessorInterface>('Professor', ProfessorSchema);
+export default mongoose.model<ProfessorInterface>("Professor", ProfessorSchema);

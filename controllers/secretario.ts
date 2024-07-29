@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-
 import Secretario from "../models/secretario";
 import User, { UserInterface } from "../models/user";
 
@@ -55,10 +53,6 @@ export async function criarSecretario(req: Request, res: Response) {
       senha: senhaCriptografada,
     });
 
-    // Gerar token JWT
-    const token = jwt.sign({ cpf, email }, JWT_SECRET!, { expiresIn: "12h" });
-    novoUser.token = token;
-
     await newSecretario.save();
     await novoUser.save();
 
@@ -77,7 +71,7 @@ export async function criarSecretario(req: Request, res: Response) {
   }
 }
 
-// Método GET
+// Método GET para listar secretários
 export const listSecretarios = async (req: Request, res: Response) => {
   const { q } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
@@ -103,6 +97,24 @@ export const listSecretarios = async (req: Request, res: Response) => {
   }
 };
 
+// Método GET para obter secretário por ID
+export async function getSecretarioByID(req: Request, res: Response) {
+  try {
+    const secretarioID = req.params.id;
+    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
+      return res.status(400).send("ID de secretário inválido.");
+    }
+    const secretario = await Secretario.findById(secretarioID);
+    if (!secretario) {
+      return res.status(404).send("Secretário não encontrado.");
+    }
+    res.json(secretario);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao buscar secretário." });
+  }
+}
+
+// Método PUT para atualizar secretário
 export async function atualizarSecretario(req: Request, res: Response) {
   try {
     const { id } = req.params;
@@ -142,23 +154,7 @@ export async function atualizarSecretario(req: Request, res: Response) {
   }
 }
 
-export async function getSecretarioByID(req: Request, res: Response) {
-  try {
-    const secretarioID = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
-      return res.status(400).send("ID de secretário inválido.");
-    }
-    const secretario = await Secretario.findById(secretarioID);
-    if (!secretario) {
-      return res.status(404).send("Secretário não encontrado.");
-    }
-    res.json(secretario);
-  } catch (error: any) {
-    res.status(500).json({ message: "Erro ao buscar secretário." });
-  }
-}
-
-// Método PATCH
+// Método PATCH para atualizar parcialmente um secretário
 export async function updateSecretario(req: Request, res: Response) {
   try {
     const secretarioID = req.params.id;
@@ -179,7 +175,7 @@ export async function updateSecretario(req: Request, res: Response) {
   }
 }
 
-// Método DELETE
+// Método DELETE para deletar secretário
 export async function deletarSecretario(req: Request, res: Response) {
   try {
     const secretarioID = req.params.id;
@@ -204,7 +200,7 @@ export async function deletarSecretario(req: Request, res: Response) {
   }
 }
 
-// Metodo para receber ultimo secretario criado
+// Método para obter o último secretário criado
 export const obterUltimoSecretarioCriado = async (
   req: Request,
   res: Response
@@ -219,6 +215,7 @@ export const obterUltimoSecretarioCriado = async (
   }
 };
 
+// Método para listar secretários paginados
 export const listarSecretarioPaginados = async (
   req: Request,
   res: Response
@@ -247,6 +244,7 @@ export const listarSecretarioPaginados = async (
   }
 };
 
+// Método para deletar secretários selecionados
 export const deletarSecretariosSelecionados = async (
   req: Request,
   res: Response

@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Schema } from "mongoose";
 
 interface SecretarioInterface extends Document {
   nome: string;
@@ -7,7 +7,6 @@ interface SecretarioInterface extends Document {
   email: string;
   turno: string;
   senha: string;
-  token: string;
 }
 
 const SecretarioSchema: Schema = new Schema(
@@ -17,10 +16,9 @@ const SecretarioSchema: Schema = new Schema(
     telefone: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     turno: { type: String, required: true },
-    senha: { type: String },
-    token: { type: String },
+    senha: { type: String, required: true },
   },
   { timestamps: true }
 );
 
-export default mongoose.model<SecretarioInterface>('Secretario', SecretarioSchema);
+export default mongoose.model<SecretarioInterface>("Secretario", SecretarioSchema);
