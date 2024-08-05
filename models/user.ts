@@ -6,6 +6,7 @@ export interface UserInterface extends Document {
   cpf: string;
   telefone: string;
   email: string;
+  senha: string;
   cargo?: number; // 0=Admin, 1=Secretario, 2=Professor, 3=Aluno
   token?: string;
 }
@@ -16,6 +17,7 @@ const UserSchema: Schema = new Schema(
     cpf: { type: String, required: true, unique: true },
     telefone: { type: String, required: false },
     email: { type: String, required: true, unique: true },
+    senha: { type: String, required: false },
     cargo: {
       type: Number,
       required: false,
