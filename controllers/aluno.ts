@@ -5,17 +5,6 @@ import Aluno from "../models/aluno";
 import User, { UserInterface } from "../models/user";
 import Professor from "../models/professor";
 
-// Carregar as variáveis de ambiente do arquivo .env
-dotenv.config();
-
-// Obter o valor de JWT_SECRET do arquivo .env
-const JWT_SECRET = process.env.JWT_SECRET;
-
-if (!JWT_SECRET) {
-  console.error("JWT_SECRET não definido no arquivo .env");
-  process.exit(1);
-}
-
 // Criar um novo aluno
 export async function criarAluno(req: Request, res: Response) {
   try {
