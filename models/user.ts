@@ -17,7 +17,7 @@ const UserSchema: Schema = new Schema(
     cpf: { type: String, required: true, unique: true },
     telefone: { type: String, required: false },
     email: { type: String, required: true, unique: true },
-    senha: { type: String, required: false },
+    senha: { type: String },
     cargo: {
       type: Number,
       required: false,

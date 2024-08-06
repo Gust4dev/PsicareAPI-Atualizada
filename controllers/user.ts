@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import User, { UserInterface } from "../models/user";
+import User from "../models/user";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -52,11 +52,11 @@ export async function createUser(req: Request, res: Response) {
 
 // Login de usuário
 export async function loginUser(req: Request, res: Response) {
-  const { cpf, senha } = req.body;
+  const { cpf , email, senha } = req.body;
 
   try {
-    // Buscar usuário por cpf
-    const userInDatabase = await User.findOne({ cpf }).exec();
+    // Buscar usuário por email
+    const userInDatabase = await User.findOne({ email }).exec();
     if (!userInDatabase) {
       return res.status(400).send("Usuário não encontrado.");
     }

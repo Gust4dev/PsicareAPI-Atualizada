@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import dotenv from "dotenv";
 import Professor from "../models/professor";
 import User, { UserInterface } from "../models/user";
 
+// Função para criar um novo professor
 export async function criarProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, disciplina, senha } = req.body;
@@ -55,30 +55,20 @@ export async function criarProfessor(req: Request, res: Response) {
   }
 }
 
+// Função para listar todos os professores (sem paginação)
 export const listarProfessores = async (req: Request, res: Response) => {
   const { q } = req.query;
-  const page: number = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15;
 
   try {
     const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
-    const professores = await Professor.find(searchQuery)
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    const totalItems = await Professor.countDocuments(searchQuery);
-    const totalPages = Math.ceil(totalItems / limit);
-
-    res.json({
-      professores,
-      totalPages,
-      currentPage: page,
-    });
+    const professores = await Professor.find(searchQuery);
+    res.json(professores);
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar professores", error });
   }
 };
 
+// Função para buscar um professor pelo ID
 export async function getProfessorById(req: Request, res: Response) {
   try {
     const professor = await Professor.findById(req.params.id);
@@ -92,6 +82,7 @@ export async function getProfessorById(req: Request, res: Response) {
   }
 }
 
+// Função para atualizar um professor
 export async function atualizarProfessor(req: Request, res: Response) {
   try {
     const { id } = req.params;
@@ -131,6 +122,7 @@ export async function atualizarProfessor(req: Request, res: Response) {
   }
 }
 
+// Função para listar professores para seleção (nome e disciplina)
 export async function getProfessoresSelect(req: Request, res: Response) {
   try {
     const professores = await Professor.find({}, "nome disciplina");
@@ -141,6 +133,7 @@ export async function getProfessoresSelect(req: Request, res: Response) {
   }
 }
 
+// Função para atualizar um professor (patch)
 export async function patchProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefoneContato, email, disciplina } = req.body;
@@ -162,6 +155,7 @@ export async function patchProfessor(req: Request, res: Response) {
   }
 }
 
+// Função para deletar um professor
 export async function deletarProfessor(req: Request, res: Response) {
   try {
     const deletedProfessor = await Professor.findByIdAndDelete(req.params.id);
@@ -178,7 +172,7 @@ export async function deletarProfessor(req: Request, res: Response) {
   }
 }
 
-// Metodo para receber ultimo professor criado
+// Função para obter o último professor criado
 export const obterUltimoProfessorCriado = async (
   req: Request,
   res: Response
@@ -193,6 +187,7 @@ export const obterUltimoProfessorCriado = async (
   }
 };
 
+// Função para listar professores paginados
 export const listarProfessorPaginados = async (req: Request, res: Response) => {
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
@@ -217,6 +212,7 @@ export const listarProfessorPaginados = async (req: Request, res: Response) => {
   }
 };
 
+// Função para deletar professores selecionados
 export const deletarProfessorSelecionados = async (
   req: Request,
   res: Response

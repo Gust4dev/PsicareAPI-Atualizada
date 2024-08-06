@@ -13,10 +13,10 @@ const SecretarioSchema: Schema = new Schema(
   {
     nome: { type: String, required: true },
     cpf: { type: String, required: true, unique: true },
-    telefone: { type: String, required: true },
+    telefone: { type: String, required: false },
     email: { type: String, required: true, unique: true },
     turno: { type: String, required: true },
-    senha: { type: String, required: true },
+    senha: { type: String },
   },
   { timestamps: true }
 );
