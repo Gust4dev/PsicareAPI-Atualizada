@@ -22,37 +22,39 @@ if (!JWT_SECRET) {
 
 // Criar usuário
 export async function createUser(req: Request, res: Response) {
-  const { cpf, email, nome } = req.body;
+  const { nome, cpf, telefone, email, senha, cargo } = req.body;
 
   try {
-    // Gerar senha padrão usando o CPF menos os últimos dois dígitos
-    const senhaPadrao = cpf.slice(0, -2);
+    // Gerar senha padrão usando o CPF menos os últimos dois dígitos se a senha não for fornecida
+    const senhaPadrao = senha || cpf.slice(0, -2);
 
     // Criptografar a senha
     const senhaCriptografada = await bcrypt.hash(senhaPadrao, 10);
 
     // Criar novo usuário
     const newUser = new User({
-      email,
-      senha: senhaCriptografada,
       nome,
       cpf,
+      telefone,
+      email,
+      senha: senhaCriptografada,
+      cargo,
     });
 
     // Salvar no banco de dados
     await newUser.save();
 
     // Retornar resposta de sucesso
-    res.status(201).send("Usuário criado com sucesso.");
+    res.status(201).json(newUser);
   } catch (error: any) {
-    console.error(error);
+    console.error("Erro ao criar usuário:", error);
     res.status(500).send("Erro ao criar usuário.");
   }
 }
 
 // Login de usuário
 export async function loginUser(req: Request, res: Response) {
-  const { cpf , email, senha } = req.body;
+  const { cpf, email, senha } = req.body;
 
   try {
     // Buscar usuário por email
@@ -66,17 +68,21 @@ export async function loginUser(req: Request, res: Response) {
       return res.status(400).send("Senha incorreta.");
     }
 
-    // Gerar token JWT
-    const token = jwt.sign({ cpf, email: userInDatabase.email }, JWT_SECRET, {
-      expiresIn: "12h",
-    });
+    // Gerar token JWT incluindo a cargo
+    const token = jwt.sign(
+      { cpf, email: userInDatabase.email, cargo: userInDatabase.cargo },
+      JWT_SECRET,
+      {
+        expiresIn: "12h",
+      }
+    );
     userInDatabase.token = token;
     await userInDatabase.save();
 
     // Enviar token
     return res.status(200).json({ token });
   } catch (error: any) {
-    console.error(error);
+    console.error("Erro ao realizar login:", error);
     return res.status(500).send("Erro ao realizar login.");
   }
 }
@@ -192,7 +198,7 @@ export async function criarAlunoComUsuario(req: Request, res: Response) {
     const newUser = new User({
       email,
       senha: await bcrypt.hash(senhaPadrao, 10),
-      cargo: 1, // Definir o cargo como 1 para aluno
+      cargo: 3, // Definir o cargo como 3 para aluno
     });
 
     await newUser.save();
@@ -291,7 +297,7 @@ export async function criarSecretarioComUsuario(req: Request, res: Response) {
     const newUser = new User({
       email,
       senha: senhaHash,
-      cargo: 3, // Definir o cargo como 3 para secretário
+      cargo: 1, // Definir o cargo como 1 para secretário
     });
 
     // Salvar o novo usuário

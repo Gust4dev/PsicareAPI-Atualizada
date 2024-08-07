@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { cargo } from "../constants/roles";
+import { cargo } from "../constants/roles"; // Certifique-se de que este caminho está correto
 
 export interface UserInterface extends Document {
   nome: string;
@@ -7,7 +7,7 @@ export interface UserInterface extends Document {
   telefone: string;
   email: string;
   senha: string;
-  cargo?: number; // 0=Admin, 1=Secretario, 2=Professor, 3=Aluno
+  cargo: number; // 0=Admin, 1=Secretario, 2=Professor, 3=Aluno
   token?: string;
 }
 
@@ -17,10 +17,10 @@ const UserSchema: Schema = new Schema(
     cpf: { type: String, required: true, unique: true },
     telefone: { type: String, required: false },
     email: { type: String, required: true, unique: true },
-    senha: { type: String },
+    senha: { type: String, required: true },
     cargo: {
       type: Number,
-      required: false,
+      required: true,
       enum: [cargo.admin, cargo.secretario, cargo.professor, cargo.aluno],
     },
     token: { type: String },
