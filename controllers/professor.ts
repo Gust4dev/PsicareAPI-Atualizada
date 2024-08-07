@@ -47,11 +47,9 @@ export async function criarProfessor(req: Request, res: Response) {
       .json({ message: "Cadastro de professor e usuário criado com sucesso." });
   } catch (error: any) {
     console.error(error);
-    res
-      .status(500)
-      .json({
-        error: "Não foi possível criar o cadastro de professor e usuário.",
-      });
+    res.status(500).json({
+      error: "Não foi possível criar o cadastro de professor e usuário.",
+    });
   }
 }
 
@@ -62,7 +60,7 @@ export const listarProfessores = async (req: Request, res: Response) => {
   try {
     const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
     const professores = await Professor.find(searchQuery);
-    res.json(professores);
+    res.json({ professores });
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar professores", error });
   }
@@ -204,6 +202,7 @@ export const listarProfessorPaginados = async (req: Request, res: Response) => {
       professores,
       totalPages,
       currentPage: page,
+      totalItems,
     });
   } catch (error) {
     res
