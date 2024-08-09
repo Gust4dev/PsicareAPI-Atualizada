@@ -1,28 +1,23 @@
-import mongoose, { Document, Schema } from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-interface AlunoInterface extends Document {
+export interface AlunoInterface extends Document {
   matricula: string;
-  periodo: number;
+  periodo: string;
   nome: string;
   cpf: string;
   telefone: string;
-  professor: string;
   email: string;
-  senha: string;
+  professor: mongoose.Schema.Types.ObjectId; // Referência ao Professor
 }
 
-const AlunoSchema: Schema = new Schema(
-  {
-    matricula: { type: String, required: true, unique: true },
-    periodo: { type: Number, required: true },
-    nome: { type: String, required: true },
-    cpf: { type: String, required: true, unique: true },
-    telefone: { type: String, required: true },
-    professor: { type: String, required: false },
-    email: { type: String, required: true, unique: true },
-    senha: { type: String },
-  },
-  { timestamps: true }
-);
+const AlunoSchema: Schema = new Schema({
+  matricula: { type: String, required: true, unique: true },
+  periodo: { type: String, required: true },
+  nome: { type: String, required: true },
+  cpf: { type: String, required: true, unique: false },
+  telefone: { type: String, required: true },
+  email: { type: String, required: true, unique: true },
+  professor: { type: mongoose.Schema.Types.ObjectId, ref: 'Professor', required: true }, // Campo de referência ao Professor
+});
 
-export default mongoose.model<AlunoInterface>("Aluno", AlunoSchema);
+export const Aluno = mongoose.model<AlunoInterface>('Aluno', AlunoSchema);

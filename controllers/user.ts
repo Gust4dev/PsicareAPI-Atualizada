@@ -4,10 +4,10 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
-import Aluno from "../models/aluno";
+import { Aluno } from "../models/aluno";
 import Professor from "../models/professor";
 import Secretario from "../models/secretario";
-import Paciente from "../models/paciente";
+import Paciente from "../models/Paciente";
 
 // Carregar as variáveis de ambiente do arquivo .env
 

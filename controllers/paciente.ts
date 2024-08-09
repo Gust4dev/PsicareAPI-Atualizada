@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import Paciente from "../models/paciente";
+import Paciente from "../models/Paciente";
 import User, { UserInterface } from "../models/user";
 import mongoose from "mongoose";
 
@@ -251,11 +251,12 @@ export const listarPacientesPaginados = async (req: Request, res: Response) => {
 
 // Deletar pacientes selecionados
 export const deletarPacienteSelecionados = async (req: Request, res: Response) => {
-  const { ids } = req.body;
+  const ids = req.params.ids.split(",");
 
-  if (!ids || !Array.isArray(ids)) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ message: "IDs inválidos fornecidos" });
   }
+
   try {
     const result = await Paciente.deleteMany({ _id: { $in: ids } });
     if (result.deletedCount === 0) {
@@ -268,3 +269,4 @@ export const deletarPacienteSelecionados = async (req: Request, res: Response) =
     res.status(500).json({ message: "Erro ao deletar pacientes", error });
   }
 };
+

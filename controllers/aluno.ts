@@ -1,37 +1,45 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
-import dotenv from "dotenv";
-import Aluno from "../models/aluno";
+import mongoose from "mongoose";
+import { Aluno } from "../models/aluno";
 import User, { UserInterface } from "../models/user";
 import Professor from "../models/professor";
 
 // Criar um novo aluno
 export async function criarAluno(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+
   try {
-    const {
-      matricula,
-      periodo,
-      nome,
-      cpf,
-      telefone,
-      email,
-      senha,
-    } = req.body;
+    session.startTransaction();
+
+    const { matricula, periodo, nome, cpf, telefone, email } = req.body;
 
     // Verificações de existência
-    const alunoExistenteCPF = await Aluno.exists({ cpf });
-    const alunoExistenteMatricula = await Aluno.exists({ matricula });
-    const alunoExistenteEmail = await Aluno.exists({ email });
+    const alunoExistenteCPF = await Aluno.exists({ cpf }).session(session);
+    const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(
+      session
+    );
+    const alunoExistenteEmail = await Aluno.exists({ email }).session(session);
 
     if (alunoExistenteCPF) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("Já existe um aluno com este CPF.");
     }
     if (alunoExistenteMatricula) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("Já existe um aluno com esta matrícula.");
     }
     if (alunoExistenteEmail) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("Já existe um aluno com este email.");
     }
+
+    // Geração da senha a partir do CPF
+    const senha = cpf.slice(0, -2); // Use os primeiros 9 dígitos do CPF como senha
+    const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const newAluno = new Aluno({
       matricula,
@@ -40,25 +48,36 @@ export async function criarAluno(req: Request, res: Response) {
       cpf,
       telefone,
       email,
+      senha: senhaCriptografada,
     });
 
-    // Criptografia da senha e criação de novo usuário
-    const senhaCriptografada = await bcrypt.hash(senha, 10);
     const novoUser: UserInterface = new User({
       nome,
       cpf,
       email,
       senha: senhaCriptografada,
+      cargo: 3,
     });
 
-    // Salvar aluno e usuário no banco
-    await newAluno.save();
-    await novoUser.save();
+    // Salvar aluno e usuário no banco dentro da transação
+    await newAluno.save({ session });
+    await novoUser.save({ session });
 
-    res.status(201).json({ message: "Cadastro de aluno e usuário criado com sucesso." });
+    // Commit da transação
+    await session.commitTransaction();
+    session.endSession();
+
+    res
+      .status(201)
+      .json({ message: "Cadastro de aluno e usuário criado com sucesso." });
   } catch (error: any) {
+    // Se qualquer erro ocorrer, abortar a transação
+    await session.abortTransaction();
+    session.endSession();
     console.error(error);
-    res.status(500).json({ error: "Não foi possível criar o cadastro de aluno e usuário." });
+    res
+      .status(500)
+      .json({ error: "Não foi possível criar o cadastro de aluno e usuário." });
   }
 }
 
@@ -110,7 +129,10 @@ export async function listarNomesAlunos(req: Request, res: Response) {
 }
 
 // Listar alunos por nome do professor associado
-export async function listarAlunosPorProfessorNome(req: Request, res: Response) {
+export async function listarAlunosPorProfessorNome(
+  req: Request,
+  res: Response
+) {
   try {
     const professorNome = req.params.professorNome;
     const professor = await Professor.findOne({ nome: professorNome });
@@ -118,11 +140,13 @@ export async function listarAlunosPorProfessorNome(req: Request, res: Response) 
     if (!professor) {
       return res.status(404).json({ error: "Professor não encontrado." });
     }
-    
+
     const alunos = await Aluno.find({ professorID: professor._id });
     res.json(alunos);
   } catch (error: any) {
-    res.status(500).json({ error: "Erro ao buscar alunos por nome do professor." });
+    res
+      .status(500)
+      .json({ error: "Erro ao buscar alunos por nome do professor." });
   }
 }
 
@@ -150,7 +174,9 @@ export async function atualizarAluno(req: Request, res: Response) {
       }
     }
 
-    const alunoAtualizado = await Aluno.findByIdAndUpdate(id, updateData, { new: true });
+    const alunoAtualizado = await Aluno.findByIdAndUpdate(id, updateData, {
+      new: true,
+    });
 
     if (!alunoAtualizado) {
       return res.status(404).send("Aluno não encontrado");
@@ -218,11 +244,12 @@ export const listarAlunosPaginados = async (req: Request, res: Response) => {
 
 // Deletar alunos selecionados
 export const deletarAlunoSelecionados = async (req: Request, res: Response) => {
-  const { ids } = req.body;
+  const ids = req.params.ids.split(",");
 
-  if (!ids || !Array.isArray(ids)) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ message: "IDs inválidos fornecidos" });
   }
+
   try {
     const result = await Aluno.deleteMany({ _id: { $in: ids } });
     if (result.deletedCount === 0) {

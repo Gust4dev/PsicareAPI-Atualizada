@@ -6,21 +6,33 @@ import User, { UserInterface } from "../models/user";
 
 // Método POST
 export async function criarSecretario(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const { nome, cpf, telefone, email, turno, senha } = req.body;
+    const { nome, cpf, telefone, email, turno } = req.body;
 
     // Verificar se o email já existe
-    const secretarioExistenteEmail = await Secretario.exists({ email });
+    const secretarioExistenteEmail = await Secretario.exists({ email }).session(
+      session
+    );
     if (secretarioExistenteEmail) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("Já existe um secretário com este email.");
     }
 
     // Verificar se o CPF já existe
-    const secretarioExistenteCPF = await Secretario.exists({ cpf });
+    const secretarioExistenteCPF = await Secretario.exists({ cpf }).session(
+      session
+    );
     if (secretarioExistenteCPF) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("Já existe um secretário com este CPF.");
     }
 
+    // Criação do novo secretário
     const newSecretario = new Secretario({
       nome,
       cpf,
@@ -29,32 +41,36 @@ export async function criarSecretario(req: Request, res: Response) {
       turno,
     });
 
-    // Criptografia da senha
+    // Geração automática da senha a partir do CPF
+    const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    // Criar novo usuário
+    // Criar novo usuário vinculado ao secretário
     const novoUser: UserInterface = new User({
       nome,
       cpf,
       email,
       senha: senhaCriptografada,
+      cargo: 1, // Cargo de secretário
     });
 
-    await newSecretario.save();
-    await novoUser.save();
+    // Salvar secretário e usuário no banco de dados
+    await newSecretario.save({ session });
+    await novoUser.save({ session });
 
-    res
-      .status(201)
-      .json({
-        message: "Cadastro de secretário e usuário criado com sucesso.",
-      });
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      message: "Cadastro de secretário e usuário criado com sucesso.",
+    });
   } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(error);
-    res
-      .status(500)
-      .json({
-        error: "Não foi possível criar o cadastro de secretário e usuário.",
-      });
+    res.status(500).json({
+      error: "Não foi possível criar o cadastro de secretário e usuário.",
+    });
   }
 }
 
@@ -236,11 +252,12 @@ export const deletarSecretariosSelecionados = async (
   req: Request,
   res: Response
 ) => {
-  const { ids } = req.body; // array enviado pelo front
+  const ids = req.params.ids.split(","); // IDs enviados via req.params como string, separados por vírgula
 
-  if (!ids || !Array.isArray(ids)) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ message: "IDs inválidos fornecidos" });
   }
+
   try {
     const result = await Secretario.deleteMany({ _id: { $in: ids } });
     if (result.deletedCount === 0) {

@@ -6,7 +6,6 @@ interface SecretarioInterface extends Document {
   telefone: string;
   email: string;
   turno: string;
-  senha: string;
 }
 
 const SecretarioSchema: Schema = new Schema(
@@ -16,9 +15,11 @@ const SecretarioSchema: Schema = new Schema(
     telefone: { type: String, required: false },
     email: { type: String, required: true, unique: true },
     turno: { type: String, required: true },
-    senha: { type: String },
   },
   { timestamps: true }
 );
 
-export default mongoose.model<SecretarioInterface>("Secretario", SecretarioSchema);
+export default mongoose.model<SecretarioInterface>(
+  "Secretario",
+  SecretarioSchema
+);

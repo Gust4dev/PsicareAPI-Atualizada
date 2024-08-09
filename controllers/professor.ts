@@ -1,25 +1,38 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
+import mongoose from "mongoose";
 import Professor from "../models/professor";
 import User, { UserInterface } from "../models/user";
 
 // Função para criar um novo professor
 export async function criarProfessor(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const { nome, cpf, telefone, email, disciplina, senha } = req.body;
+    const { nome, cpf, telefone, email, disciplina } = req.body;
 
     // Verificar se o email já existe
-    const professorExistenteEmail = await Professor.exists({ email });
+    const professorExistenteEmail = await Professor.exists({ email }).session(
+      session
+    );
     if (professorExistenteEmail) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("Já existe um professor com este email.");
     }
 
     // Verificar se o CPF já existe
-    const professorExistenteCPF = await Professor.exists({ cpf });
+    const professorExistenteCPF = await Professor.exists({ cpf }).session(
+      session
+    );
     if (professorExistenteCPF) {
+      await session.abortTransaction();
+      session.endSession();
       return res.status(400).send("Já existe um professor com este CPF.");
     }
 
+    // Criação do novo professor
     const newProfessor = new Professor({
       nome,
       cpf,
@@ -28,24 +41,32 @@ export async function criarProfessor(req: Request, res: Response) {
       disciplina,
     });
 
-    // Criptografia da senha
+    // Geração automática da senha a partir do CPF
+    const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    // Criar novo usuário
+    // Criar novo usuário vinculado ao professor
     const novoUser: UserInterface = new User({
       nome,
       cpf,
       email,
       senha: senhaCriptografada,
+      cargo: 2,
     });
 
-    await newProfessor.save();
-    await novoUser.save();
+    // Salvar professor e usuário no banco de dados
+    await newProfessor.save({ session });
+    await novoUser.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
 
     res
       .status(201)
       .json({ message: "Cadastro de professor e usuário criado com sucesso." });
   } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(error);
     res.status(500).json({
       error: "Não foi possível criar o cadastro de professor e usuário.",
@@ -216,11 +237,12 @@ export const deletarProfessorSelecionados = async (
   req: Request,
   res: Response
 ) => {
-  const { ids } = req.body;
+  const ids = req.params.ids.split(",");
 
-  if (!ids || !Array.isArray(ids)) {
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ message: "IDs inválidos fornecidos" });
   }
+
   try {
     const result = await Professor.deleteMany({ _id: { $in: ids } });
     if (result.deletedCount === 0) {
@@ -235,3 +257,4 @@ export const deletarProfessorSelecionados = async (
     res.status(500).json({ message: "Erro ao deletar professores", error });
   }
 };
+
