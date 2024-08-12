@@ -7,7 +7,7 @@ export interface AlunoInterface extends Document {
   cpf: string;
   telefone: string;
   email: string;
-  professor: mongoose.Schema.Types.ObjectId; // Referência ao Professor
+  nomeProfessor: string; 
 }
 
 const AlunoSchema: Schema = new Schema({
@@ -17,7 +17,7 @@ const AlunoSchema: Schema = new Schema({
   cpf: { type: String, required: true, unique: false },
   telefone: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  professor: { type: mongoose.Schema.Types.ObjectId, ref: 'Professor', required: true }, // Campo de referência ao Professor
+  nomeProfessor: { type: String, required: true },
 });
 
 export const Aluno = mongoose.model<AlunoInterface>('Aluno', AlunoSchema);

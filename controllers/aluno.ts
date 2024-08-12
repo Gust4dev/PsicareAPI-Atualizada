@@ -12,13 +12,11 @@ export async function criarAluno(req: Request, res: Response) {
   try {
     session.startTransaction();
 
-    const { matricula, periodo, nome, cpf, telefone, email } = req.body;
+    const { matricula, periodo, nome, cpf, telefone, email, professorId } = req.body;
 
     // Verificações de existência
     const alunoExistenteCPF = await Aluno.exists({ cpf }).session(session);
-    const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(
-      session
-    );
+    const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(session);
     const alunoExistenteEmail = await Aluno.exists({ email }).session(session);
 
     if (alunoExistenteCPF) {
@@ -37,8 +35,17 @@ export async function criarAluno(req: Request, res: Response) {
       return res.status(400).send("Já existe um aluno com este email.");
     }
 
+    // Buscar nome do professor usando o professorId
+    const professor = await Professor.findById(professorId).session(session);
+    if (!professor) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).send("Professor não encontrado.");
+    }
+    const nomeProfessor = professor.nome;
+
     // Geração da senha a partir do CPF
-    const senha = cpf.slice(0, -2); // Use os primeiros 9 dígitos do CPF como senha
+    const senha = cpf.slice(0, -2); 
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const newAluno = new Aluno({
@@ -48,7 +55,7 @@ export async function criarAluno(req: Request, res: Response) {
       cpf,
       telefone,
       email,
-      senha: senhaCriptografada,
+      nomeProfessor,
     });
 
     const novoUser: UserInterface = new User({
