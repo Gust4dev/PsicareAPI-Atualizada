@@ -12,11 +12,14 @@ export async function criarAluno(req: Request, res: Response) {
   try {
     session.startTransaction();
 
-    const { matricula, periodo, nome, cpf, telefone, email, professorId } = req.body;
+    const { matricula, periodo, nome, cpf, telefone, email, professorId } =
+      req.body;
 
     // Verificações de existência
     const alunoExistenteCPF = await Aluno.exists({ cpf }).session(session);
-    const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(session);
+    const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(
+      session
+    );
     const alunoExistenteEmail = await Aluno.exists({ email }).session(session);
 
     if (alunoExistenteCPF) {
@@ -45,12 +48,15 @@ export async function criarAluno(req: Request, res: Response) {
     const nomeProfessor = professor.nome;
 
     // Geração da senha a partir do CPF
-    const senha = cpf.slice(0, -2); 
+    const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
+
+    // Formatação do período para exibir "1º, 2º, 3º, etc."
+    const periodoFormatado = `${periodo}º Período`;
 
     const newAluno = new Aluno({
       matricula,
-      periodo,
+      periodo: periodoFormatado,
       nome,
       cpf,
       telefone,
@@ -99,6 +105,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
     const alunos = await Aluno.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit);
+
     const totalItems = await Aluno.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
 
@@ -106,6 +113,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
       alunos,
       totalPages,
       currentPage: page,
+      totalItems,
     });
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar alunos", error });
@@ -128,7 +136,25 @@ export async function obterAlunoPorID(req: Request, res: Response) {
 // Listar nomes de todos os alunos
 export async function listarNomesAlunos(req: Request, res: Response) {
   try {
-    const alunos = await Aluno.find({}, "nome");
+    const { q } = req.query;
+
+    const searchQuery = q
+      ? {
+          $or: [
+            { nome: { $regex: q, $options: "i" } },
+            { cpf: { $regex: q, $options: "i" } },
+            { email: { $regex: q, $options: "i" } },
+            { matricula: { $regex: q, $options: "i" } },
+            { telefone: { $regex: q, $options: "i" } },
+          ],
+        }
+      : {};
+
+    // Buscar alunos no banco de dados com base na consulta
+    const alunos = await Aluno.find(searchQuery).select(
+      "nome cpf email matricula telefone"
+    );
+
     res.json(alunos);
   } catch (error: any) {
     res.status(500).json({ message: error.message });
@@ -136,24 +162,21 @@ export async function listarNomesAlunos(req: Request, res: Response) {
 }
 
 // Listar alunos por nome do professor associado
-export async function listarAlunosPorProfessorNome(
-  req: Request,
-  res: Response
-) {
+export async function listarAlunosPorProfessorId(req: Request, res: Response) {
   try {
-    const professorNome = req.params.professorNome;
-    const professor = await Professor.findOne({ nome: professorNome });
+    const professorId = req.params.id;
 
+    const professor = await Professor.findById(professorId);
     if (!professor) {
       return res.status(404).json({ error: "Professor não encontrado." });
     }
 
-    const alunos = await Aluno.find({ professorID: professor._id });
+    const alunos = await Aluno.find({ professor: professor.nome });
     res.json(alunos);
   } catch (error: any) {
     res
       .status(500)
-      .json({ error: "Erro ao buscar alunos por nome do professor." });
+      .json({ error: "Erro ao buscar alunos por ID do professor." });
   }
 }
 

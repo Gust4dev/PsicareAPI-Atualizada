@@ -1,5 +1,5 @@
 import mongoose, { Document, Schema } from "mongoose";
-import { cargo } from "../constants/roles"; // Certifique-se de que este caminho está correto
+import { cargo } from "../constants/roles";
 
 export interface UserInterface extends Document {
   nome: string;
