@@ -52,7 +52,7 @@ export async function criarAluno(req: Request, res: Response) {
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     // Formatação do período para exibir "1º, 2º, 3º, etc."
-    const periodoFormatado = `${periodo}º Período`;
+    const periodoFormatado = `${periodo}º`;
 
     const newAluno = new Aluno({
       matricula,
@@ -101,10 +101,24 @@ export const listarAlunos = async (req: Request, res: Response) => {
   const limit: number = 15;
 
   try {
-    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
+    const searchQuery = q
+      ? {
+          $or: [
+            { nome: { $regex: new RegExp(q as string, "i") } },
+            { cpf: { $regex: new RegExp(q as string, "i") } },
+            { email: { $regex: new RegExp(q as string, "i") } },
+            { matricula: { $regex: new RegExp(q as string, "i") } },
+            { telefone: { $regex: new RegExp(q as string, "i") } },
+            { periodo: { $regex: new RegExp(q as string, "i") } },
+            { nomeProfessor: { $regex: new RegExp(q as string, "i") } }
+          ],
+        }
+      : {};
+
     const alunos = await Aluno.find(searchQuery)
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean(); 
 
     const totalItems = await Aluno.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
@@ -137,7 +151,6 @@ export async function obterAlunoPorID(req: Request, res: Response) {
 export async function listarNomesAlunos(req: Request, res: Response) {
   try {
     const { q } = req.query;
-
     const searchQuery = q
       ? {
           $or: [
@@ -146,16 +159,26 @@ export async function listarNomesAlunos(req: Request, res: Response) {
             { email: { $regex: q, $options: "i" } },
             { matricula: { $regex: q, $options: "i" } },
             { telefone: { $regex: q, $options: "i" } },
+            { periodo: { $regex: q, $options: "i" } },
           ],
         }
       : {};
 
-    // Buscar alunos no banco de dados com base na consulta
-    const alunos = await Aluno.find(searchQuery).select(
-      "nome cpf email matricula telefone"
-    );
+    const allAlunos = await Aluno.find(searchQuery);
+    const alunos = allAlunos.map((aluno) => ({
+      nome: aluno.nome,
+      cpf: aluno.cpf,
+      email: aluno.email,
+      matricula: aluno.matricula,
+      telefone: aluno.telefone,
+      periodo: aluno.periodo,
+    }));
 
-    res.json(alunos);
+    res.json({
+      alunos,
+      totalPages: alunos.length > 0 ? 1 : 0,
+      totalItems: alunos.length,
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
