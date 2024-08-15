@@ -7,8 +7,10 @@ export interface AlunoInterface extends Document {
   cpf: string;
   telefone: string;
   email: string;
-  nomeProfessor: string; 
+  nomeProfessor: string;
+  professorId: Schema.Types.ObjectId;
 }
+
 
 const AlunoSchema: Schema = new Schema({
   matricula: { type: String, required: true, unique: true },
@@ -18,6 +20,9 @@ const AlunoSchema: Schema = new Schema({
   telefone: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   nomeProfessor: { type: String, required: true },
+  professorId: { type: Schema.Types.ObjectId, ref: 'Professor', required: true },
 });
+
+AlunoSchema.index({ professorId: 1 });
 
 export const Aluno = mongoose.model<AlunoInterface>('Aluno', AlunoSchema);

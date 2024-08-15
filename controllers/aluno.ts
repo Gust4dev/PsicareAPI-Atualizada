@@ -45,7 +45,6 @@ export async function criarAluno(req: Request, res: Response) {
       session.endSession();
       return res.status(404).send("Professor não encontrado.");
     }
-    const nomeProfessor = professor.nome;
 
     // Geração da senha a partir do CPF
     const senha = cpf.slice(0, -2);
@@ -54,6 +53,7 @@ export async function criarAluno(req: Request, res: Response) {
     // Formatação do período para exibir "1º, 2º, 3º, etc."
     const periodoFormatado = `${periodo}º`;
 
+    // Criando um novo aluno com o ID e o nome do professor
     const newAluno = new Aluno({
       matricula,
       periodo: periodoFormatado,
@@ -61,15 +61,16 @@ export async function criarAluno(req: Request, res: Response) {
       cpf,
       telefone,
       email,
-      nomeProfessor,
+      nomeProfessor: professor.nome,
+      professorId: professor._id,
     });
 
-    const novoUser: UserInterface = new User({
+    const novoUser = new User({
       nome,
       cpf,
       email,
       senha: senhaCriptografada,
-      cargo: 3,
+      cargo: 3, // Cargo para aluno
     });
 
     // Salvar aluno e usuário no banco dentro da transação
@@ -110,7 +111,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
             { matricula: { $regex: new RegExp(q as string, "i") } },
             { telefone: { $regex: new RegExp(q as string, "i") } },
             { periodo: { $regex: new RegExp(q as string, "i") } },
-            { nomeProfessor: { $regex: new RegExp(q as string, "i") } }
+            { nomeProfessor: { $regex: new RegExp(q as string, "i") } },
           ],
         }
       : {};
@@ -118,7 +119,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
     const alunos = await Aluno.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit)
-      .lean(); 
+      .lean();
 
     const totalItems = await Aluno.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
@@ -147,59 +148,33 @@ export async function obterAlunoPorID(req: Request, res: Response) {
   }
 }
 
-// Listar nomes de todos os alunos
-export async function listarNomesAlunos(req: Request, res: Response) {
-  try {
-    const { q } = req.query;
-    const searchQuery = q
-      ? {
-          $or: [
-            { nome: { $regex: q, $options: "i" } },
-            { cpf: { $regex: q, $options: "i" } },
-            { email: { $regex: q, $options: "i" } },
-            { matricula: { $regex: q, $options: "i" } },
-            { telefone: { $regex: q, $options: "i" } },
-            { periodo: { $regex: q, $options: "i" } },
-          ],
-        }
-      : {};
-
-    const allAlunos = await Aluno.find(searchQuery);
-    const alunos = allAlunos.map((aluno) => ({
-      nome: aluno.nome,
-      cpf: aluno.cpf,
-      email: aluno.email,
-      matricula: aluno.matricula,
-      telefone: aluno.telefone,
-      periodo: aluno.periodo,
-    }));
-
-    res.json({
-      alunos,
-      totalPages: alunos.length > 0 ? 1 : 0,
-      totalItems: alunos.length,
-    });
-  } catch (error: any) {
-    res.status(500).json({ message: error.message });
-  }
-}
-
-// Listar alunos por nome do professor associado
+// Listar alunos por ID do professor
 export async function listarAlunosPorProfessorId(req: Request, res: Response) {
   try {
     const professorId = req.params.id;
 
+    // Verifique se o professor existe
     const professor = await Professor.findById(professorId);
     if (!professor) {
       return res.status(404).json({ error: "Professor não encontrado." });
     }
 
-    const alunos = await Aluno.find({ professor: professor.nome });
+    // Buscar alunos pelo ID do professor
+    const alunos = await Aluno.find({ professorId: professorId }).lean();
+    if (!alunos || alunos.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Nenhum aluno encontrado para este professor." });
+    }
+
     res.json(alunos);
   } catch (error: any) {
     res
       .status(500)
-      .json({ error: "Erro ao buscar alunos por ID do professor." });
+      .json({
+        error: "Erro ao buscar alunos por ID do professor.",
+        details: error.message,
+      });
   }
 }
 
