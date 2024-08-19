@@ -98,20 +98,20 @@ export async function criarAluno(req: Request, res: Response) {
 // Listar alunos com paginação
 export const listarAlunos = async (req: Request, res: Response) => {
   const { q } = req.query;
-  const page: number = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15;
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = 15;
 
   try {
     const searchQuery = q
       ? {
           $or: [
-            { nome: { $regex: new RegExp(q as string, "i") } },
-            { cpf: { $regex: new RegExp(q as string, "i") } },
-            { email: { $regex: new RegExp(q as string, "i") } },
-            { matricula: { $regex: new RegExp(q as string, "i") } },
-            { telefone: { $regex: new RegExp(q as string, "i") } },
-            { periodo: { $regex: new RegExp(q as string, "i") } },
-            { nomeProfessor: { $regex: new RegExp(q as string, "i") } },
+            { nome: { $regex: q, $options: "i" } },
+            { cpf: { $regex: q, $options: "i" } },
+            { email: { $regex: q, $options: "i" } },
+            { matricula: { $regex: q, $options: "i" } },
+            { telefone: { $regex: q, $options: "i" } },
+            { periodo: { $regex: q, $options: "i" } },
+            { nomeProfessor: { $regex: q, $options: "i" } },
           ],
         }
       : {};
@@ -122,11 +122,10 @@ export const listarAlunos = async (req: Request, res: Response) => {
       .lean();
 
     const totalItems = await Aluno.countDocuments(searchQuery);
-    const totalPages = Math.ceil(totalItems / limit);
 
     res.json({
       alunos,
-      totalPages,
+      totalPages: Math.ceil(totalItems / limit),
       currentPage: page,
       totalItems,
     });
@@ -246,29 +245,6 @@ export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
   }
 };
 
-// Listar alunos paginados
-export const listarAlunosPaginados = async (req: Request, res: Response) => {
-  const page = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15;
-
-  try {
-    const alunos = await Aluno.find()
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    const totalItems = await Aluno.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-
-    res.json({
-      alunos,
-      totalPages,
-      currentPage: page,
-      totalItems,
-    });
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar alunos paginados", error });
-  }
-};
 
 // Deletar alunos selecionados
 export const deletarAlunoSelecionados = async (req: Request, res: Response) => {

@@ -7,7 +7,6 @@ import {
   patchProfessor,
   deletarProfessor,
   obterUltimoProfessorCriado,
-  listarProfessorPaginados,
   deletarProfessorSelecionados,
 } from "../controllers/professor";
 import { authMiddleware } from "../middleware/auth";
@@ -17,7 +16,6 @@ const router = Router();
 // Rotas para Professores
 router.post("/", authMiddleware(1), criarProfessor);
 router.get("/", authMiddleware(1), listarProfessores);
-router.get("/paginado", authMiddleware(1), listarProfessorPaginados);
 router.get("/:id", authMiddleware(1), getProfessorById);
 router.get("/select", authMiddleware(1), getProfessoresSelect);
 router.get("/ultimo/criado", authMiddleware(1), obterUltimoProfessorCriado);

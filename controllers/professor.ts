@@ -74,18 +74,44 @@ export async function criarProfessor(req: Request, res: Response) {
   }
 }
 
-// Função para listar todos os professores (sem paginação)
+// Função para listar todos os professores 
 export const listarProfessores = async (req: Request, res: Response) => {
   const { q } = req.query;
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 15;
 
   try {
-    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
-    const professores = await Professor.find(searchQuery);
-    res.json({ professores });
+    const searchQuery = q
+      ? {
+          $or: [
+            { nome: { $regex: q, $options: "i" } },
+            { cpf: { $regex: q, $options: "i" } },
+            { telefone: { $regex: q, $options: "i" } },
+            { email: { $regex: q, $options: "i" } },
+            { disciplina: { $regex: q, $options: "i" } },
+          ],
+        }
+      : {};
+
+    const professores = await Professor.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
+    const totalItems = await Professor.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      professores,
+      totalPages,
+      currentPage: page,
+      totalItems,
+    });
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar professores", error });
   }
 };
+
 
 // Função para buscar um professor pelo ID
 export async function getProfessorById(req: Request, res: Response) {
@@ -203,32 +229,6 @@ export const obterUltimoProfessorCriado = async (
     res
       .status(500)
       .json({ message: "Erro ao buscar o último professor criado" });
-  }
-};
-
-// Função para listar professores paginados
-export const listarProfessorPaginados = async (req: Request, res: Response) => {
-  const page = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15;
-
-  try {
-    const professores = await Professor.find()
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    const totalItems = await Professor.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-
-    res.json({
-      professores,
-      totalPages,
-      currentPage: page,
-      totalItems,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erro ao buscar professores paginados", error });
   }
 };
 

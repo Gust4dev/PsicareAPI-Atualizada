@@ -75,17 +75,28 @@ export async function criarSecretario(req: Request, res: Response) {
 }
 
 // Método GET para listar secretários
-export const listSecretarios = async (req: Request, res: Response) => {
+export const listarSecretarios = async (req: Request, res: Response) => {
   const { q } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
-    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
+    const searchQuery = q
+      ? {
+          $or: [
+            { nome: { $regex: q, $options: "i" } },
+            { cpf: { $regex: q, $options: "i" } },
+            { telefone: { $regex: q, $options: "i" } },
+            { email: { $regex: q, $options: "i" } },
+            { turno: { $regex: q, $options: "i" } },
+          ],
+        }
+      : {};
 
     const secretarios = await Secretario.find(searchQuery)
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const totalItems = await Secretario.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
@@ -94,6 +105,7 @@ export const listSecretarios = async (req: Request, res: Response) => {
       secretarios,
       totalPages,
       currentPage: page,
+      totalItems,
     });
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar secretários", error });

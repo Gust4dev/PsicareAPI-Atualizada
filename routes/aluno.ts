@@ -7,7 +7,6 @@ import {
   atualizarAluno,
   deletarAluno,
   obterUltimoAlunoCriado,
-  listarAlunosPaginados,
   deletarAlunoSelecionados,
 } from "../controllers/aluno";
 import { authMiddleware } from "../middleware/auth";
@@ -17,7 +16,6 @@ const router = Router();
 // Rotas alunos
 router.post("/", criarAluno);
 router.get("/", authMiddleware(2), listarAlunos);
-router.get("/paginado", authMiddleware(2), listarAlunosPaginados);
 router.get("/:id", authMiddleware(2), obterAlunoPorID);
 router.get("/professor/:id", authMiddleware(2), listarAlunosPorProfessorId);
 router.get("/ultimo/criado", authMiddleware(1), obterUltimoAlunoCriado);
