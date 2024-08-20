@@ -1,16 +1,16 @@
 import { Request, Response } from "express";
-import bcrypt from "bcrypt";
 import Paciente from "../models/Paciente";
-import User, { UserInterface } from "../models/user";
 import mongoose from "mongoose";
 
 // Criar um novo paciente
 export async function criarPaciente(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const {
       nome,
       cpf,
-      idade,
       email,
       telefoneContato,
       sexo,
@@ -20,7 +20,7 @@ export async function criarPaciente(req: Request, res: Response) {
       profissao,
       outroContato,
       nomeDoContatoResponsavel,
-      menorDeIdade,
+      dataNascimento,
       naturalidade,
       nacionalidade,
       enderecoCep,
@@ -31,29 +31,41 @@ export async function criarPaciente(req: Request, res: Response) {
       enderecoUF,
       dataInicioTratamento,
       dataTerminoTratamento,
-      quemEncaminhouID,
-      quemEncaminhouNome,
+      encaminhador,
       tipoDeTratamento,
       alunoUnieva,
       funcionarioUnieva,
-      senha, // Adicionando senha para o paciente
     } = req.body;
 
+    // Verificação de idade para menor de idade
+    const idade = calcularIdade(dataNascimento);
+    const menorDeIdade = idade < 18;
+
+    if (menorDeIdade && !nomeDoContatoResponsavel && !outroContato) {
+      throw new Error(
+        "Contato responsável é obrigatório para menores de idade."
+      );
+    }
+
     // Verificar duplicidade de email e CPF
-    const pacienteExistenteEmail = await Paciente.exists({ email });
-    const pacienteExistenteCPF = await Paciente.exists({ cpf });
+    const pacienteExistenteEmail = await Paciente.exists({ email }).session(
+      session
+    );
+    const pacienteExistenteCPF = await Paciente.exists({ cpf }).session(
+      session
+    );
 
     if (pacienteExistenteEmail) {
-      return res.status(400).send("Já existe um paciente com este email.");
+      throw new Error("Já existe um paciente com este email.");
     }
     if (pacienteExistenteCPF) {
-      return res.status(400).send("Já existe um paciente com este CPF.");
+      throw new Error("Já existe um paciente com este CPF.");
     }
 
+    // Criar novo paciente
     const newPaciente = new Paciente({
       nome,
       cpf,
-      idade,
       email,
       telefoneContato,
       sexo,
@@ -64,6 +76,7 @@ export async function criarPaciente(req: Request, res: Response) {
       outroContato,
       nomeDoContatoResponsavel,
       menorDeIdade,
+      dataNascimento,
       naturalidade,
       nacionalidade,
       enderecoCep,
@@ -74,31 +87,40 @@ export async function criarPaciente(req: Request, res: Response) {
       enderecoUF,
       dataInicioTratamento,
       dataTerminoTratamento,
-      quemEncaminhouID,
-      quemEncaminhouNome,
+      encaminhador,
       tipoDeTratamento,
       alunoUnieva,
       funcionarioUnieva,
     });
 
-    // Criptografar a senha e criar um novo usuário
-    const senhaCriptografada = await bcrypt.hash(senha, 10);
-    const novoUser: UserInterface = new User({
-      nome,
-      cpf,
-      email,
-      senha: senhaCriptografada,
-    });
+    await newPaciente.save({ session });
 
-    // Salvar paciente e usuário no banco
-    await newPaciente.save();
-    await novoUser.save();
+    await session.commitTransaction();
+    session.endSession();
 
-    res.status(201).json({ message: "Cadastro de paciente e usuário criado com sucesso." });
+    res
+      .status(201)
+      .json({ message: "Cadastro de paciente criado com sucesso." });
   } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(error);
-    res.status(500).json({ error: "Não foi possível criar o cadastro de paciente." });
+    res
+      .status(500)
+      .json({ error: "Não foi possível criar o cadastro de paciente." });
   }
+}
+
+// Função auxiliar para calcular a idade
+function calcularIdade(dataNascimento: string): number {
+  const nascimento = new Date(dataNascimento);
+  const hoje = new Date();
+  let idade = hoje.getFullYear() - nascimento.getFullYear();
+  const mes = hoje.getMonth() - nascimento.getMonth();
+  if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
+    idade--;
+  }
+  return idade;
 }
 
 // Listar pacientes com paginação
@@ -150,7 +172,9 @@ export async function listarPacientesPorIDAluno(req: Request, res: Response) {
     const pacientes = await Paciente.find({ quemEncaminhouID: alunoID });
     res.json(pacientes);
   } catch (error: any) {
-    res.status(500).json({ message: "Erro ao buscar pacientes por ID do aluno." });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar pacientes por ID do aluno." });
   }
 }
 
@@ -216,12 +240,17 @@ export async function deletarPaciente(req: Request, res: Response) {
 }
 
 // Obter o último paciente criado
-export const obterUltimoPacienteCriado = async (req: Request, res: Response) => {
+export const obterUltimoPacienteCriado = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const ultimoPaciente = await Paciente.findOne().sort({ createdAt: -1 });
     res.json(ultimoPaciente);
   } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar o último paciente criado" });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar o último paciente criado" });
   }
 };
 
@@ -245,12 +274,17 @@ export const listarPacientesPaginados = async (req: Request, res: Response) => {
       totalItems,
     });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao buscar pacientes paginados", error });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar pacientes paginados", error });
   }
 };
 
 // Deletar pacientes selecionados
-export const deletarPacienteSelecionados = async (req: Request, res: Response) => {
+export const deletarPacienteSelecionados = async (
+  req: Request,
+  res: Response
+) => {
   const ids = req.params.ids.split(",");
 
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -260,7 +294,9 @@ export const deletarPacienteSelecionados = async (req: Request, res: Response) =
   try {
     const result = await Paciente.deleteMany({ _id: { $in: ids } });
     if (result.deletedCount === 0) {
-      return res.status(404).json({ message: "Nenhum paciente encontrado para deletar" });
+      return res
+        .status(404)
+        .json({ message: "Nenhum paciente encontrado para deletar" });
     }
     res.status(200).json({
       message: `${result.deletedCount} pacientes deletados com sucesso`,
@@ -269,4 +305,3 @@ export const deletarPacienteSelecionados = async (req: Request, res: Response) =
     res.status(500).json({ message: "Erro ao deletar pacientes", error });
   }
 };
-

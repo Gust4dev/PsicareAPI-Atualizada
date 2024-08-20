@@ -1,55 +1,63 @@
-import mongoose, { Document, Schema } from "mongoose";
+import { Schema, model, Document } from 'mongoose';
 
-interface PacienteInterface extends Document {
+interface IPaciente extends Document {
   nome: string;
-  endereco: string;
-  idade: number;
   cpf: string;
-  religiao: string;
-  profissao: string;
-  estadoCivil: string;
+  dataNascimento: Date;
+  email: string;
+  telefoneContato: string;
   sexo: string;
+  estadoCivil: string;
+  religiao: string;
+  rendaFamiliar: string;
+  profissao: string;
+  outroContato?: string;
+  nomeDoContatoResponsavel?: string;
   naturalidade: string;
   nacionalidade: string;
-  rendaFamiliar: string;
-  contato: string;
-  contatoResponsavel?: { nome: string; telefone: string };
-  instituicaoDeEnsino?: string;
+  enderecoCep: string;
+  enderecoLogradouro: string;
+  enderecoBairro: string;
+  enderecoComplemento?: string;
+  enderecoCidade: string;
+  enderecoUF: string;
   dataInicioTratamento: Date;
-  dataTerminoTratamento: Date;
-  nomeAlunoEncaminhador: string;
-  funcionarioOuAlunoUniEvangélica: boolean;
-  tipoDeTratamento: string;
-  email: string;
+  dataTerminoTratamento?: Date;
+  encaminhador: string;
+  tipoDeTratamento?: string;
+  alunoUnieva: boolean;
+  funcionarioUnieva: boolean;
 }
 
-const PacienteSchema: Schema = new Schema(
-  {
-    nome: { type: String, required: true },
-    endereco: { type: String, required: true },
-    idade: { type: Number, required: true },
-    cpf: { type: String, required: true, unique: true },
-    religiao: { type: String, required: true },
-    profissao: { type: String, required: true },
-    estadoCivil: { type: String, required: true },
-    sexo: { type: String, required: true },
-    naturalidade: { type: String, required: true },
-    nacionalidade: { type: String, required: true },
-    rendaFamiliar: { type: String, required: true },
-    contato: { type: String, required: true },
-    contatoResponsavel: {
-      nome: { type: String },
-      telefone: { type: String },
-    },
-    instituicaoDeEnsino: { type: String },
-    dataInicioTratamento: { type: Date, required: true },
-    dataTerminoTratamento: { type: Date, required: true },
-    nomeAlunoEncaminhador: { type: String, required: true },
-    funcionarioOuAlunoUniEvangélica: { type: Boolean, required: true },
-    tipoDeTratamento: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-  },
-  { timestamps: true }
-);
+const PacienteSchema = new Schema<IPaciente>({
+  nome: { type: String, required: true },
+  cpf: { type: String, required: true, unique: true },
+  dataNascimento: { type: Date, required: true },
+  email: { type: String, required: true, unique: true },
+  telefoneContato: { type: String, required: true },
+  sexo: { type: String, required: true },
+  estadoCivil: { type: String, required: true },
+  religiao: { type: String, required: true },
+  rendaFamiliar: { type: String, required: true },
+  profissao: { type: String, required: true },
+  outroContato: { type: String },
+  nomeDoContatoResponsavel: { type: String },
+  naturalidade: { type: String, required: true },
+  nacionalidade: { type: String, required: true },
+  enderecoCep: { type: String, required: true },
+  enderecoLogradouro: { type: String, required: true },
+  enderecoBairro: { type: String, required: true },
+  enderecoComplemento: { type: String },
+  enderecoCidade: { type: String, required: true },
+  enderecoUF: { type: String, required: true },
+  dataInicioTratamento: { type: Date, required: true },
+  dataTerminoTratamento: { type: Date },
+  encaminhador: { type: String },
+  tipoDeTratamento: { type: String },
+  alunoUnieva: { type: Boolean, required: true },
+  funcionarioUnieva: { type: Boolean, required: true },
+});
 
-export default mongoose.model<PacienteInterface>("Paciente", PacienteSchema);
+const Paciente = model<IPaciente>('Paciente', PacienteSchema);
+
+export default Paciente;
