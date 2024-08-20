@@ -123,30 +123,56 @@ function calcularIdade(dataNascimento: string): number {
   return idade;
 }
 
-// Listar pacientes com paginação
+// Listar pacientes
 export const listarPacientes = async (req: Request, res: Response) => {
   const { q } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
-    const searchQuery = q ? { nome: { $regex: q, $options: "i" } } : {};
+    const searchQuery = q
+      ? {
+          $or: [
+            { nome: { $regex: q, $options: "i" } },
+            { cpf: { $regex: q, $options: "i" } },
+            { email: { $regex: q, $options: "i" } },
+            { telefoneContato: { $regex: q, $options: "i" } },
+            { sexo: { $regex: q, $options: "i" } },
+            { estadoCivil: { $regex: q, $options: "i" } },
+            { religiao: { $regex: q, $options: "i" } },
+            { rendaFamiliar: { $regex: q, $options: "i" } },
+            { profissao: { $regex: q, $options: "i" } },
+            { outroContato: { $regex: q, $options: "i" } },
+            { nomeDoContatoResponsavel: { $regex: q, $options: "i" } },
+            { naturalidade: { $regex: q, $options: "i" } },
+            { nacionalidade: { $regex: q, $options: "i" } },
+            { enderecoCep: { $regex: q, $options: "i" } },
+            { enderecoLogradouro: { $regex: q, $options: "i" } },
+            { enderecoBairro: { $regex: q, $options: "i" } },
+            { enderecoComplemento: { $regex: q, $options: "i" } },
+            { enderecoCidade: { $regex: q, $options: "i" } },
+            { enderecoUF: { $regex: q, $options: "i" } },
+            { tipoDeTratamento: { $regex: q, $options: "i" } },
+            { encaminhador: { $regex: q, $options: "i" } },
+          ],
+        }
+      : {};
+
     const pacientes = await Paciente.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit);
 
     const totalItems = await Paciente.countDocuments(searchQuery);
-    const totalPages = Math.ceil(totalItems / limit);
 
     res.json({
       pacientes,
-      totalPages,
+      totalPages:Math.ceil(totalItems / limit),
       currentPage: page,
     });
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar pacientes", error });
   }
-};
+}
 
 // Obter dados de um paciente por ID
 export async function obterPacientePorID(req: Request, res: Response) {
@@ -166,17 +192,26 @@ export async function obterPacientePorID(req: Request, res: Response) {
 }
 
 // Listar pacientes por ID do aluno associado
-export async function listarPacientesPorIDAluno(req: Request, res: Response) {
+export const listarPacientesPorEncaminhador = async (req: Request, res: Response) => {
   try {
-    const alunoID = req.params.id;
-    const pacientes = await Paciente.find({ quemEncaminhouID: alunoID });
+    const encaminhadorNome = req.params.nome;
+
+    // Verifique se há pacientes com o nome do encaminhador fornecido
+    const pacientes = await Paciente.find({ encaminhador: encaminhadorNome }).lean();
+    
+    if (!pacientes || pacientes.length === 0) {
+      return res.status(404).json({ error: "Nenhum paciente encontrado para este encaminhador." });
+    }
+
     res.json(pacientes);
   } catch (error: any) {
-    res
-      .status(500)
-      .json({ message: "Erro ao buscar pacientes por ID do aluno." });
+    res.status(500).json({
+      error: "Erro ao buscar pacientes por nome do encaminhador.",
+      details: error.message,
+    });
   }
-}
+};
+
 
 // Atualizar dados de um paciente
 export async function atualizarPaciente(req: Request, res: Response) {

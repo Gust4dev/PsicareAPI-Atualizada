@@ -3,7 +3,7 @@ import {
   criarPaciente,
   listarPacientes,
   obterPacientePorID,
-  listarPacientesPorIDAluno,
+  listarPacientesPorEncaminhador,
   atualizarPaciente,
   deletarPaciente,
   obterUltimoPacienteCriado,
@@ -19,7 +19,7 @@ router.post("/", authMiddleware(1), criarPaciente);
 router.get("/", authMiddleware(2), listarPacientes);
 router.get("/paginado", authMiddleware(2), listarPacientesPaginados);
 router.get("/:id", authMiddleware(2), obterPacientePorID);
-router.get("/aluno/:id", authMiddleware(2), listarPacientesPorIDAluno);
+router.get("/encaminhador/:nome", authMiddleware(2), listarPacientesPorEncaminhador);
 router.get("/ultimo/criado", authMiddleware(1), obterUltimoPacienteCriado);
 router.patch("/:id", authMiddleware(1), atualizarPaciente);
 router.delete("/:id", authMiddleware(1), deletarPaciente);
