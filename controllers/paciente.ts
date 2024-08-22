@@ -128,31 +128,36 @@ export const listarPacientes = async (req: Request, res: Response) => {
   try {
     const searchQuery = q
       ? {
-          $or: [
-            { nome: { $regex: q, $options: "i" } },
-            { cpf: { $regex: q, $options: "i" } },
-            { email: { $regex: q, $options: "i" } },
-            { telefoneContato: { $regex: q, $options: "i" } },
-            { sexo: { $regex: q, $options: "i" } },
-            { estadoCivil: { $regex: q, $options: "i" } },
-            { religiao: { $regex: q, $options: "i" } },
-            { rendaFamiliar: { $regex: q, $options: "i" } },
-            { profissao: { $regex: q, $options: "i" } },
-            { outroContato: { $regex: q, $options: "i" } },
-            { nomeDoContatoResponsavel: { $regex: q, $options: "i" } },
-            { naturalidade: { $regex: q, $options: "i" } },
-            { nacionalidade: { $regex: q, $options: "i" } },
-            { enderecoCep: { $regex: q, $options: "i" } },
-            { enderecoLogradouro: { $regex: q, $options: "i" } },
-            { enderecoBairro: { $regex: q, $options: "i" } },
-            { enderecoComplemento: { $regex: q, $options: "i" } },
-            { enderecoCidade: { $regex: q, $options: "i" } },
-            { enderecoUF: { $regex: q, $options: "i" } },
-            { tipoDeTratamento: { $regex: q, $options: "i" } },
-            { encaminhador: { $regex: q, $options: "i" } },
+          $and: [
+            { ativoPaciente: true },
+            {
+              $or: [
+                { nome: { $regex: q, $options: "i" } },
+                { cpf: { $regex: q, $options: "i" } },
+                { email: { $regex: q, $options: "i" } },
+                { telefoneContato: { $regex: q, $options: "i" } },
+                { sexo: { $regex: q, $options: "i" } },
+                { estadoCivil: { $regex: q, $options: "i" } },
+                { religiao: { $regex: q, $options: "i" } },
+                { rendaFamiliar: { $regex: q, $options: "i" } },
+                { profissao: { $regex: q, $options: "i" } },
+                { outroContato: { $regex: q, $options: "i" } },
+                { nomeDoContatoResponsavel: { $regex: q, $options: "i" } },
+                { naturalidade: { $regex: q, $options: "i" } },
+                { nacionalidade: { $regex: q, $options: "i" } },
+                { enderecoCep: { $regex: q, $options: "i" } },
+                { enderecoLogradouro: { $regex: q, $options: "i" } },
+                { enderecoBairro: { $regex: q, $options: "i" } },
+                { enderecoComplemento: { $regex: q, $options: "i" } },
+                { enderecoCidade: { $regex: q, $options: "i" } },
+                { enderecoUF: { $regex: q, $options: "i" } },
+                { tipoDeTratamento: { $regex: q, $options: "i" } },
+                { encaminhador: { $regex: q, $options: "i" } },
+              ],
+            },
           ],
         }
-      : {};
+      : { ativoPaciente: true };
 
     const pacientes = await Paciente.find(searchQuery)
       .skip((page - 1) * limit)
@@ -256,29 +261,25 @@ export async function atualizarPaciente(req: Request, res: Response) {
 
 // Arquivar um paciente
 export async function arquivarPaciente(req: Request, res: Response) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const { id } = req.params;
 
-    const paciente = await Paciente.findById(id).session(session);
+    const paciente = await Paciente.findById(id);
 
     if (!paciente) {
-      throw new Error("Paciente não encontrado.");
+      return res.status(404).json({ error: "Paciente não encontrado." });
+    }
+
+    if (!paciente.ativoPaciente) {
+      return res.status(400).json({ error: "Paciente já está arquivado." });
     }
 
     paciente.ativoPaciente = false;
 
-    await paciente.save({ session });
-
-    await session.commitTransaction();
-    session.endSession();
+    await paciente.save();
 
     res.status(200).json({ message: "Paciente arquivado com sucesso." });
   } catch (error: any) {
-    await session.abortTransaction();
-    session.endSession();
     res.status(500).json({ error: "Erro ao arquivar paciente." });
   }
 }
