@@ -37,17 +37,15 @@ export async function criarPaciente(req: Request, res: Response) {
       funcionarioUnieva,
     } = req.body;
 
-    // Verificação de idade para menor de idade
     const idade = calcularIdade(dataNascimento);
     const menorDeIdade = idade < 18;
 
-    if (menorDeIdade && !nomeDoContatoResponsavel && !outroContato) {
+    if (menorDeIdade && (!nomeDoContatoResponsavel || !outroContato)) {
       throw new Error(
         "Contato responsável é obrigatório para menores de idade."
       );
     }
 
-    // Verificar duplicidade de email e CPF
     const pacienteExistenteEmail = await Paciente.exists({ email }).session(
       session
     );
@@ -62,7 +60,6 @@ export async function criarPaciente(req: Request, res: Response) {
       throw new Error("Já existe um paciente com este CPF.");
     }
 
-    // Criar novo paciente
     const newPaciente = new Paciente({
       nome,
       cpf,
@@ -91,6 +88,7 @@ export async function criarPaciente(req: Request, res: Response) {
       tipoDeTratamento,
       alunoUnieva,
       funcionarioUnieva,
+      ativoPaciente: true,
     });
 
     await newPaciente.save({ session });
@@ -104,14 +102,12 @@ export async function criarPaciente(req: Request, res: Response) {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    console.error(error);
     res
       .status(500)
       .json({ error: "Não foi possível criar o cadastro de paciente." });
   }
 }
 
-// Função auxiliar para calcular a idade
 function calcularIdade(dataNascimento: string): number {
   const nascimento = new Date(dataNascimento);
   const hoje = new Date();
@@ -166,13 +162,13 @@ export const listarPacientes = async (req: Request, res: Response) => {
 
     res.json({
       pacientes,
-      totalPages:Math.ceil(totalItems / limit),
+      totalPages: Math.ceil(totalItems / limit),
       currentPage: page,
     });
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar pacientes", error });
   }
-}
+};
 
 // Obter dados de um paciente por ID
 export async function obterPacientePorID(req: Request, res: Response) {
@@ -192,15 +188,22 @@ export async function obterPacientePorID(req: Request, res: Response) {
 }
 
 // Listar pacientes por ID do aluno associado
-export const listarPacientesPorEncaminhador = async (req: Request, res: Response) => {
+export const listarPacientesPorEncaminhador = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const encaminhadorNome = req.params.nome;
 
     // Verifique se há pacientes com o nome do encaminhador fornecido
-    const pacientes = await Paciente.find({ encaminhador: encaminhadorNome }).lean();
-    
+    const pacientes = await Paciente.find({
+      encaminhador: encaminhadorNome,
+    }).lean();
+
     if (!pacientes || pacientes.length === 0) {
-      return res.status(404).json({ error: "Nenhum paciente encontrado para este encaminhador." });
+      return res
+        .status(404)
+        .json({ error: "Nenhum paciente encontrado para este encaminhador." });
     }
 
     res.json(pacientes);
@@ -211,7 +214,6 @@ export const listarPacientesPorEncaminhador = async (req: Request, res: Response
     });
   }
 };
-
 
 // Atualizar dados de um paciente
 export async function atualizarPaciente(req: Request, res: Response) {
@@ -252,25 +254,32 @@ export async function atualizarPaciente(req: Request, res: Response) {
   }
 }
 
-// Excluir um paciente
-export async function deletarPaciente(req: Request, res: Response) {
-  try {
-    const pacienteID = req.params.id;
-    const pacienteEncontrado = await Paciente.findById(pacienteID);
+// Arquivar um paciente
+export async function arquivarPaciente(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    if (!pacienteEncontrado) {
-      return res.status(404).json({ error: "Paciente não encontrado" });
+  try {
+    const { id } = req.params;
+
+    const paciente = await Paciente.findById(id).session(session);
+
+    if (!paciente) {
+      throw new Error("Paciente não encontrado.");
     }
 
-    await Paciente.findByIdAndDelete(pacienteID);
+    paciente.ativoPaciente = false;
 
-    return res.json({
-      message: "Paciente excluído com sucesso",
-      paciente: pacienteEncontrado,
-    });
+    await paciente.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(200).json({ message: "Paciente arquivado com sucesso." });
   } catch (error: any) {
-    console.error(error);
-    return res.status(500).json({ error: "Erro interno do servidor" });
+    await session.abortTransaction();
+    session.endSession();
+    res.status(500).json({ error: "Erro ao arquivar paciente." });
   }
 }
 

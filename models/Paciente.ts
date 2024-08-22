@@ -27,6 +27,7 @@ interface IPaciente extends Document {
   tipoDeTratamento?: string;
   alunoUnieva: boolean;
   funcionarioUnieva: boolean;
+  ativoPaciente;
 }
 
 const PacienteSchema = new Schema<IPaciente>({
@@ -56,6 +57,7 @@ const PacienteSchema = new Schema<IPaciente>({
   tipoDeTratamento: { type: String },
   alunoUnieva: { type: Boolean, required: true },
   funcionarioUnieva: { type: Boolean, required: true },
+  ativoPaciente: { type: Boolean, required: true, default: true },
 });
 
 const Paciente = model<IPaciente>('Paciente', PacienteSchema);
