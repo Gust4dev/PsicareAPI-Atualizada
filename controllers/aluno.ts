@@ -151,6 +151,8 @@ export async function obterAlunoPorID(req: Request, res: Response) {
 export async function listarAlunosPorProfessorId(req: Request, res: Response) {
   try {
     const professorId = req.params.id;
+    const page: number = parseInt(req.query.page as string, 10) || 1;
+    const limit: number = 10;
 
     // Verifique se o professor existe
     const professor = await Professor.findById(professorId);
@@ -158,24 +160,33 @@ export async function listarAlunosPorProfessorId(req: Request, res: Response) {
       return res.status(404).json({ error: "Professor não encontrado." });
     }
 
-    // Buscar alunos pelo ID do professor
-    const alunos = await Aluno.find({ professorId: professorId }).lean();
+    // Buscar alunos pelo ID do professor com paginação
+    const totalItems = await Aluno.countDocuments({ professorId });
+    const alunos = await Aluno.find({ professorId })
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .lean();
+
     if (!alunos || alunos.length === 0) {
       return res
         .status(404)
         .json({ error: "Nenhum aluno encontrado para este professor." });
     }
 
-    res.json(alunos);
+    res.json({
+      alunos,
+      totalItems,
+      totalPages: Math.ceil(totalItems / limit),
+      currentPage: page,
+    });
   } catch (error: any) {
-    res
-      .status(500)
-      .json({
-        error: "Erro ao buscar alunos por ID do professor.",
-        details: error.message,
-      });
+    res.status(500).json({
+      error: "Erro ao buscar alunos por ID do professor.",
+      details: error.message,
+    });
   }
 }
+
 
 // Atualizar dados de um aluno
 export async function atualizarAluno(req: Request, res: Response) {
