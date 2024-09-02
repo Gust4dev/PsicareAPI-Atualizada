@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Paciente from "../models/Paciente";
 import mongoose from "mongoose";
+import { Aluno } from "../models/aluno";
 
 // Criar um novo paciente
 export async function criarPaciente(req: Request, res: Response) {
@@ -166,6 +167,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
 
     res.json({
       pacientes,
+      totalItems,
       totalPages:Math.ceil(totalItems / limit),
       currentPage: page,
     });
@@ -192,25 +194,35 @@ export async function obterPacientePorID(req: Request, res: Response) {
 }
 
 // Listar pacientes por ID do aluno associado
-export const listarPacientesPorEncaminhador = async (req: Request, res: Response) => {
+export async function listarPacientesPorAlunoId(req: Request, res: Response) {
   try {
-    const encaminhadorNome = req.params.nome;
+    const alunoId = req.params.id;
 
-    // Verifique se há pacientes com o nome do encaminhador fornecido
-    const pacientes = await Paciente.find({ encaminhador: encaminhadorNome }).lean();
-    
+    // Verifique se o aluno existe
+    const aluno = await Aluno.findById(alunoId);
+    if (!aluno) {
+      return res.status(404).json({ error: "Aluno não encontrado." });
+    }
+
+    // Buscar pacientes pelo ID do aluno
+    const pacientes = await Paciente.find({ alunoId: alunoId }).lean();
     if (!pacientes || pacientes.length === 0) {
-      return res.status(404).json({ error: "Nenhum paciente encontrado para este encaminhador." });
+      return res
+        .status(404)
+        .json({ error: "Nenhum paciente encontrado para este aluno." });
     }
 
     res.json(pacientes);
   } catch (error: any) {
-    res.status(500).json({
-      error: "Erro ao buscar pacientes por nome do encaminhador.",
-      details: error.message,
-    });
+    res
+      .status(500)
+      .json({
+        error: "Erro ao buscar pacientes por ID do aluno.",
+        details: error.message,
+      });
   }
-};
+}
+
 
 
 // Atualizar dados de um paciente
@@ -219,7 +231,7 @@ export async function atualizarPaciente(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    // Verificar duplicidade de email e CPF
+    // Verificar duplicidade de email e CPF, ignorando o paciente atual
     const pacienteExistenteEmail = await Paciente.exists({
       email,
       _id: { $ne: id },
@@ -230,25 +242,23 @@ export async function atualizarPaciente(req: Request, res: Response) {
     });
 
     if (pacienteExistenteEmail) {
-      return res.status(400).send("Já existe um paciente com este email.");
+      return res.status(400).json({ message: "Já existe um paciente com este email." });
     }
     if (pacienteExistenteCPF) {
-      return res.status(400).send("Já existe um paciente com este CPF.");
+      return res.status(400).json({ message: "Já existe um paciente com este CPF." });
     }
 
-    const pacienteAtualizado = await Paciente.findByIdAndUpdate(
-      id,
-      updateData,
-      { new: true }
-    );
+    // Atualizar o paciente no banco de dados
+    const pacienteAtualizado = await Paciente.findByIdAndUpdate(id, updateData, { new: true });
 
     if (!pacienteAtualizado) {
-      return res.status(404).send("Paciente não encontrado");
+      return res.status(404).json({ message: "Paciente não encontrado." });
     }
 
-    res.json(pacienteAtualizado);
+    res.json({ message: "Paciente atualizado com sucesso.", paciente: pacienteAtualizado });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    console.error(error);
+    res.status(500).json({ message: "Erro ao atualizar paciente.", details: error.message });
   }
 }
 
