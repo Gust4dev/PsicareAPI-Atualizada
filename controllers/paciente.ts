@@ -168,6 +168,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
 
     res.json({
       pacientes,
+      totalItems,
       totalPages: Math.ceil(totalItems / limit),
       currentPage: page,
     });
