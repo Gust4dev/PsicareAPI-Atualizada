@@ -22,7 +22,7 @@ router.get("/:id", authMiddleware(2), obterPacientePorID);
 router.get("/encaminhador/:nome", authMiddleware(2), listarPacientesPorAlunoId);
 router.get("/ultimo/criado", authMiddleware(1), obterUltimoPacienteCriado);
 router.patch("/:id", authMiddleware(1), atualizarPaciente);
-router.patch("/paciente/arquivar/:id", authMiddleware(1), arquivarPaciente);
+router.patch("/arquivar/:id", authMiddleware(1), arquivarPaciente);
 router.delete("/", authMiddleware(1), deletarPacienteSelecionados);
 
 export default router;
