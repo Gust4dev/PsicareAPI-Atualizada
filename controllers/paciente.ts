@@ -36,7 +36,7 @@ export async function criarPaciente(req: Request, res: Response) {
       tipoDeTratamento,
       alunoUnieva,
       funcionarioUnieva,
-      alunoID,
+      alunoId,
     } = req.body;
 
     const idade = calcularIdade(dataNascimento);
@@ -62,8 +62,8 @@ export async function criarPaciente(req: Request, res: Response) {
       throw new Error("Já existe um paciente com este CPF.");
     }
 
-    // Buscar nome do paciente usando o alunoID
-    const aluno = await Paciente.findById(alunoID).session(session);
+    // Buscar nome do paciente usando o alunoId
+    const aluno = await Paciente.findById(alunoId).session(session);
     if (!aluno) {
       await session.abortTransaction();
       session.endSession();
@@ -99,7 +99,7 @@ export async function criarPaciente(req: Request, res: Response) {
       alunoUnieva,
       funcionarioUnieva,
       ativoPaciente: true,
-      alunoID: aluno._id,
+      alunoId: aluno._id,
     });
 
     await newPaciente.save({ session });
@@ -205,7 +205,7 @@ export async function obterPacientePorID(req: Request, res: Response) {
 }
 
 // Listar pacientes por ID do aluno associado
-export async function listarPacientesPorAlunoId(req: Request, res: Response) {
+export async function listarPacientesPoralunoId(req: Request, res: Response) {
   try {
     const alunoId = req.params.id;
     const page: number = parseInt(req.query.page as string, 10) || 1;

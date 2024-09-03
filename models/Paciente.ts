@@ -28,6 +28,7 @@ interface IPaciente extends Document {
   alunoUnieva: boolean;
   funcionarioUnieva: boolean;
   ativoPaciente: boolean;
+  alunoId: Schema.Types.ObjectId;
 }
 
 const PacienteSchema = new Schema<IPaciente>({
@@ -58,8 +59,10 @@ const PacienteSchema = new Schema<IPaciente>({
   alunoUnieva: { type: Boolean, required: true },
   funcionarioUnieva: { type: Boolean, required: true },
   ativoPaciente: { type: Boolean, required: true, default: true },
+  alunoId:{ type: Schema.Types.ObjectId, ref: "Aluno", required: true},
 });
 
+PacienteSchema.index({ AlunoId: 1});
 const Paciente = model<IPaciente>('Paciente', PacienteSchema);
 
 export default Paciente;
