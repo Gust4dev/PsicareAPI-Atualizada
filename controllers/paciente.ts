@@ -36,6 +36,7 @@ export async function criarPaciente(req: Request, res: Response) {
       tipoDeTratamento,
       alunoUnieva,
       funcionarioUnieva,
+      pacienteID,
     } = req.body;
 
     const idade = calcularIdade(dataNascimento);
@@ -59,6 +60,14 @@ export async function criarPaciente(req: Request, res: Response) {
     }
     if (pacienteExistenteCPF) {
       throw new Error("Já existe um paciente com este CPF.");
+    }
+
+    // Buscar nome do paciente usando o pacienteID
+    const paciente = await Paciente.findById(pacienteID).session(session);
+    if (!paciente) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(404).send("Professor não encontrado.");
     }
 
     const newPaciente = new Paciente({
@@ -90,6 +99,7 @@ export async function criarPaciente(req: Request, res: Response) {
       alunoUnieva,
       funcionarioUnieva,
       ativoPaciente: true,
+      pacienteID: paciente._id,
     });
 
     await newPaciente.save({ session });
