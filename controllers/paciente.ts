@@ -62,8 +62,8 @@ export async function criarPaciente(req: Request, res: Response) {
       throw new Error("Já existe um paciente com este CPF.");
     }
 
-    // Buscar nome do paciente usando o alunoId
-    const aluno = await Paciente.findById(alunoId).session(session);
+    // Corrigido: Buscar o aluno corretamente usando Aluno.findById
+    const aluno = await Aluno.findById(alunoId).session(session);
     if (!aluno) {
       await session.abortTransaction();
       session.endSession();
