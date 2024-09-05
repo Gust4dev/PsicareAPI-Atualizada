@@ -10,9 +10,8 @@ export async function criarSecretario(req: Request, res: Response) {
   session.startTransaction();
 
   try {
-    const { nome, cpf, telefone, email, turno } = req.body;
+    const { nome, cpf, telefoneContato, email, turno } = req.body;
 
-    // Verificar se o email já existe
     const secretarioExistenteEmail = await Secretario.exists({ email }).session(
       session
     );
@@ -22,7 +21,6 @@ export async function criarSecretario(req: Request, res: Response) {
       return res.status(400).send("Já existe um secretário com este email.");
     }
 
-    // Verificar se o CPF já existe
     const secretarioExistenteCPF = await Secretario.exists({ cpf }).session(
       session
     );
@@ -32,29 +30,25 @@ export async function criarSecretario(req: Request, res: Response) {
       return res.status(400).send("Já existe um secretário com este CPF.");
     }
 
-    // Criação do novo secretário
     const newSecretario = new Secretario({
       nome,
       cpf,
-      telefone,
+      telefoneContato,
       email,
       turno,
     });
 
-    // Geração automática da senha a partir do CPF
     const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    // Criar novo usuário vinculado ao secretário
     const novoUser: UserInterface = new User({
       nome,
       cpf,
       email,
       senha: senhaCriptografada,
-      cargo: 1, // Cargo de secretário
+      cargo: 1,
     });
 
-    // Salvar secretário e usuário no banco de dados
     await newSecretario.save({ session });
     await novoUser.save({ session });
 
@@ -76,22 +70,25 @@ export async function criarSecretario(req: Request, res: Response) {
 
 // Método GET para listar secretários
 export const listarSecretarios = async (req: Request, res: Response) => {
-  const { q } = req.query;
-  const page: number = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15;
+  const { q, nome, cpf, email, telefone } = req.query;
+  const page = parseInt(req.query.page as string, 10) || 1;
+  const limit = 15;
 
   try {
-    const searchQuery = q
-      ? {
-          $or: [
-            { nome: { $regex: q, $options: "i" } },
-            { cpf: { $regex: q, $options: "i" } },
-            { telefone: { $regex: q, $options: "i" } },
-            { email: { $regex: q, $options: "i" } },
-            { turno: { $regex: q, $options: "i" } },
-          ],
-        }
-      : {};
+    const searchQuery = {
+      ...(q && {
+        $or: [
+          { nome: { $regex: q, $options: "i" } },
+          { cpf: { $regex: q, $options: "i" } },
+          { email: { $regex: q, $options: "i" } },
+          { telefone: { $regex: q, $options: "i" } },
+        ],
+      }),
+      ...(nome && { nome: { $regex: nome, $options: "i" } }),
+      ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
+      ...(email && { email: { $regex: email, $options: "i" } }),
+      ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
+    };
 
     const secretarios = await Secretario.find(searchQuery)
       .skip((page - 1) * limit)
@@ -99,11 +96,10 @@ export const listarSecretarios = async (req: Request, res: Response) => {
       .lean();
 
     const totalItems = await Secretario.countDocuments(searchQuery);
-    const totalPages = Math.ceil(totalItems / limit);
 
     res.json({
       secretarios,
-      totalPages,
+      totalPages: Math.ceil(totalItems / limit),
       currentPage: page,
       totalItems,
     });
@@ -264,7 +260,7 @@ export const deletarSecretariosSelecionados = async (
   req: Request,
   res: Response
 ) => {
-  const ids = req.params.ids.split(","); // IDs enviados via req.params como string, separados por vírgula
+  const ids = req.params.ids.split(",");
 
   if (!ids || !Array.isArray(ids) || ids.length === 0) {
     return res.status(400).json({ message: "IDs inválidos fornecidos" });

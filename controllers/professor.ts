@@ -12,7 +12,6 @@ export async function criarProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, disciplina } = req.body;
 
-    // Verificar se o email já existe
     const professorExistenteEmail = await Professor.exists({ email }).session(
       session
     );
@@ -22,7 +21,6 @@ export async function criarProfessor(req: Request, res: Response) {
       return res.status(400).send("Já existe um professor com este email.");
     }
 
-    // Verificar se o CPF já existe
     const professorExistenteCPF = await Professor.exists({ cpf }).session(
       session
     );
@@ -32,7 +30,6 @@ export async function criarProfessor(req: Request, res: Response) {
       return res.status(400).send("Já existe um professor com este CPF.");
     }
 
-    // Criação do novo professor
     const newProfessor = new Professor({
       nome,
       cpf,
@@ -41,11 +38,9 @@ export async function criarProfessor(req: Request, res: Response) {
       disciplina,
     });
 
-    // Geração automática da senha a partir do CPF
     const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    // Criar novo usuário vinculado ao professor
     const novoUser: UserInterface = new User({
       nome,
       cpf,
@@ -54,7 +49,6 @@ export async function criarProfessor(req: Request, res: Response) {
       cargo: 2,
     });
 
-    // Salvar professor e usuário no banco de dados
     await newProfessor.save({ session });
     await novoUser.save({ session });
 
@@ -74,25 +68,32 @@ export async function criarProfessor(req: Request, res: Response) {
   }
 }
 
-// Função para listar todos os professores 
+// Função para listar todos os professores
 export const listarProfessores = async (req: Request, res: Response) => {
-  const { q } = req.query;
+  const { q, nome, cpf, telefone, email, disciplina } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
-    const searchQuery = q
-      ? {
-          $or: [
-            { nome: { $regex: q, $options: "i" } },
-            { cpf: { $regex: q, $options: "i" } },
-            { telefone: { $regex: q, $options: "i" } },
-            { email: { $regex: q, $options: "i" } },
-            { disciplina: { $regex: q, $options: "i" } },
-          ],
-        }
-      : {};
+    // Criação do objeto de pesquisa avançada
+    const searchQuery = {
+      ...(q && {
+        $or: [
+          { nome: { $regex: q, $options: "i" } },
+          { cpf: { $regex: q, $options: "i" } },
+          { telefone: { $regex: q, $options: "i" } },
+          { email: { $regex: q, $options: "i" } },
+          { disciplina: { $regex: q, $options: "i" } },
+        ],
+      }),
+      ...(nome && { nome: { $regex: nome, $options: "i" } }),
+      ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
+      ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
+      ...(email && { email: { $regex: email, $options: "i" } }),
+      ...(disciplina && { disciplina: { $regex: disciplina, $options: "i" } }),
+    };
 
+    // Paginação e listagem
     const professores = await Professor.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit)
@@ -111,7 +112,6 @@ export const listarProfessores = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Erro ao buscar professores", error });
   }
 };
-
 
 // Função para buscar um professor pelo ID
 export async function getProfessorById(req: Request, res: Response) {
@@ -133,7 +133,6 @@ export async function atualizarProfessor(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    // Verificar se o email já existe
     const professorExistenteEmail = await Professor.exists({
       email,
       _id: { $ne: id },
@@ -142,7 +141,6 @@ export async function atualizarProfessor(req: Request, res: Response) {
       return res.status(400).send("Já existe um professor com este email.");
     }
 
-    // Verificar se o CPF já existe
     const professorExistenteCPF = await Professor.exists({
       cpf,
       _id: { $ne: id },
@@ -257,4 +255,3 @@ export const deletarProfessorSelecionados = async (
     res.status(500).json({ message: "Erro ao deletar professores", error });
   }
 };
-

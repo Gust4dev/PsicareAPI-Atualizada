@@ -62,7 +62,6 @@ export async function criarPaciente(req: Request, res: Response) {
       throw new Error("Já existe um paciente com este CPF.");
     }
 
-    // Corrigido: Buscar o aluno corretamente usando Aluno.findById
     const aluno = await Aluno.findById(alunoId).session(session);
     if (!aluno) {
       await session.abortTransaction();
@@ -132,60 +131,104 @@ function calcularIdade(dataNascimento: string): number {
 
 // Listar pacientes
 export const listarPacientes = async (req: Request, res: Response) => {
-  const { q } = req.query;
+  const {
+    q,
+    nome,
+    cpf,
+    email,
+    telefoneContato,
+    sexo,
+    estadoCivil,
+    religiao,
+    rendaFamiliar,
+    profissao,
+    outroContato,
+    nomeDoContatoResponsavel,
+    naturalidade,
+    nacionalidade,
+    enderecoCep,
+    enderecoLogradouro,
+    enderecoBairro,
+    enderecoComplemento,
+    enderecoCidade,
+    enderecoUF,
+    tipoDeTratamento,
+    encaminhador,
+  } = req.query;
+
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
-    const searchQuery = q
-      ? {
-          $and: [
-            { ativoPaciente: true },
-            {
-              $or: [
-                { nome: { $regex: q, $options: "i" } },
-                { cpf: { $regex: q, $options: "i" } },
-                { email: { $regex: q, $options: "i" } },
-                { telefoneContato: { $regex: q, $options: "i" } },
-                { sexo: { $regex: q, $options: "i" } },
-                { estadoCivil: { $regex: q, $options: "i" } },
-                { religiao: { $regex: q, $options: "i" } },
-                { rendaFamiliar: { $regex: q, $options: "i" } },
-                { profissao: { $regex: q, $options: "i" } },
-                { outroContato: { $regex: q, $options: "i" } },
-                { nomeDoContatoResponsavel: { $regex: q, $options: "i" } },
-                { naturalidade: { $regex: q, $options: "i" } },
-                { nacionalidade: { $regex: q, $options: "i" } },
-                { enderecoCep: { $regex: q, $options: "i" } },
-                { enderecoLogradouro: { $regex: q, $options: "i" } },
-                { enderecoBairro: { $regex: q, $options: "i" } },
-                { enderecoComplemento: { $regex: q, $options: "i" } },
-                { enderecoCidade: { $regex: q, $options: "i" } },
-                { enderecoUF: { $regex: q, $options: "i" } },
-                { tipoDeTratamento: { $regex: q, $options: "i" } },
-                { encaminhador: { $regex: q, $options: "i" } },
-              ],
-            },
-          ],
-        }
-      : { ativoPaciente: true };
+    const searchQuery = {
+      ativoPaciente: true,
+      ...(q && {
+        $or: [
+          { nome: { $regex: q, $options: "i" } },
+          { cpf: { $regex: q, $options: "i" } },
+          { email: { $regex: q, $options: "i" } },
+          { telefoneContato: { $regex: q, $options: "i" } },
+          { sexo: { $regex: q, $options: "i" } },
+          { estadoCivil: { $regex: q, $options: "i" } },
+          { religiao: { $regex: q, $options: "i" } },
+          { rendaFamiliar: { $regex: q, $options: "i" } },
+          { profissao: { $regex: q, $options: "i" } },
+          { outroContato: { $regex: q, $options: "i" } },
+          { nomeDoContatoResponsavel: { $regex: q, $options: "i" } },
+          { naturalidade: { $regex: q, $options: "i" } },
+          { nacionalidade: { $regex: q, $options: "i" } },
+          { enderecoCep: { $regex: q, $options: "i" } },
+          { enderecoLogradouro: { $regex: q, $options: "i" } },
+          { enderecoBairro: { $regex: q, $options: "i" } },
+          { enderecoComplemento: { $regex: q, $options: "i" } },
+          { enderecoCidade: { $regex: q, $options: "i" } },
+          { enderecoUF: { $regex: q, $options: "i" } },
+          { tipoDeTratamento: { $regex: q, $options: "i" } },
+          { encaminhador: { $regex: q, $options: "i" } },
+        ],
+      }),
+      ...(nome && { nome: { $regex: nome, $options: "i" } }),
+      ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
+      ...(email && { email: { $regex: email, $options: "i" } }),
+      ...(telefoneContato && { telefoneContato: { $regex: telefoneContato, $options: "i" } }),
+      ...(sexo && { sexo: { $regex: sexo, $options: "i" } }),
+      ...(estadoCivil && { estadoCivil: { $regex: estadoCivil, $options: "i" } }),
+      ...(religiao && { religiao: { $regex: religiao, $options: "i" } }),
+      ...(rendaFamiliar && { rendaFamiliar: { $regex: rendaFamiliar, $options: "i" } }),
+      ...(profissao && { profissao: { $regex: profissao, $options: "i" } }),
+      ...(outroContato && { outroContato: { $regex: outroContato, $options: "i" } }),
+      ...(nomeDoContatoResponsavel && { nomeDoContatoResponsavel: { $regex: nomeDoContatoResponsavel, $options: "i" } }),
+      ...(naturalidade && { naturalidade: { $regex: naturalidade, $options: "i" } }),
+      ...(nacionalidade && { nacionalidade: { $regex: nacionalidade, $options: "i" } }),
+      ...(enderecoCep && { enderecoCep: { $regex: enderecoCep, $options: "i" } }),
+      ...(enderecoLogradouro && { enderecoLogradouro: { $regex: enderecoLogradouro, $options: "i" } }),
+      ...(enderecoBairro && { enderecoBairro: { $regex: enderecoBairro, $options: "i" } }),
+      ...(enderecoComplemento && { enderecoComplemento: { $regex: enderecoComplemento, $options: "i" } }),
+      ...(enderecoCidade && { enderecoCidade: { $regex: enderecoCidade, $options: "i" } }),
+      ...(enderecoUF && { enderecoUF: { $regex: enderecoUF, $options: "i" } }),
+      ...(tipoDeTratamento && { tipoDeTratamento: { $regex: tipoDeTratamento, $options: "i" } }),
+      ...(encaminhador && { encaminhador: { $regex: encaminhador, $options: "i" } }),
+    };
 
     const pacientes = await Paciente.find(searchQuery)
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const totalItems = await Paciente.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
 
     res.json({
       pacientes,
       totalItems,
-      totalPages: Math.ceil(totalItems / limit),
+      totalPages,
       currentPage: page,
     });
   } catch (error) {
     res.status(500).json({ message: "Erro ao buscar pacientes", error });
   }
 };
+
 
 // Obter dados de um paciente por ID
 export async function obterPacientePorID(req: Request, res: Response) {
@@ -211,13 +254,11 @@ export async function listarPacientesPoralunoId(req: Request, res: Response) {
     const page: number = parseInt(req.query.page as string, 10) || 1;
     const limit: number = 10;
 
-    // Verifique se o aluno existe
     const aluno = await Aluno.findById(alunoId);
     if (!aluno) {
       return res.status(404).json({ error: "Aluno não encontrado." });
     }
 
-    // Buscar pacientes pelo ID do aluno com paginação
     const totalItems = await Paciente.countDocuments({ alunoId });
     const pacientes = await Paciente.find({ alunoId })
       .skip((page - 1) * limit)
@@ -250,7 +291,6 @@ export async function atualizarPaciente(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    // Verificar duplicidade de email e CPF, ignorando o paciente atual
     const pacienteExistenteEmail = await Paciente.exists({
       email,
       _id: { $ne: id },

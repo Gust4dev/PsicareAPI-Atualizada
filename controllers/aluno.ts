@@ -15,7 +15,6 @@ export async function criarAluno(req: Request, res: Response) {
     const { matricula, periodo, nome, cpf, telefone, email, professorId } =
       req.body;
 
-    // Verificações de existência
     const alunoExistenteCPF = await Aluno.exists({ cpf }).session(session);
     const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(
       session
@@ -38,7 +37,6 @@ export async function criarAluno(req: Request, res: Response) {
       return res.status(400).send("Já existe um aluno com este email.");
     }
 
-    // Buscar nome do professor usando o professorId
     const professor = await Professor.findById(professorId).session(session);
     if (!professor) {
       await session.abortTransaction();
@@ -46,14 +44,11 @@ export async function criarAluno(req: Request, res: Response) {
       return res.status(404).send("Professor não encontrado.");
     }
 
-    // Geração da senha a partir do CPF
     const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    // Formatação do período para exibir "1º, 2º, 3º, etc."
     const periodoFormatado = `${periodo}º`;
 
-    // Criando um novo aluno com o ID e o nome do professor
     const newAluno = new Aluno({
       matricula,
       periodo: periodoFormatado,
@@ -70,14 +65,12 @@ export async function criarAluno(req: Request, res: Response) {
       cpf,
       email,
       senha: senhaCriptografada,
-      cargo: 3, // Cargo para aluno
+      cargo: 3,
     });
 
-    // Salvar aluno e usuário no banco dentro da transação
     await newAluno.save({ session });
     await novoUser.save({ session });
 
-    // Commit da transação
     await session.commitTransaction();
     session.endSession();
 
@@ -85,7 +78,6 @@ export async function criarAluno(req: Request, res: Response) {
       .status(201)
       .json({ message: "Cadastro de aluno e usuário criado com sucesso." });
   } catch (error: any) {
-    // Se qualquer erro ocorrer, abortar a transação
     await session.abortTransaction();
     session.endSession();
     console.error(error);
@@ -95,26 +87,36 @@ export async function criarAluno(req: Request, res: Response) {
   }
 }
 
-// Listar alunos com paginação
+// Listar alunos
 export const listarAlunos = async (req: Request, res: Response) => {
-  const { q } = req.query;
+  const { q, nome, cpf, email, matricula, telefone, periodo, nomeProfessor } =
+    req.query;
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = 15;
 
   try {
-    const searchQuery = q
-      ? {
-          $or: [
-            { nome: { $regex: q, $options: "i" } },
-            { cpf: { $regex: q, $options: "i" } },
-            { email: { $regex: q, $options: "i" } },
-            { matricula: { $regex: q, $options: "i" } },
-            { telefone: { $regex: q, $options: "i" } },
-            { periodo: { $regex: q, $options: "i" } },
-            { nomeProfessor: { $regex: q, $options: "i" } },
-          ],
-        }
-      : {};
+    const searchQuery = {
+      ...(q && {
+        $or: [
+          { nome: { $regex: q, $options: "i" } },
+          { cpf: { $regex: q, $options: "i" } },
+          { email: { $regex: q, $options: "i" } },
+          { matricula: { $regex: q, $options: "i" } },
+          { telefone: { $regex: q, $options: "i" } },
+          { periodo: { $regex: q, $options: "i" } },
+          { nomeProfessor: { $regex: q, $options: "i" } },
+        ],
+      }),
+      ...(nome && { nome: { $regex: nome, $options: "i" } }),
+      ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
+      ...(email && { email: { $regex: email, $options: "i" } }),
+      ...(matricula && { matricula: { $regex: matricula, $options: "i" } }),
+      ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
+      ...(periodo && { periodo: { $regex: periodo, $options: "i" } }),
+      ...(nomeProfessor && {
+        nomeProfessor: { $regex: nomeProfessor, $options: "i" },
+      }),
+    };
 
     const alunos = await Aluno.find(searchQuery)
       .skip((page - 1) * limit)
@@ -154,13 +156,11 @@ export async function listarAlunosPorProfessorId(req: Request, res: Response) {
     const page: number = parseInt(req.query.page as string, 10) || 1;
     const limit: number = 10;
 
-    // Verifique se o professor existe
     const professor = await Professor.findById(professorId);
     if (!professor) {
       return res.status(404).json({ error: "Professor não encontrado." });
     }
 
-    // Buscar alunos pelo ID do professor com paginação
     const totalItems = await Aluno.countDocuments({ professorId });
     const alunos = await Aluno.find({ professorId })
       .skip((page - 1) * limit)
@@ -187,14 +187,12 @@ export async function listarAlunosPorProfessorId(req: Request, res: Response) {
   }
 }
 
-
 // Atualizar dados de um aluno
 export async function atualizarAluno(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const { cpf, email, matricula, ...updateData } = req.body;
 
-    // Verificar duplicidade de email, CPF e matrícula
     const alunoExistente = await Aluno.findOne({
       _id: { $ne: id },
       $or: [{ email }, { cpf }, { matricula }],
@@ -255,7 +253,6 @@ export const obterUltimoAlunoCriado = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Erro ao buscar o último aluno criado" });
   }
 };
-
 
 // Deletar alunos selecionados
 export const deletarAlunoSelecionados = async (req: Request, res: Response) => {
