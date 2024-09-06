@@ -133,7 +133,6 @@ export async function atualizarSecretario(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    // Verificar se o email já existe
     const secretarioExistenteEmail = await Secretario.exists({
       email,
       _id: { $ne: id },
@@ -142,7 +141,6 @@ export async function atualizarSecretario(req: Request, res: Response) {
       return res.status(400).send("Já existe um secretário com este email.");
     }
 
-    // Verificar se o CPF já existe
     const secretarioExistenteCPF = await Secretario.exists({
       cpf,
       _id: { $ne: id },

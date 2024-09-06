@@ -75,7 +75,6 @@ export const listarProfessores = async (req: Request, res: Response) => {
   const limit: number = 15;
 
   try {
-    // Criação do objeto de pesquisa avançada
     const searchQuery = {
       ...(q && {
         $or: [
@@ -93,7 +92,6 @@ export const listarProfessores = async (req: Request, res: Response) => {
       ...(disciplina && { disciplina: { $regex: disciplina, $options: "i" } }),
     };
 
-    // Paginação e listagem
     const professores = await Professor.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit)

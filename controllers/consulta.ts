@@ -13,7 +13,6 @@ export async function criarConsulta(req: Request, res: Response) {
     sala,
   } = req.body;
 
-  // Nova consulta
   const novaConsulta = new Consulta({
     pacienteNome,
     recorrencia,
@@ -24,7 +23,6 @@ export async function criarConsulta(req: Request, res: Response) {
     sala,
   });
 
-  // Verificar se a sala está disponível
   const consultasNaSala = await Consulta.find({ sala });
   if (consultasNaSala.length >= 10) {
     return res.status(400).json({ error: "Sala ocupada. Escolha outra sala." });

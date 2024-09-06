@@ -3,7 +3,7 @@ import Paciente from "../models/Paciente";
 import mongoose from "mongoose";
 import { Aluno } from "../models/aluno";
 
-// Criar um novo paciente
+// criar paciente
 export async function criarPaciente(req: Request, res: Response) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -147,7 +147,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
   const limit: number = 15;
 
   try {
-    const searchQuery = {
+    const searchQuery: any = {
       ativoPaciente: true,
       ...(q && {
         $or: [
@@ -178,11 +178,37 @@ export const listarPacientes = async (req: Request, res: Response) => {
       ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
       ...(email && { email: { $regex: email, $options: "i" } }),
       ...(sexo && { sexo: { $regex: sexo, $options: "i" } }),
-      ...(tipoDeTratamento && { tipoDeTratamento: { $regex: tipoDeTratamento, $options: "i" } }),
-      ...(encaminhador && { encaminhador: { $regex: encaminhador, $options: "i" } }),
-      ...(dataInicioTratamento && { dataInicioTratamento: { $regex: dataInicioTratamento, $options: "i" } }),
-      ...(dataTerminoTratamento && { dataTerminoTratamento: { $regex: dataTerminoTratamento, $options: "i"} }),
+      ...(tipoDeTratamento && {
+        tipoDeTratamento: { $regex: tipoDeTratamento, $options: "i" },
+      }),
+      ...(encaminhador && {
+        encaminhador: { $regex: encaminhador, $options: "i" },
+      }),
     };
+
+    if (dataInicioTratamento) {
+      const dateStr = dataInicioTratamento as string;
+      const date = new Date(dateStr);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      searchQuery.dataInicioTratamento = {
+        $gte: date,
+        $lt: nextDate,
+      };
+    }
+
+    if (dataTerminoTratamento) {
+      const dateStr = dataTerminoTratamento as string;
+      const date = new Date(dateStr);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      searchQuery.dataTerminoTratamento = {
+        $gte: date,
+        $lt: nextDate,
+      };
+    }
 
     const pacientes = await Paciente.find(searchQuery)
       .skip((page - 1) * limit)
@@ -203,8 +229,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
   }
 };
 
-
-// Obter dados de um paciente por ID
+// Obter dados do paciente
 export async function obterPacientePorID(req: Request, res: Response) {
   try {
     const pacienteID = req.params.id;
@@ -221,7 +246,7 @@ export async function obterPacientePorID(req: Request, res: Response) {
   }
 }
 
-// Listar pacientes por ID do aluno associado
+// Listar pacientes por ID do aluno
 export async function listarPacientesPoralunoId(req: Request, res: Response) {
   try {
     const alunoId = req.params.id;
@@ -285,7 +310,6 @@ export async function atualizarPaciente(req: Request, res: Response) {
         .json({ message: "Já existe um paciente com este CPF." });
     }
 
-    // Atualizar o paciente no banco de dados
     const pacienteAtualizado = await Paciente.findByIdAndUpdate(
       id,
       updateData,
@@ -308,7 +332,7 @@ export async function atualizarPaciente(req: Request, res: Response) {
   }
 }
 
-// Arquivar um paciente
+// Arquivar paciente
 export async function arquivarPaciente(req: Request, res: Response) {
   try {
     const { id } = req.params;
@@ -333,7 +357,7 @@ export async function arquivarPaciente(req: Request, res: Response) {
   }
 }
 
-// Obter o último paciente criado
+// Obter o último paciente
 export const obterUltimoPacienteCriado = async (
   req: Request,
   res: Response
@@ -345,32 +369,6 @@ export const obterUltimoPacienteCriado = async (
     res
       .status(500)
       .json({ message: "Erro ao buscar o último paciente criado" });
-  }
-};
-
-// Listar pacientes paginados
-export const listarPacientesPaginados = async (req: Request, res: Response) => {
-  const page = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15;
-
-  try {
-    const pacientes = await Paciente.find()
-      .skip((page - 1) * limit)
-      .limit(limit);
-
-    const totalItems = await Paciente.countDocuments();
-    const totalPages = Math.ceil(totalItems / limit);
-
-    res.json({
-      pacientes,
-      totalPages,
-      currentPage: page,
-      totalItems,
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Erro ao buscar pacientes paginados", error });
   }
 };
 

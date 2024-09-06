@@ -7,7 +7,6 @@ import {
   atualizarPaciente,
   arquivarPaciente,
   obterUltimoPacienteCriado,
-  listarPacientesPaginados,
   deletarPacienteSelecionados,
 } from "../controllers/paciente";
 import { authMiddleware } from "../middleware/auth";
@@ -17,7 +16,6 @@ const router = Router();
 // Rotas para Pacientes
 router.post("/", authMiddleware(1), criarPaciente);
 router.get("/", authMiddleware(2), listarPacientes);
-router.get("/paginado", authMiddleware(2), listarPacientesPaginados);
 router.get("/:id", authMiddleware(2), obterPacientePorID);
 router.get("/aluno/:id", authMiddleware(2), listarPacientesPoralunoId);
 router.get("/ultimo/criado", authMiddleware(1), obterUltimoPacienteCriado);
