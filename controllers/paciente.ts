@@ -129,7 +129,7 @@ function calcularIdade(dataNascimento: string): number {
   return idade;
 }
 
-// Listar pacientes
+// Listar pacientes com filtros adicionais (arquivados e data de nascimento)
 export const listarPacientes = async (req: Request, res: Response) => {
   const {
     q,
@@ -141,6 +141,8 @@ export const listarPacientes = async (req: Request, res: Response) => {
     encaminhador,
     dataInicioTratamento,
     dataTerminoTratamento,
+    dataNascimento, // Novo filtro de data de nascimento
+    ativo, // Novo filtro para paciente arquivado
   } = req.query;
 
   const page: number = parseInt(req.query.page as string, 10) || 1;
@@ -148,7 +150,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
 
   try {
     const searchQuery: any = {
-      ativoPaciente: true,
+      ativoPaciente: ativo !== undefined ? ativo === "true" : true, // Se o parâmetro "ativo" for passado, usá-lo, senão, listar apenas os ativos
       ...(q && {
         $or: [
           { nome: { $regex: q, $options: "i" } },
@@ -205,6 +207,18 @@ export const listarPacientes = async (req: Request, res: Response) => {
       const nextDate = new Date(date);
       nextDate.setDate(nextDate.getDate() + 1);
       searchQuery.dataTerminoTratamento = {
+        $gte: date,
+        $lt: nextDate,
+      };
+    }
+
+    if (dataNascimento) {
+      const dateStr = dataNascimento as string;
+      const date = new Date(dateStr);
+      date.setHours(0, 0, 0, 0);
+      const nextDate = new Date(date);
+      nextDate.setDate(nextDate.getDate() + 1);
+      searchQuery.dataNascimento = {
         $gte: date,
         $lt: nextDate,
       };
