@@ -17,9 +17,9 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
 /**
  * Middleware de autenticação e autorização.
- * @param requiredRole - O nível de permissão necessário para acessar a rota.
+ * @param requiredRoles - cargos permitidos para acessar a rota.
  */
-export const authMiddleware = (requiredRole: number) => {
+export const authMiddleware = (requiredRoles: number[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
@@ -36,9 +36,10 @@ export const authMiddleware = (requiredRole: number) => {
 
       req.user = decoded;
 
-      if (decoded.cargo === 0 || decoded.cargo <= requiredRole) {
+      if (requiredRoles.includes(decoded.cargo)) {
         return next();
       }
+
       return res.status(403).json({ message: "Acesso negado" });
     } catch (error) {
       return res.status(401).json({ message: "Token inválido" });

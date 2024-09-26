@@ -8,16 +8,17 @@ import {
   obterUltimaConsultaCriada,
   listarConsultaPaginadas,
 } from "../controllers/consulta";
+import { authMiddleware } from "../middleware/auth";
 
 const router = Router();
 
 // Rotas consulta
-router.post("/", criarConsulta);
-router.get("/", listarConsultas);
-router.get("/paginado", listarConsultaPaginadas);
-router.get("/:id", obterConsultaPorID);
-router.get("/ultima/criada", obterUltimaConsultaCriada);
-router.patch("/:id", atualizarConsulta);
-router.delete("/:id", deletarConsulta);
+router.post("/", authMiddleware([0, 1, 2]), criarConsulta);
+router.get("/", authMiddleware([0, 1, 2]), listarConsultas);
+router.get("/paginado", authMiddleware([0, 1, 2]), listarConsultaPaginadas);
+router.get("/:id", authMiddleware([0, 1, 2]), obterConsultaPorID);
+router.get("/ultima/criada", authMiddleware([0, 1]), obterUltimaConsultaCriada);
+router.patch("/:id", authMiddleware([0, 1]), atualizarConsulta);
+router.delete("/:id", authMiddleware([0, 1]), deletarConsulta);
 
 export default router;
