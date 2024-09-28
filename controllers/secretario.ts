@@ -7,10 +7,10 @@ import User, { UserInterface } from "../models/user";
 // Método POST
 export async function criarSecretario(req: Request, res: Response) {
   const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
-    const { nome, cpf, telefoneContato, email, turno } = req.body;
+    session.startTransaction();
+
+    const { nome, cpf, telefone, email, turno } = req.body;
 
     const secretarioExistenteEmail = await Secretario.exists({ email }).session(
       session
@@ -33,7 +33,7 @@ export async function criarSecretario(req: Request, res: Response) {
     const newSecretario = new Secretario({
       nome,
       cpf,
-      telefoneContato,
+      telefone,
       email,
       turno,
     });
@@ -41,7 +41,7 @@ export async function criarSecretario(req: Request, res: Response) {
     const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    const novoUser: UserInterface = new User({
+    const novoUser = new User({
       nome,
       cpf,
       email,
@@ -55,18 +55,20 @@ export async function criarSecretario(req: Request, res: Response) {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(201).json({
-      message: "Cadastro de secretário e usuário criado com sucesso.",
-    });
+    return res
+      .status(201)
+      .json({ message: "Cadastro de secretário e usuário criado com sucesso." });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
     console.error(error);
-    res.status(500).json({
+
+    return res.status(500).json({
       error: "Não foi possível criar o cadastro de secretário e usuário.",
     });
   }
 }
+
 
 // Método GET para listar secretários
 export const listarSecretarios = async (req: Request, res: Response) => {
