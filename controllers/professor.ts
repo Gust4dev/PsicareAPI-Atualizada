@@ -177,10 +177,10 @@ export async function getProfessoresSelect(req: Request, res: Response) {
 // Função para atualizar um professor (patch)
 export async function patchProfessor(req: Request, res: Response) {
   try {
-    const { nome, cpf, telefoneContato, email, disciplina } = req.body;
+    const { nome, cpf, telefone, email, disciplina } = req.body;
     const updatedProfessor = await Professor.findByIdAndUpdate(
       req.params.id,
-      { nome, cpf, telefoneContato, email, disciplina },
+      { nome, cpf, telefone, email, disciplina },
       { new: true }
     );
     if (!updatedProfessor) {
