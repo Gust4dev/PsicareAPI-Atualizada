@@ -11,6 +11,7 @@ import consultaRoutes from "./routes/consulta";
 import pacienteRoutes from "./routes/paciente";
 import professorRoutes from "./routes/professor";
 import secretarioRouter from "./routes/secretario";
+import relatoriorouter from "./routes/relatorio";
 import userRouter from "./routes/user";
 
 dotenv.config();
@@ -57,6 +58,7 @@ app.use("/paciente", pacienteRoutes);
 app.use("/professor", professorRoutes);
 app.use("/user", userRouter);
 app.use("/secretario", secretarioRouter);
+app.use("/relatorio", relatoriorouter);
 
 // Escutar servidor na porta especificada
 app.listen(port, () => {

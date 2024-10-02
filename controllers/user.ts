@@ -9,8 +9,6 @@ import Professor from "../models/professor";
 import Secretario from "../models/secretario";
 import Paciente from "../models/Paciente";
 
-// Carregar as variáveis de ambiente do arquivo .env
-
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
@@ -25,13 +23,10 @@ export async function createUser(req: Request, res: Response) {
   const { nome, cpf, telefone, email, senha, cargo } = req.body;
 
   try {
-    // Gerar senha padrão usando o CPF menos os últimos dois dígitos se a senha não for fornecida
     const senhaPadrao = senha || cpf.slice(0, -2);
 
-    // Criptografar a senha
     const senhaCriptografada = await bcrypt.hash(senhaPadrao, 10);
 
-    // Criar novo usuário
     const newUser = new User({
       nome,
       cpf,
@@ -41,10 +36,8 @@ export async function createUser(req: Request, res: Response) {
       cargo,
     });
 
-    // Salvar no banco de dados
     await newUser.save();
 
-    // Retornar resposta de sucesso
     res.status(201).json(newUser);
   } catch (error: any) {
     console.error("Erro ao criar usuário:", error);
@@ -57,7 +50,6 @@ export async function loginUser(req: Request, res: Response) {
   const { cpf, email, senha } = req.body;
 
   try {
-    // Buscar usuário por email
     const userInDatabase = await User.findOne({ email }).exec();
     if (!userInDatabase) {
       return res.status(400).send("Usuário não encontrado.");
@@ -68,7 +60,6 @@ export async function loginUser(req: Request, res: Response) {
       return res.status(400).send("Senha incorreta.");
     }
 
-    // Gerar token JWT incluindo a cargo
     const token = jwt.sign(
       { cpf, email: userInDatabase.email, cargo: userInDatabase.cargo },
       JWT_SECRET,
@@ -164,19 +155,16 @@ export async function criarAlunoComUsuario(req: Request, res: Response) {
   try {
     const { matricula, periodo, nome, cpf, telefone, email } = req.body;
 
-    // Verificar se o CPF já existe
     const alunoExistenteCPF = await Aluno.exists({ cpf });
     if (alunoExistenteCPF) {
       return res.status(400).send("Já existe um aluno com este CPF.");
     }
 
-    // Verificar se a matrícula já existe
     const alunoExistenteMatricula = await Aluno.exists({ matricula });
     if (alunoExistenteMatricula) {
       return res.status(400).send("Já existe um aluno com esta matrícula.");
     }
 
-    // Verificar se o email já existe
     const alunoExistenteEmail = await Aluno.exists({ email });
     if (alunoExistenteEmail) {
       return res.status(400).send("Já existe um aluno com este email.");
@@ -193,12 +181,11 @@ export async function criarAlunoComUsuario(req: Request, res: Response) {
 
     await newAluno.save();
 
-    // Criar usuário associado ao aluno
-    const senhaPadrao = cpf.slice(0, -2); // Senha padrão: CPF menos os últimos 2 dígitos
+    const senhaPadrao = cpf.slice(0, -2);
     const newUser = new User({
       email,
       senha: await bcrypt.hash(senhaPadrao, 10),
-      cargo: 3, // Definir o cargo como 3 para aluno
+      cargo: 3,
     });
 
     await newUser.save();
@@ -217,13 +204,11 @@ export async function criarProfessorComUsuario(req: Request, res: Response) {
   try {
     const { nome, cpf, email, telefone, especialidade } = req.body;
 
-    // Verificar se o CPF já existe
     const professorExistenteCPF = await Professor.exists({ cpf });
     if (professorExistenteCPF) {
       return res.status(400).send("Já existe um professor com este CPF.");
     }
 
-    // Verificar se o email já existe
     const professorExistenteEmail = await Professor.exists({ email });
     if (professorExistenteEmail) {
       return res.status(400).send("Já existe um professor com este email.");
@@ -239,18 +224,15 @@ export async function criarProfessorComUsuario(req: Request, res: Response) {
 
     await newProfessor.save();
 
-    // Criar usuário associado ao professor
-    const senhaPadrao = cpf.slice(0, -2); // Senha padrão: CPF menos os últimos 2 dígitos
+    const senhaPadrao = cpf.slice(0, -2);
     const newUser = new User({
       email,
       senha: await bcrypt.hash(senhaPadrao, 10),
-      cargo: 2, // Definir o cargo como 2 para professor
+      cargo: 2,
     });
 
-    // Salvar o novo usuário
     await newUser.save();
 
-    // Retornar resposta de sucesso
     res
       .status(201)
       .json({ message: "Cadastro de professor e usuário criado com sucesso." });
@@ -266,7 +248,6 @@ export async function criarSecretarioComUsuario(req: Request, res: Response) {
   try {
     const { nome, cpf, email, telefone } = req.body;
 
-    // Verificar se o CPF já existe
     const secretarioExistenteCPF = await Secretario.exists({ cpf });
     if (secretarioExistenteCPF) {
       return res
@@ -274,7 +255,6 @@ export async function criarSecretarioComUsuario(req: Request, res: Response) {
         .json({ message: "Já existe um secretário com este CPF." });
     }
 
-    // Verificar se o email já existe
     const secretarioExistenteEmail = await Secretario.exists({ email });
     if (secretarioExistenteEmail) {
       return res
@@ -291,19 +271,16 @@ export async function criarSecretarioComUsuario(req: Request, res: Response) {
 
     await newSecretario.save();
 
-    // Criar usuário associado ao secretário
-    const senhaPadrao = cpf.slice(0, -2); // Senha padrão: CPF menos os últimos 2 dígitos
+    const senhaPadrao = cpf.slice(0, -2);
     const senhaHash = await bcrypt.hash(senhaPadrao, 10);
     const newUser = new User({
       email,
       senha: senhaHash,
-      cargo: 1, // Definir o cargo como 1 para secretário
+      cargo: 1,
     });
 
-    // Salvar o novo usuário
     await newUser.save();
 
-    // Retornar resposta de sucesso
     res.status(201).json({
       message: "Cadastro de secretário e usuário criado com sucesso.",
     });
@@ -317,7 +294,6 @@ export async function criarPacienteComUsuario(req: Request, res: Response) {
   try {
     const { nome, cpf, email, telefone } = req.body;
 
-    // Verificar se o CPF já existe
     const pacienteExistenteCPF = await Paciente.exists({ cpf });
     if (pacienteExistenteCPF) {
       return res
@@ -325,7 +301,6 @@ export async function criarPacienteComUsuario(req: Request, res: Response) {
         .json({ message: "Já existe um paciente com este CPF." });
     }
 
-    // Verificar se o email já existe
     const pacienteExistenteEmail = await Paciente.exists({ email });
     if (pacienteExistenteEmail) {
       return res
@@ -342,19 +317,16 @@ export async function criarPacienteComUsuario(req: Request, res: Response) {
 
     await newPaciente.save();
 
-    // Criar usuário associado ao paciente
-    const senhaPadrao = cpf.slice(0, -2); // Senha padrão: CPF menos os últimos 2 dígitos
+    const senhaPadrao = cpf.slice(0, -2);
     const senhaHash = await bcrypt.hash(senhaPadrao, 10);
     const newUser = new User({
       email,
       senha: senhaHash,
-      cargo: 4, // Definir o cargo como 4 para paciente
+      cargo: 4,
     });
 
-    // Salvar o novo usuário
     await newUser.save();
 
-    // Retornar resposta de sucesso
     res
       .status(201)
       .json({ message: "Cadastro de paciente e usuário criado com sucesso." });
