@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import Paciente from "../models/Paciente";
 import mongoose from "mongoose";
+import User from "../models/user";
 import { Aluno } from "../models/aluno";
 
 // criar paciente
@@ -38,6 +39,20 @@ export async function criarPaciente(req: Request, res: Response) {
       alunoId,
     } = req.body;
 
+    if (
+      !nome ||
+      !cpf ||
+      !email ||
+      !telefone ||
+      !dataNascimento ||
+      !sexo ||
+      !alunoId
+    ) {
+      throw new Error(
+        "Todos os campos obrigatórios devem ser preenchidos: nome, cpf, telefone, email, sexo, data de nascimento e alunoId."
+      );
+    }
+
     const idade = calcularIdade(dataNascimento);
     const menorDeIdade = idade < 18;
 
@@ -50,22 +65,22 @@ export async function criarPaciente(req: Request, res: Response) {
     const pacienteExistenteEmail = await Paciente.exists({ email }).session(
       session
     );
+    const usuarioExistenteEmail = await User.exists({ email }).session(session);
+
+    if (pacienteExistenteEmail || usuarioExistenteEmail) {
+      throw new Error("Já existe um paciente ou usuário com este email.");
+    }
+
     const pacienteExistenteCPF = await Paciente.exists({ cpf }).session(
       session
     );
-
-    if (pacienteExistenteEmail) {
-      throw new Error("Já existe um paciente com este email.");
-    }
     if (pacienteExistenteCPF) {
       throw new Error("Já existe um paciente com este CPF.");
     }
 
     const aluno = await Aluno.findById(alunoId).session(session);
     if (!aluno) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).send("Aluno não encontrado.");
+      throw new Error("Aluno não encontrado.");
     }
 
     const newPaciente = new Paciente({
@@ -110,11 +125,12 @@ export async function criarPaciente(req: Request, res: Response) {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    res
-      .status(500)
-      .json({ error: "Não foi possível criar o cadastro de paciente." });
+    res.status(400).json({
+      error: error.message || "Não foi possível criar o cadastro de paciente.",
+    });
   }
 }
+// calculo pra converter data nasc em idade
 function calcularIdade(dataNascimento: string): number {
   const nascimento = new Date(dataNascimento);
   const hoje = new Date();

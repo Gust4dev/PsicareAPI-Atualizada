@@ -8,40 +8,48 @@ import Professor from "../models/professor";
 // Criar um novo aluno
 export async function criarAluno(req: Request, res: Response) {
   const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    session.startTransaction();
-
     const { matricula, periodo, nome, cpf, telefone, email, professorId } =
       req.body;
+
+    if (
+      !matricula ||
+      !periodo ||
+      !nome ||
+      !cpf ||
+      !telefone ||
+      !email ||
+      !professorId
+    ) {
+      throw new Error(
+        "Todos os campos obrigatórios devem ser preenchidos: matrícula, período, nome, CPF, telefone, email e professorId."
+      );
+    }
 
     const alunoExistenteCPF = await Aluno.exists({ cpf }).session(session);
     const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(
       session
     );
     const alunoExistenteEmail = await Aluno.exists({ email }).session(session);
+    const usuarioExistenteEmail = await User.exists({ email }).session(session);
 
     if (alunoExistenteCPF) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).send("Já existe um aluno com este CPF.");
+      throw new Error("Já existe um aluno com este CPF.");
     }
+
     if (alunoExistenteMatricula) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).send("Já existe um aluno com esta matrícula.");
+      throw new Error("Já existe um aluno com esta matrícula.");
     }
-    if (alunoExistenteEmail) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).send("Já existe um aluno com este email.");
+
+    if (alunoExistenteEmail || usuarioExistenteEmail) {
+      throw new Error("Já existe um aluno ou usuário com este email.");
     }
 
     const professor = await Professor.findById(professorId).session(session);
     if (!professor) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(404).send("Professor não encontrado.");
+      throw new Error("Professor não encontrado.");
     }
 
     const senha = cpf.slice(0, -2);
@@ -80,10 +88,12 @@ export async function criarAluno(req: Request, res: Response) {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    console.error(error);
-    res
-      .status(500)
-      .json({ error: "Não foi possível criar o cadastro de aluno e usuário." });
+
+    res.status(400).json({
+      error:
+        error.message ||
+        "Não foi possível criar o cadastro de aluno e usuário.",
+    });
   }
 }
 

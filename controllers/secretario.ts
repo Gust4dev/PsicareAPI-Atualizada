@@ -2,32 +2,31 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import Secretario from "../models/secretario";
-import User, { UserInterface } from "../models/user";
+import User,{ UserInterface }from "../models/user";
 
-// Método POST
+// criar secretario
 export async function criarSecretario(req: Request, res: Response) {
   const session = await mongoose.startSession();
-  try {
-    session.startTransaction();
+  session.startTransaction();
 
+  try {
     const { nome, cpf, telefone, email, turno } = req.body;
 
-    const secretarioExistenteEmail = await Secretario.exists({ email }).session(
-      session
-    );
-    if (secretarioExistenteEmail) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).send("Já existe um secretário com este email.");
+    if (!nome || !cpf || !email || !telefone || !turno) {
+      throw new Error("Todos os campos obrigatórios devem ser preenchidos: nome, cpf, telefone, email, e turno.");
     }
 
-    const secretarioExistenteCPF = await Secretario.exists({ cpf }).session(
-      session
-    );
+    const secretarioExistenteEmail = await Secretario.exists({ email }).session(session);
+
+    const usuarioExistenteEmail = await User.exists({ email }).session(session);
+
+    if (secretarioExistenteEmail || usuarioExistenteEmail) {
+      throw new Error("Já existe um secretário ou usuário com este email.");
+    }
+
+    const secretarioExistenteCPF = await Secretario.exists({ cpf }).session(session);
     if (secretarioExistenteCPF) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).send("Já existe um secretário com este CPF.");
+      throw new Error("Já existe um secretário com este CPF.");
     }
 
     const newSecretario = new Secretario({
@@ -41,7 +40,7 @@ export async function criarSecretario(req: Request, res: Response) {
     const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    const novoUser = new User({
+    const novoUser: UserInterface = new User({
       nome,
       cpf,
       email,
@@ -55,22 +54,22 @@ export async function criarSecretario(req: Request, res: Response) {
     await session.commitTransaction();
     session.endSession();
 
-    return res
+    res
       .status(201)
       .json({ message: "Cadastro de secretário e usuário criado com sucesso." });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    console.error(error);
 
-    return res.status(500).json({
-      error: "Não foi possível criar o cadastro de secretário e usuário.",
+    res.status(400).json({
+      error: error.message || "Não foi possível criar o cadastro de secretário e usuário.",
     });
   }
 }
 
 
-// Método GET para listar secretários
+
+// listar secretários
 export const listarSecretarios = async (req: Request, res: Response) => {
   const { q, nome, cpf, email, telefone, turno } = req.query;
   const page = parseInt(req.query.page as string, 10) || 1;
@@ -112,7 +111,7 @@ export const listarSecretarios = async (req: Request, res: Response) => {
   }
 };
 
-// Método GET para obter secretário por ID
+// obter secretário por ID
 export async function getSecretarioByID(req: Request, res: Response) {
   try {
     const secretarioID = req.params.id;
@@ -129,7 +128,7 @@ export async function getSecretarioByID(req: Request, res: Response) {
   }
 }
 
-// Método PUT para atualizar secretário
+// atualizar secretário
 export async function atualizarSecretario(req: Request, res: Response) {
   try {
     const { id } = req.params;
@@ -167,28 +166,7 @@ export async function atualizarSecretario(req: Request, res: Response) {
   }
 }
 
-// Método PATCH para atualizar parcialmente um secretário
-export async function updateSecretario(req: Request, res: Response) {
-  try {
-    const secretarioID = req.params.id;
-    if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
-      return res.status(400).send("ID de secretário inválido.");
-    }
-    const secretarioAtualizado = await Secretario.findByIdAndUpdate(
-      secretarioID,
-      req.body,
-      { new: true }
-    );
-    if (!secretarioAtualizado) {
-      return res.status(404).send("Secretário não encontrado.");
-    }
-    res.json(secretarioAtualizado);
-  } catch (error: any) {
-    res.status(500).json({ message: "Erro ao atualizar secretário." });
-  }
-}
-
-// Método DELETE para deletar secretário
+// deletar secretário
 export async function deletarSecretario(req: Request, res: Response) {
   try {
     const secretarioID = req.params.id;
@@ -213,7 +191,7 @@ export async function deletarSecretario(req: Request, res: Response) {
   }
 }
 
-// Método para obter o último secretário criado
+// obter o último secretário criado
 export const obterUltimoSecretarioCriado = async (
   req: Request,
   res: Response
@@ -228,7 +206,7 @@ export const obterUltimoSecretarioCriado = async (
   }
 };
 
-// Método para listar secretários paginados
+// listar secretários paginados
 export const listarSecretarioPaginados = async (
   req: Request,
   res: Response
@@ -257,7 +235,7 @@ export const listarSecretarioPaginados = async (
   }
 };
 
-// Método para deletar secretários selecionados
+// deletar secretários selecionados
 export const deletarSecretariosSelecionados = async (
   req: Request,
   res: Response

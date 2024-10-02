@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import Professor from "../models/professor";
 import User, { UserInterface } from "../models/user";
 
-// Função para criar um novo professor
+// criar professor
 export async function criarProfessor(req: Request, res: Response) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -12,22 +12,20 @@ export async function criarProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, disciplina } = req.body;
 
-    const professorExistenteEmail = await Professor.exists({ email }).session(
-      session
-    );
-    if (professorExistenteEmail) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).send("Já existe um professor com este email.");
+    if (!nome || !cpf || !email || !telefone || !disciplina) {
+      throw new Error("Todos os campos obrigatórios devem ser preenchidos: nome, cpf, telefone, email e disciplina.");
     }
 
-    const professorExistenteCPF = await Professor.exists({ cpf }).session(
-      session
-    );
+    const professorExistenteEmail = await Professor.exists({ email }).session(session);
+    const usuarioExistenteEmail = await User.exists({ email }).session(session);
+
+    if (professorExistenteEmail || usuarioExistenteEmail) {
+      throw new Error("Já existe um professor ou usuário com este email.");
+    }
+
+    const professorExistenteCPF = await Professor.exists({ cpf }).session(session);
     if (professorExistenteCPF) {
-      await session.abortTransaction();
-      session.endSession();
-      return res.status(400).send("Já existe um professor com este CPF.");
+      throw new Error("Já existe um professor com este CPF.");
     }
 
     const newProfessor = new Professor({
@@ -41,7 +39,7 @@ export async function criarProfessor(req: Request, res: Response) {
     const senha = cpf.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    const novoUser: UserInterface = new User({
+    const novoUser = new User({
       nome,
       cpf,
       email,
@@ -55,20 +53,18 @@ export async function criarProfessor(req: Request, res: Response) {
     await session.commitTransaction();
     session.endSession();
 
-    res
-      .status(201)
-      .json({ message: "Cadastro de professor e usuário criado com sucesso." });
+    res.status(201).json({ message: "Cadastro de professor e usuário criado com sucesso." });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    console.error(error);
-    res.status(500).json({
-      error: "Não foi possível criar o cadastro de professor e usuário.",
+    res.status(400).json({
+      error: error.message || "Não foi possível criar o cadastro de professor e usuário.",
     });
   }
 }
 
-// Função para listar todos os professores
+
+//listar todos os professores
 export const listarProfessores = async (req: Request, res: Response) => {
   const { q, nome, cpf, telefone, email, disciplina } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
@@ -111,7 +107,7 @@ export const listarProfessores = async (req: Request, res: Response) => {
   }
 };
 
-// Função para buscar um professor pelo ID
+// buscar um professor pelo ID
 export async function getProfessorById(req: Request, res: Response) {
   try {
     const professor = await Professor.findById(req.params.id);
@@ -125,7 +121,7 @@ export async function getProfessorById(req: Request, res: Response) {
   }
 }
 
-// Função para atualizar um professor
+//atualizar um professor
 export async function atualizarProfessor(req: Request, res: Response) {
   try {
     const { id } = req.params;
@@ -163,7 +159,7 @@ export async function atualizarProfessor(req: Request, res: Response) {
   }
 }
 
-// Função para listar professores para seleção (nome e disciplina)
+//listar professores para seleção
 export async function getProfessoresSelect(req: Request, res: Response) {
   try {
     const professores = await Professor.find({}, "nome disciplina");
@@ -174,7 +170,7 @@ export async function getProfessoresSelect(req: Request, res: Response) {
   }
 }
 
-// Função para atualizar um professor (patch)
+//atualizar um professor
 export async function patchProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, disciplina } = req.body;
@@ -196,7 +192,7 @@ export async function patchProfessor(req: Request, res: Response) {
   }
 }
 
-// Função para deletar um professor
+//deletar um professor
 export async function deletarProfessor(req: Request, res: Response) {
   try {
     const deletedProfessor = await Professor.findByIdAndDelete(req.params.id);
@@ -213,7 +209,7 @@ export async function deletarProfessor(req: Request, res: Response) {
   }
 }
 
-// Função para obter o último professor criado
+//obter o último professor criado
 export const obterUltimoProfessorCriado = async (
   req: Request,
   res: Response
@@ -228,7 +224,7 @@ export const obterUltimoProfessorCriado = async (
   }
 };
 
-// Função para deletar professores selecionados
+//deletar professores selecionados
 export const deletarProfessorSelecionados = async (
   req: Request,
   res: Response
