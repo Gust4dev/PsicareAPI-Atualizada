@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import Secretario from "../models/secretario";
-import User,{ UserInterface }from "../models/user";
+import User, { UserInterface } from "../models/user";
 
 // criar secretario
 export async function criarSecretario(req: Request, res: Response) {
@@ -12,11 +12,25 @@ export async function criarSecretario(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, turno } = req.body;
 
-    if (!nome || !cpf || !email || !telefone || !turno) {
-      throw new Error("Todos os campos obrigatórios devem ser preenchidos: nome, cpf, telefone, email, e turno.");
+    if (!nome) {
+      throw new Error("Por favor, informe o nome completo.");
+    }
+    if (!cpf) {
+      throw new Error("Por favor, informe o CPF.");
+    }
+    if (!telefone) {
+      throw new Error("Por favor, informe o telefone.");
+    }
+    if (!email) {
+      throw new Error("Por favor, informe o email.");
+    }
+    if (!turno) {
+      throw new Error("Por favor, informe o turno de trabalho.");
     }
 
-    const secretarioExistenteEmail = await Secretario.exists({ email }).session(session);
+    const secretarioExistenteEmail = await Secretario.exists({ email }).session(
+      session
+    );
 
     const usuarioExistenteEmail = await User.exists({ email }).session(session);
 
@@ -24,7 +38,9 @@ export async function criarSecretario(req: Request, res: Response) {
       throw new Error("Já existe um secretário ou usuário com este email.");
     }
 
-    const secretarioExistenteCPF = await Secretario.exists({ cpf }).session(session);
+    const secretarioExistenteCPF = await Secretario.exists({ cpf }).session(
+      session
+    );
     if (secretarioExistenteCPF) {
       throw new Error("Já existe um secretário com este CPF.");
     }
@@ -56,18 +72,20 @@ export async function criarSecretario(req: Request, res: Response) {
 
     res
       .status(201)
-      .json({ message: "Cadastro de secretário e usuário criado com sucesso." });
+      .json({
+        message: "Cadastro de secretário e usuário criado com sucesso.",
+      });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
 
     res.status(400).json({
-      error: error.message || "Não foi possível criar o cadastro de secretário e usuário.",
+      error:
+        error.message ||
+        "Não foi possível criar o cadastro de secretário e usuário.",
     });
   }
 }
-
-
 
 // listar secretários
 export const listarSecretarios = async (req: Request, res: Response) => {
@@ -83,14 +101,14 @@ export const listarSecretarios = async (req: Request, res: Response) => {
           { cpf: { $regex: q, $options: "i" } },
           { email: { $regex: q, $options: "i" } },
           { telefone: { $regex: q, $options: "i" } },
-          { turno: { $regex: q, $options: "i" }},
+          { turno: { $regex: q, $options: "i" } },
         ],
       }),
       ...(nome && { nome: { $regex: nome, $options: "i" } }),
       ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
       ...(email && { email: { $regex: email, $options: "i" } }),
       ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
-      ...(turno && { turno: { $regex: turno, $options: "i" }}),
+      ...(turno && { turno: { $regex: turno, $options: "i" } }),
     };
 
     const secretarios = await Secretario.find(searchQuery)

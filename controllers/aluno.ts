@@ -14,18 +14,26 @@ export async function criarAluno(req: Request, res: Response) {
     const { matricula, periodo, nome, cpf, telefone, email, professorId } =
       req.body;
 
-    if (
-      !matricula ||
-      !periodo ||
-      !nome ||
-      !cpf ||
-      !telefone ||
-      !email ||
-      !professorId
-    ) {
-      throw new Error(
-        "Todos os campos obrigatórios devem ser preenchidos: matrícula, período, nome, CPF, telefone, email e professorId."
-      );
+    if (!matricula) {
+      throw new Error("Por favor, informe a matrícula.");
+    }
+    if (!periodo) {
+      throw new Error("Por favor, informe o período.");
+    }
+    if (!nome) {
+      throw new Error("Por favor, informe o nome completo.");
+    }
+    if (!cpf) {
+      throw new Error("Por favor, informe o CPF.");
+    }
+    if (!telefone) {
+      throw new Error("Por favor, informe o telefone.");
+    }
+    if (!email) {
+      throw new Error("Por favor, informe o email.");
+    }
+    if (!professorId) {
+      throw new Error("Por favor, associe um professor ao aluno.");
     }
 
     const alunoExistenteCPF = await Aluno.exists({ cpf }).session(session);

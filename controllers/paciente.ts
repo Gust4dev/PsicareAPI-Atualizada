@@ -39,18 +39,26 @@ export async function criarPaciente(req: Request, res: Response) {
       alunoId,
     } = req.body;
 
-    if (
-      !nome ||
-      !cpf ||
-      !email ||
-      !telefone ||
-      !dataNascimento ||
-      !sexo ||
-      !alunoId
-    ) {
-      throw new Error(
-        "Todos os campos obrigatórios devem ser preenchidos: nome, cpf, telefone, email, sexo, data de nascimento e alunoId."
-      );
+    if (!nome) {
+      throw new Error("Por favor, informe o nome completo.");
+    }
+    if (!cpf) {
+      throw new Error("Por favor, informe o CPF.");
+    }
+    if (!telefone) {
+      throw new Error("Por favor, informe o telefone.");
+    }
+    if (!email) {
+      throw new Error("Por favor, informe o email.");
+    }
+    if (!sexo) {
+      throw new Error("Por favor, informe o sexo.");
+    }
+    if (!dataNascimento) {
+      throw new Error("Por favor, informe a data de nascimento.");
+    }
+    if (!alunoId) {
+      throw new Error("Por favor, associe um aluno ao paciente.");
     }
 
     const idade = calcularIdade(dataNascimento);

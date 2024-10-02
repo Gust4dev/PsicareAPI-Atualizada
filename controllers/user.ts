@@ -20,9 +20,43 @@ if (!JWT_SECRET) {
 
 // Criar usuário
 export async function createUser(req: Request, res: Response) {
-  const { nome, cpf, telefone, email, senha, cargo } = req.body;
+  const session = await mongoose.startSession();
 
   try {
+    session.startTransaction();
+
+    const { nome, cpf, telefone, email, senha, cargo } = req.body;
+
+    if (!nome) {
+      throw new Error("Por favor, informe o nome completo.");
+    }
+    if (!cpf) {
+      throw new Error("Por favor, informe o CPF.");
+    }
+    if (!telefone) {
+      throw new Error("Por favor, informe o telefone.");
+    }
+    if (!email) {
+      throw new Error("Por favor, informe o email.");
+    }
+    if (!cargo) {
+      throw new Error("Por favor, informe o cargo.");
+    }
+
+    const usuarioExistenteCPF = await User.exists({ cpf }).session(session);
+    if (usuarioExistenteCPF) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).send("Este CPF já está registrado.");
+    }
+
+    const usuarioExistenteEmail = await User.exists({ email }).session(session);
+    if (usuarioExistenteEmail) {
+      await session.abortTransaction();
+      session.endSession();
+      return res.status(400).send("Este email já está registrado.");
+    }
+
     const senhaPadrao = senha || cpf.slice(0, -2);
 
     const senhaCriptografada = await bcrypt.hash(senhaPadrao, 10);
@@ -36,12 +70,20 @@ export async function createUser(req: Request, res: Response) {
       cargo,
     });
 
-    await newUser.save();
+    await newUser.save({ session });
 
-    res.status(201).json(newUser);
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({ message: "Usuário criado com sucesso." });
   } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+
     console.error("Erro ao criar usuário:", error);
-    res.status(500).send("Erro ao criar usuário.");
+    res
+      .status(500)
+      .json({ error: "Erro ao criar usuário. Por favor, tente novamente." });
   }
 }
 
@@ -118,7 +160,7 @@ export async function patchUser(req: Request, res: Response) {
       const salt = await bcrypt.genSalt(10);
       req.body.senha = await bcrypt.hash(req.body.senha, salt);
     }
-    
+
     const userAtualizado = await User.findByIdAndUpdate(userID, req.body, {
       new: true,
     });
@@ -132,7 +174,6 @@ export async function patchUser(req: Request, res: Response) {
     res.status(500).json({ message: "Erro ao atualizar usuário." });
   }
 }
-
 
 // Deletar usuário
 export const deleteUser = async (req: Request, res: Response) => {

@@ -12,18 +12,34 @@ export async function criarProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, disciplina } = req.body;
 
-    if (!nome || !cpf || !email || !telefone || !disciplina) {
-      throw new Error("Todos os campos obrigatórios devem ser preenchidos: nome, cpf, telefone, email e disciplina.");
+    if (!nome) {
+      throw new Error("Por favor, informe o nome completo.");
+    }
+    if (!cpf) {
+      throw new Error("Por favor, informe o CPF.");
+    }
+    if (!telefone) {
+      throw new Error("Por favor, informe o telefone.");
+    }
+    if (!email) {
+      throw new Error("Por favor, informe o email.");
+    }
+    if (!disciplina) {
+      throw new Error("Por favor, informe a disciplina.");
     }
 
-    const professorExistenteEmail = await Professor.exists({ email }).session(session);
+    const professorExistenteEmail = await Professor.exists({ email }).session(
+      session
+    );
     const usuarioExistenteEmail = await User.exists({ email }).session(session);
 
     if (professorExistenteEmail || usuarioExistenteEmail) {
       throw new Error("Já existe um professor ou usuário com este email.");
     }
 
-    const professorExistenteCPF = await Professor.exists({ cpf }).session(session);
+    const professorExistenteCPF = await Professor.exists({ cpf }).session(
+      session
+    );
     if (professorExistenteCPF) {
       throw new Error("Já existe um professor com este CPF.");
     }
@@ -53,16 +69,19 @@ export async function criarProfessor(req: Request, res: Response) {
     await session.commitTransaction();
     session.endSession();
 
-    res.status(201).json({ message: "Cadastro de professor e usuário criado com sucesso." });
+    res
+      .status(201)
+      .json({ message: "Cadastro de professor e usuário criado com sucesso." });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
     res.status(400).json({
-      error: error.message || "Não foi possível criar o cadastro de professor e usuário.",
+      error:
+        error.message ||
+        "Não foi possível criar o cadastro de professor e usuário.",
     });
   }
 }
-
 
 //listar todos os professores
 export const listarProfessores = async (req: Request, res: Response) => {
