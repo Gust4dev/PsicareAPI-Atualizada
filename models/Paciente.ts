@@ -5,7 +5,7 @@ interface IPaciente extends Document {
   cpf: string;
   dataNascimento: Date;
   email: string;
-  telefoneContato: string;
+  telefone: string;
   sexo: string;
   estadoCivil: string;
   religiao: string;
@@ -36,7 +36,7 @@ const PacienteSchema = new Schema<IPaciente>({
   cpf: { type: String, required: true, unique: true },
   dataNascimento: { type: Date, required: true },
   email: { type: String, required: true, unique: true },
-  telefoneContato: { type: String, required: true },
+  telefone: { type: String, required: false },
   sexo: { type: String, required: true },
   estadoCivil: { type: String, required: true },
   religiao: { type: String, required: true },

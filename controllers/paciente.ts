@@ -13,7 +13,7 @@ export async function criarPaciente(req: Request, res: Response) {
       nome,
       cpf,
       email,
-      telefoneContato,
+      telefone,
       sexo,
       estadoCivil,
       religiao,
@@ -32,7 +32,6 @@ export async function criarPaciente(req: Request, res: Response) {
       enderecoUF,
       dataInicioTratamento,
       dataTerminoTratamento,
-      encaminhador,
       tipoDeTratamento,
       alunoUnieva,
       funcionarioUnieva,
@@ -73,7 +72,7 @@ export async function criarPaciente(req: Request, res: Response) {
       nome,
       cpf,
       email,
-      telefoneContato,
+      telefone,
       sexo,
       estadoCivil,
       religiao,
@@ -93,7 +92,7 @@ export async function criarPaciente(req: Request, res: Response) {
       enderecoUF,
       dataInicioTratamento,
       dataTerminoTratamento,
-      encaminhador,
+      encaminhador: aluno.nome,
       tipoDeTratamento,
       alunoUnieva,
       funcionarioUnieva,
@@ -102,7 +101,6 @@ export async function criarPaciente(req: Request, res: Response) {
     });
 
     await newPaciente.save({ session });
-
     await session.commitTransaction();
     session.endSession();
 
@@ -117,7 +115,6 @@ export async function criarPaciente(req: Request, res: Response) {
       .json({ error: "Não foi possível criar o cadastro de paciente." });
   }
 }
-
 function calcularIdade(dataNascimento: string): number {
   const nascimento = new Date(dataNascimento);
   const hoje = new Date();
@@ -142,7 +139,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
     dataInicioTratamento,
     dataTerminoTratamento,
     dataNascimento,
-    ativo
+    ativo,
   } = req.query;
 
   const page: number = parseInt(req.query.page as string, 10) || 1;
@@ -155,7 +152,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
           { nome: { $regex: q, $options: "i" } },
           { cpf: { $regex: q, $options: "i" } },
           { email: { $regex: q, $options: "i" } },
-          { telefoneContato: { $regex: q, $options: "i" } },
+          { telefone: { $regex: q, $options: "i" } },
           { sexo: { $regex: q, $options: "i" } },
           { estadoCivil: { $regex: q, $options: "i" } },
           { religiao: { $regex: q, $options: "i" } },
@@ -185,7 +182,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
       ...(encaminhador && {
         encaminhador: { $regex: encaminhador, $options: "i" },
       }),
-      ...(ativo !== undefined && { ativoPaciente: ativo === 'true' }),
+      ...(ativo !== undefined && { ativoPaciente: ativo === "true" }),
     };
 
     if (dataInicioTratamento) {

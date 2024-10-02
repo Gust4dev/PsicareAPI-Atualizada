@@ -109,20 +109,30 @@ export const obterUserPorID = async (req: Request, res: Response) => {
 export async function patchUser(req: Request, res: Response) {
   try {
     const userID = req.params.id;
+
     if (!mongoose.Types.ObjectId.isValid(userID)) {
       return res.status(400).send("ID de usuário inválido.");
     }
+
+    if (req.body.senha) {
+      const salt = await bcrypt.genSalt(10);
+      req.body.senha = await bcrypt.hash(req.body.senha, salt);
+    }
+    
     const userAtualizado = await User.findByIdAndUpdate(userID, req.body, {
       new: true,
     });
+
     if (!userAtualizado) {
       return res.status(404).send("Usuário não encontrado.");
     }
+
     res.json(userAtualizado);
   } catch (error: any) {
     res.status(500).json({ message: "Erro ao atualizar usuário." });
   }
 }
+
 
 // Deletar usuário
 export const deleteUser = async (req: Request, res: Response) => {
