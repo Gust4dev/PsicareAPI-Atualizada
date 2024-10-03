@@ -1,6 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { GridFSBucket } from "mongodb";
+import { getGridFSBucket } from "../config/gridfs";
+import multer from "multer";
+import { ObjectId } from "mongodb";
 
 dotenv.config();
 
@@ -10,11 +14,48 @@ declare module "express-serve-static-core" {
       cargo: number;
       [key: string]: any;
     };
+    fileIds?: { prontuario?: ObjectId, assinatura?: ObjectId };
   }
 }
 
 const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 
+const storage = multer.memoryStorage();
+export const upload = multer({ storage });
+
+const uploadToGridFS = (bucket: GridFSBucket, file: Express.Multer.File): Promise<ObjectId> => {
+  return new Promise((resolve, reject) => {
+    const uploadStream = bucket.openUploadStream(file.originalname);
+    uploadStream.end(file.buffer);
+    uploadStream.on("finish", () => resolve(uploadStream.id));
+    uploadStream.on("error", (err) => reject(err));
+  });
+};
+
+export const uploadFilesToGridFS = async (req: Request, res: Response, next: NextFunction) => {
+  const bucket = getGridFSBucket();
+
+  if (!bucket) {
+    return res.status(500).json({ message: "Erro ao obter GridFSBucket" });
+  }
+
+  const { prontuario, assinatura } = req.fileIds as any;
+  req.fileIds = {};
+
+  try {
+    if (prontuario) {
+      req.fileIds!.prontuario = await uploadToGridFS(bucket, prontuario[0]);
+    }
+
+    if (assinatura) {
+      req.fileIds!.assinatura = await uploadToGridFS(bucket, assinatura[0]);
+    }
+
+    next();
+  } catch (error) {
+    return res.status(500).json({ message: "Erro ao fazer upload dos arquivos", error });
+  }
+};
 /**
  * Middleware de autenticação e autorização.
  * @param requiredRoles - cargos permitidos para acessar a rota.

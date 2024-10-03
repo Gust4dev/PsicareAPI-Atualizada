@@ -4,7 +4,7 @@ import Relatorio from "../models/relatorio";
 import Paciente from "../models/Paciente";
 import { Aluno } from "../models/aluno";
 
-// Criar relatorio
+// Criar relatório
 export async function criarRelatorio(req: Request, res: Response) {
   const session = await mongoose.startSession();
   session.startTransaction();
@@ -17,22 +17,20 @@ export async function criarRelatorio(req: Request, res: Response) {
       ultimaAtualizacao,
       conteudo,
       ativoRelatorio,
+      prontuarioFileId,
+      assinaturaFileId
     } = req.body;
 
     if (!id_paciente) {
-      throw new Error("ID do paciente é obrigatório.");
+      throw new Error("Por favor, associe um paciente.");
     }
 
     if (!id_aluno) {
-      throw new Error("ID do aluno é obrigatório.");
-    }
-
-    if (!nome_funcionario) {
-      throw new Error("Nome do funcionário é obrigatório.");
+      throw new Error("Por favor, associe um aluno.");
     }
 
     if (!conteudo) {
-      throw new Error("Conteúdo do relatório é obrigatório.");
+      throw new Error("Por favor, insira o conteudo.");
     }
 
     const paciente = await Paciente.findById(id_paciente)
@@ -64,6 +62,8 @@ export async function criarRelatorio(req: Request, res: Response) {
       nome_funcionario,
       dataCriacao: new Date(),
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
+      prontuario: prontuarioFileId,
+      assinatura: assinaturaFileId,
       conteudo,
       ativoRelatorio: ativoRelatorio ?? true,
     });
@@ -156,11 +156,18 @@ export async function listarRelatorios(req: Request, res: Response) {
 export async function atualizarRelatorio(req: Request, res: Response) {
   const { id } = req.params;
   const dadosAtualizados = req.body;
+  const { prontuario, assinatura } = req.fileIds || {};
 
   try {
     const relatorioAtualizado = await Relatorio.findByIdAndUpdate(
       id,
-      { $set: dadosAtualizados },
+      {
+        $set: {
+          ...dadosAtualizados,
+          prontuario: prontuario ? prontuario : undefined,
+          assinatura: assinatura ? assinatura : undefined,
+        },
+      },
       { new: true, runValidators: true }
     ).lean();
 
