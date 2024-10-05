@@ -15,6 +15,8 @@ interface IRelatorio extends Document {
   ultimaAtualizacao: Date;
   conteudo: string;
   ativoRelatorio: boolean;
+  prontuario?: Schema.Types.ObjectId;
+  assinatura?: Schema.Types.ObjectId;
 }
 
 const RelatorioSchema: Schema = new Schema({
@@ -32,6 +34,8 @@ const RelatorioSchema: Schema = new Schema({
   ultimaAtualizacao: { type: Date },
   conteudo: { type: String, required: true },
   ativoRelatorio: { type: Boolean, default: true },
+  prontuario: { type: Schema.Types.ObjectId, ref: "fs.files" },
+  assinatura: { type: Schema.Types.ObjectId, ref: "fs.files" },
 });
 
 export default mongoose.model<IRelatorio>("Relatorio", RelatorioSchema);

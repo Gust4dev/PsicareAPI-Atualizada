@@ -10,6 +10,7 @@ import {
   authMiddleware,
   upload,
   uploadFilesToGridFS,
+  downloadFileFromGridFS,
 } from "../middleware/auth";
 
 const router = Router();
@@ -34,5 +35,7 @@ router.patch(
 router.get("/", authMiddleware([0, 2, 3]), listarRelatorios);
 router.delete("/:id", authMiddleware([0]), deletarRelatorio);
 router.patch("/arquivar/:id", authMiddleware([0]), arquivarRelatorio);
+router.get("/download/:fileId", authMiddleware([0, 2, 3]), downloadFileFromGridFS);
+
 
 export default router;

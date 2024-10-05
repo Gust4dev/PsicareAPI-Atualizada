@@ -14,7 +14,7 @@ declare module "express-serve-static-core" {
       cargo: number;
       [key: string]: any;
     };
-    fileIds?: { prontuario?: ObjectId, assinatura?: ObjectId };
+    fileIds?: { prontuario?: any, assinatura?: any };
   }
 }
 
@@ -23,43 +23,64 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-const uploadToGridFS = (bucket: GridFSBucket, file: Express.Multer.File): Promise<ObjectId> => {
-  return new Promise((resolve, reject) => {
-    const uploadStream = bucket.openUploadStream(file.originalname);
-    uploadStream.end(file.buffer);
-    uploadStream.on("finish", () => resolve(uploadStream.id));
-    uploadStream.on("error", (err) => reject(err));
-  });
-};
+export const uploadFilesToGridFS = (req: Request, res: Response, next: NextFunction) => {
+  const bucket: GridFSBucket = getGridFSBucket();
+  const { prontuario, assinatura } = req.files as any;
 
-export const uploadFilesToGridFS = async (req: Request, res: Response, next: NextFunction) => {
-  const bucket = getGridFSBucket();
-
-  if (!bucket) {
-    return res.status(500).json({ message: "Erro ao obter GridFSBucket" });
-  }
-
-  const { prontuario, assinatura } = req.fileIds as any;
   req.fileIds = {};
 
-  try {
-    if (prontuario) {
-      req.fileIds!.prontuario = await uploadToGridFS(bucket, prontuario[0]);
-    }
-
-    if (assinatura) {
-      req.fileIds!.assinatura = await uploadToGridFS(bucket, assinatura[0]);
-    }
-
-    next();
-  } catch (error) {
-    return res.status(500).json({ message: "Erro ao fazer upload dos arquivos", error });
+  if (prontuario) {
+    const prontuarioStream = bucket.openUploadStream(prontuario[0].originalname);
+    prontuarioStream.end(prontuario[0].buffer);
+    prontuarioStream.on("finish", () => {
+      req.fileIds!.prontuario = prontuarioStream.id;
+      if (!assinatura) next();
+    });
   }
+
+  if (assinatura) {
+    const assinaturaStream = bucket.openUploadStream(assinatura[0].originalname);
+    assinaturaStream.end(assinatura[0].buffer);
+    assinaturaStream.on("finish", () => {
+      req.fileIds!.assinatura = assinaturaStream.id;
+      next();
+    });
+  }
+
+  if (!prontuario && !assinatura) next();
 };
-/**
- * Middleware de autenticação e autorização.
- * @param requiredRoles - cargos permitidos para acessar a rota.
- */
+
+export const downloadFileFromGridFS = (req: Request, res: Response) => {
+  const bucket: GridFSBucket = getGridFSBucket();
+  const { fileId } = req.params;
+
+  if (!fileId) {
+    return res.status(400).send("File ID não fornecido.");
+  }
+
+  let fileObjectId: ObjectId;
+  try {
+    fileObjectId = new ObjectId(fileId);
+  } catch (error) {
+    return res.status(400).send("ID de arquivo inválido.");
+  }
+
+  const downloadStream = bucket.openDownloadStream(fileObjectId);
+
+  downloadStream.on("file", (file) => {
+    res.set({
+      'Content-Type': file.contentType,
+      'Content-Disposition': `attachment; filename="${file.filename}"`
+    });
+  });
+
+  downloadStream.on("error", () => {
+    res.status(404).send("Arquivo não encontrado.");
+  });
+
+  downloadStream.pipe(res);
+};
+
 export const authMiddleware = (requiredRoles: number[]) => {
   return (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers["authorization"];

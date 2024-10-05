@@ -1,15 +1,17 @@
-import mongoose from 'mongoose';
-import { GridFSBucket } from 'mongodb';
+import mongoose from "mongoose";
+import { GridFSBucket } from "mongodb";
 
-let gridFSBucket: GridFSBucket | undefined;
+let bucket: GridFSBucket | undefined;
 
-mongoose.connection.once('open', () => {
-  if (mongoose.connection.db) {
-    gridFSBucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
-      bucketName: 'uploads'
+export const getGridFSBucket = (): GridFSBucket => {
+  if (!bucket) {
+    const conn = mongoose.connection;
+    if (!conn.db) {
+      throw new Error("Conexão com o banco de dados não estabelecida.");
+    }
+    bucket = new GridFSBucket(conn.db, {
+      bucketName: "uploads",
     });
   }
-});
-export const getGridFSBucket = (): GridFSBucket | undefined => {
-  return gridFSBucket;
+  return bucket;
 };

@@ -33,6 +33,10 @@ export async function criarRelatorio(req: Request, res: Response) {
       throw new Error("Por favor, insira o conteudo.");
     }
 
+    if (!req.fileIds?.prontuario && !req.fileIds?.assinatura) {
+      throw new Error("Nenhum arquivo enviado ou processado.");
+    }
+
     const paciente = await Paciente.findById(id_paciente)
       .populate("nome", "dataNascimento")
       .session(session);
@@ -62,8 +66,8 @@ export async function criarRelatorio(req: Request, res: Response) {
       nome_funcionario,
       dataCriacao: new Date(),
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
-      prontuario: prontuarioFileId,
-      assinatura: assinaturaFileId,
+      prontuario: req.fileIds?.prontuario || null,
+      assinatura: req.fileIds?.assinatura || null, 
       conteudo,
       ativoRelatorio: ativoRelatorio ?? true,
     });
@@ -141,8 +145,14 @@ export async function listarRelatorios(req: Request, res: Response) {
     const totalItems = await Relatorio.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
 
+    const relatoriosComArquivos = relatorios.map((relatorio) => ({
+      ...relatorio,
+      prontuario: relatorio.prontuario ? `/relatorio/download/${relatorio.prontuario}` : null,
+      assinatura: relatorio.assinatura ? `/relatorio/download/${relatorio.assinatura}` : null,
+    }));
+
     res.json({
-      relatorios,
+      relatorios: relatoriosComArquivos,
       totalItems,
       totalPages,
       currentPage: page,
@@ -151,6 +161,7 @@ export async function listarRelatorios(req: Request, res: Response) {
     res.status(500).json({ message: "Erro ao buscar relatórios", error });
   }
 }
+
 
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {
