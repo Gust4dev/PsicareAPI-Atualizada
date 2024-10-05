@@ -8,10 +8,8 @@ mongoose.connection.once('open', () => {
     gridFSBucket = new mongoose.mongo.GridFSBucket(mongoose.connection.db, {
       bucketName: 'uploads'
     });
-    console.log('GridFSBucket criado com sucesso.');
   }
 });
-
 export const getGridFSBucket = (): GridFSBucket | undefined => {
   return gridFSBucket;
 };

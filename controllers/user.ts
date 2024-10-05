@@ -96,7 +96,6 @@ export async function loginUser(req: Request, res: Response) {
     if (!userInDatabase) {
       return res.status(400).send("Usuário não encontrado.");
     }
-
     const isSenhaValida = await bcrypt.compare(senha, userInDatabase.senha);
     if (!isSenhaValida) {
       return res.status(400).send("Senha incorreta.");
