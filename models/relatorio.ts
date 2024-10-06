@@ -9,6 +9,7 @@ interface IRelatorio extends Document {
   tipoTratamento: string;
   alunoUnieva: boolean;
   id_aluno: mongoose.Types.ObjectId;
+  nomeAluno: string;
   funcionarioUnieva: boolean;
   nome_funcionario: string;
   dataCriacao: Date;
@@ -28,6 +29,7 @@ const RelatorioSchema: Schema = new Schema({
   tipoTratamento: { type: String, required: true },
   alunoUnieva: { type: Boolean, default: false },
   id_aluno: { type: mongoose.Schema.Types.ObjectId, ref: "Aluno", required: true },
+  nomeAluno: { type: String, required: true },
   funcionarioUnieva: { type: Boolean, default: false },
   nome_funcionario: { type: String, required: false },
   dataCriacao: { type: Date, default: Date.now },

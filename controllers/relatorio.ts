@@ -17,8 +17,6 @@ export async function criarRelatorio(req: Request, res: Response) {
       ultimaAtualizacao,
       conteudo,
       ativoRelatorio,
-      prontuarioFileId,
-      assinaturaFileId
     } = req.body;
 
     if (!id_paciente) {
@@ -62,12 +60,13 @@ export async function criarRelatorio(req: Request, res: Response) {
       tipoTratamento: paciente.tipoDeTratamento,
       alunoUnieva: aluno.alunoUnieva,
       id_aluno: aluno._id,
+      nomeAluno: aluno.nome,
       funcionarioUnieva: aluno.funcionarioUnieva,
       nome_funcionario,
       dataCriacao: new Date(),
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
       prontuario: req.fileIds?.prontuario || null,
-      assinatura: req.fileIds?.assinatura || null, 
+      assinatura: req.fileIds?.assinatura || null,
       conteudo,
       ativoRelatorio: ativoRelatorio ?? true,
     });
@@ -147,8 +146,12 @@ export async function listarRelatorios(req: Request, res: Response) {
 
     const relatoriosComArquivos = relatorios.map((relatorio) => ({
       ...relatorio,
-      prontuario: relatorio.prontuario ? `/relatorio/download/${relatorio.prontuario}` : null,
-      assinatura: relatorio.assinatura ? `/relatorio/download/${relatorio.assinatura}` : null,
+      prontuario: relatorio.prontuario
+        ? `/relatorio/download/${relatorio.prontuario}`
+        : null,
+      assinatura: relatorio.assinatura
+        ? `/relatorio/download/${relatorio.assinatura}`
+        : null,
     }));
 
     res.json({
@@ -161,7 +164,6 @@ export async function listarRelatorios(req: Request, res: Response) {
     res.status(500).json({ message: "Erro ao buscar relatórios", error });
   }
 }
-
 
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {

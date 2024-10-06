@@ -111,7 +111,6 @@ export async function loginUser(req: Request, res: Response) {
     userInDatabase.token = token;
     await userInDatabase.save();
 
-    // Enviar token
     return res.status(200).json({ token });
   } catch (error: any) {
     console.error("Erro ao realizar login:", error);
@@ -190,7 +189,6 @@ export const deleteUser = async (req: Request, res: Response) => {
   }
 };
 
-// Obter último usuário criado
 export const obterUltimoUserCriado = async (req: Request, res: Response) => {
   try {
     const ultimoUser = await User.findOne().sort({ createdAt: -1 });
