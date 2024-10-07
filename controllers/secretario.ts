@@ -70,11 +70,9 @@ export async function criarSecretario(req: Request, res: Response) {
     await session.commitTransaction();
     session.endSession();
 
-    res
-      .status(201)
-      .json({
-        message: "Cadastro de secretário e usuário criado com sucesso.",
-      });
+    res.status(201).json({
+      message: "Cadastro de secretário e usuário criado com sucesso.",
+    });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
@@ -152,26 +150,30 @@ export async function atualizarSecretario(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    const secretarioExistenteEmail = await Secretario.exists({
-      email,
+    const secretarioExistente = await Secretario.findOne({
       _id: { $ne: id },
+      $or: [{ email }, { cpf }],
     });
-    if (secretarioExistenteEmail) {
-      return res.status(400).send("Já existe um secretário com este email.");
-    }
 
-    const secretarioExistenteCPF = await Secretario.exists({
-      cpf,
-      _id: { $ne: id },
-    });
-    if (secretarioExistenteCPF) {
-      return res.status(400).send("Já existe um secretário com este CPF.");
+    const usuarioExistenteEmail = await User.findOne({ email });
+
+    if (secretarioExistente || usuarioExistenteEmail) {
+      if (secretarioExistente?.email === email || usuarioExistenteEmail) {
+        return res
+          .status(400)
+          .send("Já existe um secretário ou usuário com este email.");
+      }
+      if (secretarioExistente?.cpf === cpf) {
+        return res.status(400).send("Já existe um secretário com este CPF.");
+      }
     }
 
     const secretarioAtualizado = await Secretario.findByIdAndUpdate(
       id,
       updateData,
-      { new: true }
+      {
+        new: true,
+      }
     );
 
     if (!secretarioAtualizado) {

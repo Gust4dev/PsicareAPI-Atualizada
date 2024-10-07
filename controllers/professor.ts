@@ -146,26 +146,30 @@ export async function atualizarProfessor(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    const professorExistenteEmail = await Professor.exists({
-      email,
+    const professorExistente = await Professor.findOne({
       _id: { $ne: id },
+      $or: [{ email }, { cpf }],
     });
-    if (professorExistenteEmail) {
-      return res.status(400).send("Já existe um professor com este email.");
-    }
 
-    const professorExistenteCPF = await Professor.exists({
-      cpf,
-      _id: { $ne: id },
-    });
-    if (professorExistenteCPF) {
-      return res.status(400).send("Já existe um professor com este CPF.");
+    const usuarioExistenteEmail = await User.findOne({ email });
+
+    if (professorExistente || usuarioExistenteEmail) {
+      if (professorExistente?.email === email || usuarioExistenteEmail) {
+        return res
+          .status(400)
+          .send("Já existe um professor ou usuário com este email.");
+      }
+      if (professorExistente?.cpf === cpf) {
+        return res.status(400).send("Já existe um professor com este CPF.");
+      }
     }
 
     const professorAtualizado = await Professor.findByIdAndUpdate(
       id,
       updateData,
-      { new: true }
+      {
+        new: true,
+      }
     );
 
     if (!professorAtualizado) {
@@ -186,28 +190,6 @@ export async function getProfessoresSelect(req: Request, res: Response) {
   } catch (error: any) {
     console.error(error);
     res.status(500).json({ error: "Erro ao buscar professores." });
-  }
-}
-
-//atualizar um professor
-export async function patchProfessor(req: Request, res: Response) {
-  try {
-    const { nome, cpf, telefone, email, disciplina } = req.body;
-    const updatedProfessor = await Professor.findByIdAndUpdate(
-      req.params.id,
-      { nome, cpf, telefone, email, disciplina },
-      { new: true }
-    );
-    if (!updatedProfessor) {
-      return res.status(404).json({ message: "Professor não encontrado." });
-    }
-    res.json({
-      message: "Professor atualizado com sucesso.",
-      professor: updatedProfessor,
-    });
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao atualizar professor." });
   }
 }
 

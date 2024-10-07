@@ -325,30 +325,30 @@ export async function atualizarPaciente(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    const pacienteExistenteEmail = await Paciente.exists({
-      email,
+    const pacienteExistente = await Paciente.findOne({
       _id: { $ne: id },
-    });
-    const pacienteExistenteCPF = await Paciente.exists({
-      cpf,
-      _id: { $ne: id },
+      $or: [{ email }, { cpf }],
     });
 
-    if (pacienteExistenteEmail) {
-      return res
-        .status(400)
-        .json({ message: "Já existe um paciente com este email." });
-    }
-    if (pacienteExistenteCPF) {
-      return res
-        .status(400)
-        .json({ message: "Já existe um paciente com este CPF." });
+    const usuarioExistenteEmail = await User.findOne({ email });
+
+    if (pacienteExistente || usuarioExistenteEmail) {
+      if (pacienteExistente?.email === email || usuarioExistenteEmail) {
+        return res
+          .status(400)
+          .send("Já existe um paciente ou usuário com este email.");
+      }
+      if (pacienteExistente?.cpf === cpf) {
+        return res.status(400).send("Já existe um paciente com este CPF.");
+      }
     }
 
     const pacienteAtualizado = await Paciente.findByIdAndUpdate(
       id,
       updateData,
-      { new: true }
+      {
+        new: true,
+      }
     );
 
     if (!pacienteAtualizado) {
@@ -361,9 +361,10 @@ export async function atualizarPaciente(req: Request, res: Response) {
     });
   } catch (error: any) {
     console.error(error);
-    res
-      .status(500)
-      .json({ message: "Erro ao atualizar paciente.", details: error.message });
+    res.status(500).json({
+      message: "Erro ao atualizar paciente.",
+      details: error.message,
+    });
   }
 }
 

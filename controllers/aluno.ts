@@ -205,7 +205,7 @@ export async function listarAlunosPorProfessorId(req: Request, res: Response) {
   }
 }
 
-// Atualizar dados de um aluno
+// Atualizar aluno
 export async function atualizarAluno(req: Request, res: Response) {
   try {
     const { id } = req.params;
@@ -216,14 +216,18 @@ export async function atualizarAluno(req: Request, res: Response) {
       $or: [{ email }, { cpf }, { matricula }],
     });
 
-    if (alunoExistente) {
-      if (alunoExistente.email === email) {
-        return res.status(400).send("Já existe um aluno com este email.");
+    const usuarioExistenteEmail = await User.findOne({ email });
+
+    if (alunoExistente || usuarioExistenteEmail) {
+      if (alunoExistente?.email === email || usuarioExistenteEmail) {
+        return res
+          .status(400)
+          .send("Já existe um aluno ou usuário com este email.");
       }
-      if (alunoExistente.cpf === cpf) {
+      if (alunoExistente?.cpf === cpf) {
         return res.status(400).send("Já existe um aluno com este CPF.");
       }
-      if (alunoExistente.matricula === matricula) {
+      if (alunoExistente?.matricula === matricula) {
         return res.status(400).send("Já existe um aluno com esta matrícula.");
       }
     }
