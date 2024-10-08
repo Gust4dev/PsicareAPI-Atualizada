@@ -43,7 +43,11 @@ export async function createUser(req: Request, res: Response) {
       throw new Error("Por favor, informe o cargo.");
     }
 
-    const usuarioExistenteCPF = await User.exists({ cpf }).session(session);
+    const cpfFormatado = cpf.replace(/\D/g, "");
+
+    const usuarioExistenteCPF = await User.exists({
+      cpf: cpfFormatado,
+    }).session(session);
     if (usuarioExistenteCPF) {
       await session.abortTransaction();
       session.endSession();
@@ -57,13 +61,12 @@ export async function createUser(req: Request, res: Response) {
       return res.status(400).send("Este email já está registrado.");
     }
 
-    const senhaPadrao = senha || cpf.slice(0, -2);
-
+    const senhaPadrao = senha || cpfFormatado.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senhaPadrao, 10);
 
     const newUser = new User({
       nome,
-      cpf,
+      cpf: cpfFormatado,
       telefone,
       email,
       senha: senhaCriptografada,
@@ -71,7 +74,6 @@ export async function createUser(req: Request, res: Response) {
     });
 
     await newUser.save({ session });
-
     await session.commitTransaction();
     session.endSession();
 
@@ -104,14 +106,12 @@ export async function loginUser(req: Request, res: Response) {
     const token = jwt.sign(
       { cpf, email: userInDatabase.email, cargo: userInDatabase.cargo },
       JWT_SECRET,
-      {
-        expiresIn: "12h",
-      }
+      { expiresIn: "12h" }
     );
-    userInDatabase.token = token;
-    await userInDatabase.save();
 
-    return res.status(200).json({ token });
+    return res
+      .status(200)
+      .json({ token, userLevelAccess: userInDatabase.cargo });
   } catch (error: any) {
     console.error("Erro ao realizar login:", error);
     return res.status(500).send("Erro ao realizar login.");
