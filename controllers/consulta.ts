@@ -1,52 +1,188 @@
 import { Request, Response } from "express";
 import Consulta from "../models/consulta";
 import mongoose from "mongoose";
+import Paciente from "../models/Paciente";
+import { Aluno } from "../models/aluno";
 
+//Criar consulta
 export async function criarConsulta(req: Request, res: Response) {
-  const {
-    pacienteNome,
-    recorrencia,
-    consultaRecorrenteID,
-    observacao,
-    statusDaConsulta,
-    AlunoID,
-    sala,
-  } = req.body;
-
-  const novaConsulta = new Consulta({
-    pacienteNome,
-    recorrencia,
-    consultaRecorrenteID,
-    observacao,
-    statusDaConsulta,
-    AlunoID,
-    sala,
-  });
-
-  const consultasNaSala = await Consulta.find({ sala });
-  if (consultasNaSala.length >= 10) {
-    return res.status(400).json({ error: "Sala ocupada. Escolha outra sala." });
-  }
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    await novaConsulta.save();
-    return res.status(201).send("Consulta criada com sucesso.");
+    const {
+      Nome,
+      TipoDeConsulta,
+      allDay,
+      alunoId,
+      createAt,
+      start,
+      end,
+      frequenciaIntervalo,
+      intervalo,
+      observacao,
+      pacienteld,
+      sala,
+      statusDaConsulta,
+    } = req.body;
+
+    console.log("Dados recebidos no body:", req.body);
+
+    if (!Nome) {
+      throw new Error("O nome da consulta deve ser informado.");
+    }
+    if (!TipoDeConsulta) {
+      throw new Error("O tipo de consulta deve ser informado.");
+    }
+    if (!alunoId) {
+      throw new Error("O ID do aluno é obrigatório.");
+    }
+    if (!pacienteld) {
+      throw new Error("O ID do paciente é obrigatório.");
+    }
+    if (
+      !start ||
+      !end ||
+      isNaN(new Date(start).getTime()) ||
+      isNaN(new Date(end).getTime())
+    ) {
+      throw new Error("Datas de início ou término inválidas.");
+    }
+    if (!sala) {
+      throw new Error("A sala deve ser informada.");
+    }
+    if (!intervalo) {
+      throw new Error("O intervalo de repetição deve ser informado.");
+    }
+
+    const aluno = await Aluno.findById(alunoId)
+      .populate("nome")
+      .session(session);
+
+    const paciente = await Paciente.findById(pacienteld)
+      .populate("nome")
+      .session(session);
+
+    if (!aluno) {
+      throw new Error("O aluno informado não existe.");
+    }
+    if (!paciente) {
+      throw new Error("O paciente informado não existe.");
+    }
+
+    const createdAt = createAt || new Date();
+
+    const consultasNaSala = await Consulta.find({
+      sala,
+      start: { $lte: end },
+      end: { $gte: start },
+    });
+
+    if (consultasNaSala.length >= 10) {
+      await session.abortTransaction();
+      session.endSession();
+      return res
+        .status(400)
+        .json({ error: "Sala ocupada. Escolha outra sala." });
+    }
+
+    const novasConsultas: any[] = [];
+
+    console.log("Intervalo recebido:", intervalo);
+    const createConsulta = (startDate: Date, endDate: Date) => {
+      return {
+        Nome,
+        TipoDeConsulta,
+        allDay,
+        alunoId,
+        nomeAluno: aluno.nome,
+        createdAt,
+        start: startDate,
+        end: endDate,
+        observacao,
+        pacienteld,
+        nomePaciente: paciente.nome,
+        sala,
+        statusDaConsulta,
+      };
+    };
+
+    if (intervalo === "Sessão Única") {
+      novasConsultas.push(createConsulta(start, end));
+    } else if (intervalo === "Semanal" || intervalo === "Mensal") {
+      const intervaloDias = intervalo === "Semanal" ? 7 : 30;
+
+      console.log("Frequência de intervalo recebida:", frequenciaIntervalo);
+
+      for (let i = 0; i < parseInt(frequenciaIntervalo); i++) {
+        const novaDataStart = new Date(start);
+        novaDataStart.setDate(novaDataStart.getDate() + intervaloDias * i);
+
+        const novaDataEnd = new Date(end);
+        novaDataEnd.setDate(novaDataEnd.getDate() + intervaloDias * i);
+
+        console.log(
+          "Criando consulta com start:",
+          novaDataStart,
+          "e end:",
+          novaDataEnd
+        );
+        novasConsultas.push(createConsulta(novaDataStart, novaDataEnd));
+      }
+    }
+
+    console.log("Consultas a serem inseridas:", novasConsultas);
+
+    await Consulta.insertMany(novasConsultas, { session })
+      .then(() => console.log("Consultas inseridas com sucesso"))
+      .catch((err) => {
+        console.error("Erro ao inserir consultas:", err);
+        throw new Error("Erro ao inserir consultas.");
+      });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.status(201).json({
+      message: "Consulta(s) criada(s) com sucesso.",
+      consultas: novasConsultas,
+    });
   } catch (error: any) {
-    console.error(error);
-    return res.status(500).send("Não foi possível criar a consulta.");
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Erro ao criar consulta(s):", error);
+    res.status(500).json({ message: "Erro ao criar consulta(s)." });
+  } finally {
+    session.endSession();
   }
 }
 
+
+//listar consultas
 export const listarConsultas = async (req: Request, res: Response) => {
-  const { q } = req.query; 
+  const { q, nome, tipoDeConsulta, start, end, sala } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15; 
+  const limit: number = 15;
 
   try {
-    const searchQuery = q ? { descricao: { $regex: q, $options: 'i' } } : {};
+    const searchQuery: any = {
+      ...(q && { descricao: { $regex: q, $options: "i" } }),
+      ...(nome && { Nome: { $regex: nome, $options: "i" } }),
+      ...(tipoDeConsulta && {
+        TipoDeConsulta: { $regex: tipoDeConsulta, $options: "i" },
+      }),
+      ...(sala && { sala: { $regex: sala, $options: "i" } }),
+    };
+
+    if (start && end) {
+      searchQuery.start = { $gte: new Date(start as string) };
+      searchQuery.end = { $lte: new Date(end as string) };
+    }
+
     const consultas = await Consulta.find(searchQuery)
       .skip((page - 1) * limit)
-      .limit(limit);
+      .limit(limit)
+      .lean();
 
     const totalItems = await Consulta.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
@@ -57,10 +193,9 @@ export const listarConsultas = async (req: Request, res: Response) => {
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar consultas', error });
+    res.status(500).json({ message: "Erro ao buscar consultas", error });
   }
-}
-
+};
 
 export async function obterConsultaPorID(req: Request, res: Response) {
   try {
@@ -137,23 +272,33 @@ export async function deletarConsulta(req: Request, res: Response) {
 }
 
 // Metodo para receber ultima consulta criada
-export const obterUltimaConsultaCriada = async (req: Request, res: Response) => {
+export const obterUltimaConsultaCriada = async (
+  req: Request,
+  res: Response
+) => {
   try {
     const ultimaConsulta = await Consulta.findOne().sort({ createdAt: -1 });
     res.json(ultimaConsulta);
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar a última consulta criada' });
+    res
+      .status(500)
+      .json({ message: "Erro ao buscar a última consulta criada" });
   }
-}
+};
 
-export const listarConsultaPaginadas = async (req: Request, res: Response): Promise<void> => {
+export const listarConsultaPaginadas = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
   try {
     const [consulta, total] = await Promise.all([
-      Consulta.find().skip((page - 1) * limit).limit(limit),
-      Consulta.countDocuments()
+      Consulta.find()
+        .skip((page - 1) * limit)
+        .limit(limit),
+      Consulta.countDocuments(),
     ]);
 
     res.json({
@@ -162,6 +307,6 @@ export const listarConsultaPaginadas = async (req: Request, res: Response): Prom
       currentPage: page,
     });
   } catch (error) {
-    res.status(500).json({ message: 'Erro ao buscar consulta paginados' });
+    res.status(500).json({ message: "Erro ao buscar consulta paginados" });
   }
 };

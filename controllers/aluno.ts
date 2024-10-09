@@ -36,7 +36,9 @@ export async function criarAluno(req: Request, res: Response) {
       throw new Error("Por favor, associe um professor ao aluno.");
     }
 
-    const alunoExistenteCPF = await Aluno.exists({ cpf }).session(session);
+    const cpfFormatado = cpf.replace(/\D/g, '');
+
+    const alunoExistenteCPF = await Aluno.exists({ cpf: cpfFormatado }).session(session);
     const alunoExistenteMatricula = await Aluno.exists({ matricula }).session(
       session
     );
@@ -60,7 +62,7 @@ export async function criarAluno(req: Request, res: Response) {
       throw new Error("Professor não encontrado.");
     }
 
-    const senha = cpf.slice(0, -2);
+    const senha = cpfFormatado.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const periodoFormatado = `${periodo}º`;
@@ -69,7 +71,7 @@ export async function criarAluno(req: Request, res: Response) {
       matricula,
       periodo: periodoFormatado,
       nome,
-      cpf,
+      cpf: cpfFormatado,
       telefone,
       email,
       nomeProfessor: professor.nome,
@@ -78,7 +80,7 @@ export async function criarAluno(req: Request, res: Response) {
 
     const novoUser = new User({
       nome,
-      cpf,
+      cpf: cpfFormatado,
       email,
       senha: senhaCriptografada,
       cargo: 3,

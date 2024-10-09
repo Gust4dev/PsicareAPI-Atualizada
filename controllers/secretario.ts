@@ -28,6 +28,8 @@ export async function criarSecretario(req: Request, res: Response) {
       throw new Error("Por favor, informe o turno de trabalho.");
     }
 
+    const cpfFormatado = cpf.replace(/\D/g, '');
+
     const secretarioExistenteEmail = await Secretario.exists({ email }).session(
       session
     );
@@ -38,7 +40,7 @@ export async function criarSecretario(req: Request, res: Response) {
       throw new Error("Já existe um secretário ou usuário com este email.");
     }
 
-    const secretarioExistenteCPF = await Secretario.exists({ cpf }).session(
+    const secretarioExistenteCPF = await Secretario.exists({ cpf: cpfFormatado }).session(
       session
     );
     if (secretarioExistenteCPF) {
@@ -47,18 +49,18 @@ export async function criarSecretario(req: Request, res: Response) {
 
     const newSecretario = new Secretario({
       nome,
-      cpf,
+      cpf: cpfFormatado,
       telefone,
       email,
       turno,
     });
 
-    const senha = cpf.slice(0, -2);
+    const senha = cpfFormatado.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const novoUser: UserInterface = new User({
       nome,
-      cpf,
+      cpf: cpfFormatado,
       email,
       senha: senhaCriptografada,
       cargo: 1,

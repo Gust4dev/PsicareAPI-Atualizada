@@ -28,6 +28,8 @@ export async function criarProfessor(req: Request, res: Response) {
       throw new Error("Por favor, informe a disciplina.");
     }
 
+    const cpfFormatado = cpf.replace(/\D/g, "");
+
     const professorExistenteEmail = await Professor.exists({ email }).session(
       session
     );
@@ -37,27 +39,27 @@ export async function criarProfessor(req: Request, res: Response) {
       throw new Error("Já existe um professor ou usuário com este email.");
     }
 
-    const professorExistenteCPF = await Professor.exists({ cpf }).session(
-      session
-    );
+    const professorExistenteCPF = await Professor.exists({
+      cpf: cpfFormatado,
+    }).session(session);
     if (professorExistenteCPF) {
       throw new Error("Já existe um professor com este CPF.");
     }
 
     const newProfessor = new Professor({
       nome,
-      cpf,
+      cpf: cpfFormatado,
       telefone,
       email,
       disciplina,
     });
 
-    const senha = cpf.slice(0, -2);
+    const senha = cpfFormatado.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
     const novoUser = new User({
       nome,
-      cpf,
+      cpf: cpfFormatado,
       email,
       senha: senhaCriptografada,
       cargo: 2,
