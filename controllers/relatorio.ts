@@ -121,19 +121,12 @@ export async function listarRelatorios(req: Request, res: Response) {
     };
 
     if (dataCriacao) {
-      const [day, month] = (dataCriacao as string).split("-");
-      if (day && month) {
-        const currentYear = new Date().getFullYear();
-        const date = new Date(`${currentYear}-${month}-${day}`);
-        date.setHours(0, 0, 0, 0);
-        const nextDate = new Date(date);
-        nextDate.setDate(nextDate.getDate() + 1);
-
-        searchQuery.dataCriacao = {
-          $gte: date,
-          $lt: nextDate,
-        };
-      }
+      const dateStr = dataCriacao as string;
+      const date = new Date(dateStr);
+      searchQuery.dataCriacao = {
+        $gte: date,
+        $lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
+      };
     }
 
     const relatorios = await Relatorio.find(searchQuery)
@@ -164,6 +157,7 @@ export async function listarRelatorios(req: Request, res: Response) {
     res.status(500).json({ message: "Erro ao buscar relatórios", error });
   }
 }
+
 
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {
