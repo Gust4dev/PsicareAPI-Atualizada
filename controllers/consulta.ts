@@ -132,6 +132,7 @@ export async function criarConsulta(req: Request, res: Response) {
 export const listarConsultas = async (req: Request, res: Response) => {
   const {
     q,
+    Nome,
     nomeAluno,
     nomePaciente,
     sala,
@@ -152,6 +153,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
           { TipoDeConsulta: { $regex: q, $options: "i" } },
         ],
       }),
+      ...(Nome && { Nome: { $regex: Nome, $options: "i"}}),
       ...(nomeAluno && { nomeAluno: { $regex: nomeAluno, $options: "i" } }),
       ...(nomePaciente && {
         nomePaciente: { $regex: nomePaciente, $options: "i" },
@@ -339,43 +341,23 @@ export const obterUltimaConsultaCriada = async (
   }
 }
 
-export async function deletarConsultas(req: Request, res: Response) {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-  console.log(req.body);
-
+export const deletarConsultas = async (req: Request, res: Response) => {
   try {
-    const { Nome, alunoId, sala } = req.body;
+    const filtro = req.body; 
+    
+    const consultasDeletadas = await Consulta.find(filtro);
 
-    if (!Nome || !alunoId || !sala) {
-      throw new Error("Nome, alunoId e sala devem ser informados para deletar as consultas.");
+    if (consultasDeletadas.length === 0) {
+      return res.status(404).json({ message: "Nenhuma consulta encontrada para exclusão." });
     }
 
-    const deleteQuery = {
-      Nome,
-      alunoId,
-      sala,
-    };
-
-    const result = await Consulta.deleteMany(deleteQuery).session(session);
-
-    if (result.deletedCount === 0) {
-      throw new Error("Nenhuma consulta encontrada com os critérios fornecidos.");
-    }
-
-    await session.commitTransaction();
-    session.endSession();
+    await Consulta.deleteMany(filtro);
 
     return res.status(200).json({
-      message: "Consultas deletadas com sucesso.",
-      deletedCount: result.deletedCount,
+      message: `${consultasDeletadas.length} consultas deletadas com sucesso.`,
+      consultasDeletadas,
     });
-  } catch (error: any) {
-    await session.abortTransaction();
-    session.endSession();
-    console.error("Erro ao deletar consultas:", error);
-    return res.status(500).json({ message: "Erro ao deletar consultas", error: error.message });
-  } finally {
-    session.endSession();
+  } catch (error) {
+    return res.status(500).json({ message: "Erro ao deletar as consultas.", error });
   }
-}
+};

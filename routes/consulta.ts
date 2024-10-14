@@ -18,7 +18,7 @@ router.get("/", authMiddleware([0, 1, 2]), listarConsultas);
 router.get("/:id", authMiddleware([0, 1, 2]), obterConsultaPorID);
 router.get("/ultima/criada", authMiddleware([0, 1]), obterUltimaConsultaCriada);
 router.patch("/:id", authMiddleware([0, 1]), atualizarConsulta);
-router.delete("/:id", authMiddleware([0, 1]), deletarConsulta);
-router.delete("/delete-serie", authMiddleware([0, 1]), deletarConsultas)
+router.delete("/deletarserie", deletarConsultas);
+
 
 export default router;
