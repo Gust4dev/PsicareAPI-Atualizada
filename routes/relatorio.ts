@@ -18,7 +18,6 @@ const router = Router();
 // Rotas Relatorio
 router.post(
   "/",
-  authMiddleware([0, 3]),
   upload.fields([{ name: "prontuario" }, { name: "assinatura" }]),
   uploadFilesToGridFS,
   criarRelatorio
@@ -26,7 +25,6 @@ router.post(
 
 router.patch(
   "/:id",
-  authMiddleware([0, 2]),
   upload.fields([{ name: "prontuario" }, { name: "assinatura" }]),
   uploadFilesToGridFS,
   atualizarRelatorio
@@ -35,7 +33,7 @@ router.patch(
 router.get("/", authMiddleware([0, 2, 3]), listarRelatorios);
 router.delete("/:id", authMiddleware([0]), deletarRelatorio);
 router.patch("/arquivar/:id", authMiddleware([0]), arquivarRelatorio);
-router.get("/download/:fileId", authMiddleware([0, 2, 3]), downloadFileFromGridFS);
+router.get("/download/:fileId", downloadFileFromGridFS);
 
 
 export default router;

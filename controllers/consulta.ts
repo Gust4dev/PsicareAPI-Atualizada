@@ -153,7 +153,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
           { TipoDeConsulta: { $regex: q, $options: "i" } },
         ],
       }),
-      ...(Nome && { Nome: { $regex: Nome, $options: "i"}}),
+      ...(Nome && { Nome: { $regex: Nome, $options: "i" } }),
       ...(nomeAluno && { nomeAluno: { $regex: nomeAluno, $options: "i" } }),
       ...(nomePaciente && {
         nomePaciente: { $regex: nomePaciente, $options: "i" },
@@ -162,6 +162,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
       ...(statusDaConsulta && {
         statusDaConsulta: { $regex: statusDaConsulta, $options: "i" },
       }),
+      ...(statusDaConsulta === undefined && { statusDaConsulta: "Pendente" }),
     };
 
     if (createdAt) {
@@ -204,7 +205,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ message: "Erro ao listar consultas", error });
   }
-};
+}
 
 export async function obterConsultaPorID(req: Request, res: Response) {
   try {
@@ -340,24 +341,3 @@ export const obterUltimaConsultaCriada = async (
       .json({ message: "Erro ao buscar a última consulta criada" });
   }
 }
-
-export const deletarConsultas = async (req: Request, res: Response) => {
-  try {
-    const filtro = req.body; 
-    
-    const consultasDeletadas = await Consulta.find(filtro);
-
-    if (consultasDeletadas.length === 0) {
-      return res.status(404).json({ message: "Nenhuma consulta encontrada para exclusão." });
-    }
-
-    await Consulta.deleteMany(filtro);
-
-    return res.status(200).json({
-      message: `${consultasDeletadas.length} consultas deletadas com sucesso.`,
-      consultasDeletadas,
-    });
-  } catch (error) {
-    return res.status(500).json({ message: "Erro ao deletar as consultas.", error });
-  }
-};

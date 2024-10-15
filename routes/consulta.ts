@@ -5,8 +5,7 @@ import {
   obterConsultaPorID,
   atualizarConsulta,
   deletarConsulta,
-  obterUltimaConsultaCriada,
-  deletarConsultas,
+  obterUltimaConsultaCriada
 } from "../controllers/consulta";
 import { authMiddleware } from "../middleware/auth";
 
@@ -18,7 +17,6 @@ router.get("/", authMiddleware([0, 1, 2]), listarConsultas);
 router.get("/:id", authMiddleware([0, 1, 2]), obterConsultaPorID);
 router.get("/ultima/criada", authMiddleware([0, 1]), obterUltimaConsultaCriada);
 router.patch("/:id", authMiddleware([0, 1]), atualizarConsulta);
-router.delete("/deletarserie", deletarConsultas);
-
+router.delete("/:id", authMiddleware([0, 1]), deletarConsulta);
 
 export default router;
