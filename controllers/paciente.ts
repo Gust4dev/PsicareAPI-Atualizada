@@ -39,31 +39,16 @@ export async function criarPaciente(req: Request, res: Response) {
       alunoId,
     } = req.body;
 
-    if (!nome) {
-      throw new Error("Por favor, informe o nome completo.");
-    }
-    if (!cpf) {
-      throw new Error("Por favor, informe o CPF.");
-    }
-    if (!telefone) {
-      throw new Error("Por favor, informe o telefone.");
-    }
-    if (!email) {
-      throw new Error("Por favor, informe o email.");
-    }
-    if (!sexo) {
-      throw new Error("Por favor, informe o sexo.");
-    }
-    if (!dataNascimento) {
+    if (!nome) throw new Error("Por favor, informe o nome completo.");
+    if (!cpf) throw new Error("Por favor, informe o CPF.");
+    if (!telefone) throw new Error("Por favor, informe o telefone.");
+    if (!email) throw new Error("Por favor, informe o email.");
+    if (!sexo) throw new Error("Por favor, informe o sexo.");
+    if (!dataNascimento)
       throw new Error("Por favor, informe a data de nascimento.");
-    }
-    if (!alunoId) {
-      throw new Error("Por favor, associe um aluno ao paciente.");
-    }
+    if (!alunoId) throw new Error("Por favor, associe um aluno ao paciente.");
 
-    // Formatação do CPF
     const cpfFormatado = cpf.replace(/\D/g, "");
-
     const idade = calcularIdade(dataNascimento);
     const menorDeIdade = idade < 18;
 
@@ -73,20 +58,23 @@ export async function criarPaciente(req: Request, res: Response) {
       );
     }
 
+    const pacienteExistenteCPF = await Paciente.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    const usuarioExistenteCPF = await User.exists({
+      cpf: cpfFormatado,
+    }).session(session);
     const pacienteExistenteEmail = await Paciente.exists({ email }).session(
       session
     );
     const usuarioExistenteEmail = await User.exists({ email }).session(session);
 
-    if (pacienteExistenteEmail || usuarioExistenteEmail) {
-      throw new Error("Já existe um paciente ou usuário com este email.");
+    if (pacienteExistenteCPF || usuarioExistenteCPF) {
+      throw new Error("Já existe um usuário com este CPF.");
     }
 
-    const pacienteExistenteCPF = await Paciente.exists({ cpf: cpfFormatado }).session(
-      session
-    );
-    if (pacienteExistenteCPF) {
-      throw new Error("Já existe um paciente com este CPF.");
+    if (pacienteExistenteEmail || usuarioExistenteEmail) {
+      throw new Error("Já existe um usuário com este email.");
     }
 
     const aluno = await Aluno.findById(alunoId).session(session);
@@ -127,6 +115,7 @@ export async function criarPaciente(req: Request, res: Response) {
     });
 
     await newPaciente.save({ session });
+
     await session.commitTransaction();
     session.endSession();
 
@@ -153,7 +142,6 @@ function calcularIdade(dataNascimento: string): number {
   }
   return idade;
 }
-
 
 // Listar pacientes
 export const listarPacientes = async (req: Request, res: Response) => {
@@ -330,36 +318,39 @@ export async function atualizarPaciente(req: Request, res: Response) {
     const { id } = req.params;
     const { cpf, email, ...updateData } = req.body;
 
-    const pacienteExistente = await Paciente.findOne({
-      _id: { $ne: id },
-      $or: [{ email }, { cpf }],
-    });
+    const pacienteExistente = await Paciente.findById(id);
+    if (!pacienteExistente) {
+      return res.status(404).send("Paciente não encontrado.");
+    }
 
-    const usuarioExistenteEmail = await User.findOne({ email });
+    if (cpf) {
+      const cpfFormatado = cpf.replace(/\D/g, "");
+      const usuarioExistenteCPF = await User.findOne({
+        _id: { $ne: id },
+        cpf: cpfFormatado,
+      });
+      if (usuarioExistenteCPF) {
+        return res.status(400).send("Já existe um usuário com este CPF.");
+      }
+      updateData.cpf = cpfFormatado;
+    }
 
-    if (pacienteExistente || usuarioExistenteEmail) {
-      if (pacienteExistente?.email === email || usuarioExistenteEmail) {
-        return res
-          .status(400)
-          .send("Já existe um paciente ou usuário com este email.");
+    if (email) {
+      const usuarioExistenteEmail = await User.findOne({
+        _id: { $ne: id },
+        email,
+      });
+      if (usuarioExistenteEmail) {
+        return res.status(400).send("Já existe um usuário com este email.");
       }
-      if (pacienteExistente?.cpf === cpf) {
-        return res.status(400).send("Já existe um paciente com este CPF.");
-      }
+      updateData.email = email;
     }
 
     const pacienteAtualizado = await Paciente.findByIdAndUpdate(
       id,
       updateData,
-      {
-        new: true,
-      }
+      { new: true }
     );
-
-    if (!pacienteAtualizado) {
-      return res.status(404).json({ message: "Paciente não encontrado." });
-    }
-
     res.json({
       message: "Paciente atualizado com sucesso.",
       paciente: pacienteAtualizado,
@@ -438,6 +429,5 @@ export const deletarPacienteSelecionados = async (
     res.status(500).json({ message: "Erro ao deletar pacientes", error });
   }
 };
-
 
 //RESOLVER PROBLEMA COM FORMATACAO DO CPF
