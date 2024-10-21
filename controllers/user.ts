@@ -120,12 +120,44 @@ export async function loginUser(req: Request, res: Response) {
 
 // Listar todos os usuários
 export async function listarUsers(req: Request, res: Response) {
+  const { q, nome, cpf, telefone, email } = req.query;
+  const page: number = parseInt(req.query.page as string, 10) || 1;
+  const limit: number = 15;
+
   try {
-    const users = await User.find();
-    res.json(users);
+    const searchQuery = {
+      ...(q && {
+        $or: [
+          { nome: { $regex: q, $options: "i" } },
+          { cpf: { $regex: q, $options: "i" } },
+          { telefone: { $regex: q, $options: "i" } },
+          { email: { $regex: q, $options: "i" } },
+        ],
+      }),
+      ...(nome && { nome: { $regex: nome, $options: "i" } }),
+      ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
+      ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
+      ...(email && { email: { $regex: email, $options: "i" } }),
+    };
+
+    const users = await User.find(searchQuery)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .select("-senha")
+      .lean();
+
+    const totalItems = await User.countDocuments(searchQuery);
+    const totalPages = Math.ceil(totalItems / limit);
+
+    res.json({
+      users,
+      totalPages,
+      currentPage: page,
+      totalItems,
+    });
   } catch (error: any) {
     console.error(error);
-    res.status(500).json({ message: "Erro ao listar usuários." });
+    res.status(500).json({ message: "Erro ao listar usuários.", error });
   }
 }
 

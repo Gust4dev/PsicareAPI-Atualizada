@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import Secretario from "../models/secretario";
-import User, { UserInterface } from "../models/user";
+import User from "../models/user";
+import Paciente from "../models/Paciente";
 
 // criar secretario
 export async function criarSecretario(req: Request, res: Response) {
@@ -12,39 +13,40 @@ export async function criarSecretario(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, turno } = req.body;
 
-    if (!nome) {
-      throw new Error("Por favor, informe o nome completo.");
-    }
-    if (!cpf) {
-      throw new Error("Por favor, informe o CPF.");
-    }
-    if (!telefone) {
-      throw new Error("Por favor, informe o telefone.");
-    }
-    if (!email) {
-      throw new Error("Por favor, informe o email.");
-    }
-    if (!turno) {
-      throw new Error("Por favor, informe o turno de trabalho.");
-    }
+    if (!nome) throw new Error("Por favor, informe o nome completo.");
+    if (!cpf) throw new Error("Por favor, informe o CPF.");
+    if (!telefone) throw new Error("Por favor, informe o telefone.");
+    if (!email) throw new Error("Por favor, informe o email.");
+    if (!turno) throw new Error("Por favor, informe o turno de trabalho.");
 
-    const cpfFormatado = cpf.replace(/\D/g, '');
+    const cpfFormatado = cpf.replace(/\D/g, "");
 
     const secretarioExistenteEmail = await Secretario.exists({ email }).session(
       session
     );
-
     const usuarioExistenteEmail = await User.exists({ email }).session(session);
-
-    if (secretarioExistenteEmail || usuarioExistenteEmail) {
-      throw new Error("Já existe um secretário ou usuário com este email.");
-    }
-
-    const secretarioExistenteCPF = await Secretario.exists({ cpf: cpfFormatado }).session(
+    const pacienteExistenteEmail = await Paciente.exists({ email }).session(
       session
     );
-    if (secretarioExistenteCPF) {
-      throw new Error("Já existe um secretário com este CPF.");
+
+    if (
+      secretarioExistenteEmail ||
+      usuarioExistenteEmail ||
+      pacienteExistenteEmail
+    ) {
+      throw new Error(
+        "Já existe um usuário com este email."
+      );
+    }
+
+    const secretarioExistenteCPF = await Secretario.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    const pacienteExistenteCPF = await Paciente.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    if (secretarioExistenteCPF || pacienteExistenteCPF) {
+      throw new Error("Já existe um usuário com este CPF.");
     }
 
     const newSecretario = new Secretario({
@@ -58,7 +60,7 @@ export async function criarSecretario(req: Request, res: Response) {
     const senha = cpfFormatado.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    const novoUser: UserInterface = new User({
+    const novoUser = new User({
       nome,
       cpf: cpfFormatado,
       email,
@@ -150,39 +152,72 @@ export async function getSecretarioByID(req: Request, res: Response) {
 export async function atualizarSecretario(req: Request, res: Response) {
   try {
     const { id } = req.params;
-    const { cpf, email, ...updateData } = req.body;
+    const { cpf, email, senha, ...updateData } = req.body;
 
-    const secretarioExistente = await Secretario.findOne({
-      _id: { $ne: id },
-      $or: [{ email }, { cpf }],
-    });
+    const secretarioExistente = await Secretario.findById(id);
+    if (!secretarioExistente) {
+      return res.status(404).send("Secretário não encontrado");
+    }
 
-    const usuarioExistenteEmail = await User.findOne({ email });
+    let cpfFormatado;
+    if (cpf) {
+      cpfFormatado = cpf.replace(/\D/g, "");
+      const secretarioExistenteCPF = await Secretario.findOne({
+        _id: { $ne: id },
+        cpf: cpfFormatado,
+      });
+      if (secretarioExistenteCPF) {
+        return res.status(400).send("Já existe um usuário com este CPF.");
+      }
+      updateData.cpf = cpfFormatado;
+    }
 
-    if (secretarioExistente || usuarioExistenteEmail) {
-      if (secretarioExistente?.email === email || usuarioExistenteEmail) {
+    if (email) {
+      const secretarioExistenteEmail = await Secretario.findOne({
+        _id: { $ne: id },
+        email,
+      });
+      const usuarioExistenteEmail = await User.findOne({ email });
+
+      if (secretarioExistenteEmail || usuarioExistenteEmail) {
         return res
           .status(400)
-          .send("Já existe um secretário ou usuário com este email.");
+          .send("Já existe um usuário com este email.");
       }
-      if (secretarioExistente?.cpf === cpf) {
-        return res.status(400).send("Já existe um secretário com este CPF.");
-      }
+
+      updateData.email = email;
+    }
+
+    let senhaCriptografada;
+    if (senha) {
+      senhaCriptografada = await bcrypt.hash(senha, 10);
     }
 
     const secretarioAtualizado = await Secretario.findByIdAndUpdate(
       id,
       updateData,
-      {
-        new: true,
-      }
+      { new: true }
     );
 
-    if (!secretarioAtualizado) {
-      return res.status(404).send("Secretário não encontrado");
+    if (cpf || email || senha) {
+      const updateUserData = {
+        nome: updateData.nome || secretarioExistente.nome,
+        cpf: cpfFormatado || secretarioExistente.cpf,
+        email: email || secretarioExistente.email,
+        ...(senha && { senha: senhaCriptografada }),
+      };
+
+      await User.findOneAndUpdate(
+        { email: secretarioExistente.email },
+        updateUserData,
+        { new: true }
+      );
     }
 
-    res.json(secretarioAtualizado);
+    res.json({
+      message: "Secretário atualizado com sucesso.",
+      secretario: secretarioAtualizado,
+    });
   } catch (error: any) {
     res.status(500).json({ message: error.message });
   }
@@ -190,24 +225,40 @@ export async function atualizarSecretario(req: Request, res: Response) {
 
 // deletar secretário
 export async function deletarSecretario(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const secretarioID = req.params.id;
+
     if (!mongoose.Types.ObjectId.isValid(secretarioID)) {
       return res.status(400).send("ID de secretário inválido.");
     }
 
-    const secretarioEncontrado = await Secretario.findById(secretarioID);
+    const secretarioEncontrado = await Secretario.findById(
+      secretarioID
+    ).session(session);
+
     if (!secretarioEncontrado) {
       return res.status(404).json({ error: "Secretário não encontrado." });
     }
 
-    await Secretario.findByIdAndDelete(secretarioID);
+    await Secretario.findByIdAndDelete(secretarioID).session(session);
+
+    await User.findOneAndDelete({ email: secretarioEncontrado.email }).session(
+      session
+    );
+
+    await session.commitTransaction();
+    session.endSession();
 
     return res.json({
       message: "Secretário excluído com sucesso.",
       secretario: secretarioEncontrado,
     });
   } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
     console.error(error);
     return res.status(500).json({ error: "Erro interno do servidor." });
   }

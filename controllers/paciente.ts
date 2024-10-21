@@ -61,6 +61,9 @@ export async function criarPaciente(req: Request, res: Response) {
       throw new Error("Por favor, associe um aluno ao paciente.");
     }
 
+    // Formatação do CPF
+    const cpfFormatado = cpf.replace(/\D/g, "");
+
     const idade = calcularIdade(dataNascimento);
     const menorDeIdade = idade < 18;
 
@@ -79,7 +82,7 @@ export async function criarPaciente(req: Request, res: Response) {
       throw new Error("Já existe um paciente ou usuário com este email.");
     }
 
-    const pacienteExistenteCPF = await Paciente.exists({ cpf }).session(
+    const pacienteExistenteCPF = await Paciente.exists({ cpf: cpfFormatado }).session(
       session
     );
     if (pacienteExistenteCPF) {
@@ -93,7 +96,7 @@ export async function criarPaciente(req: Request, res: Response) {
 
     const newPaciente = new Paciente({
       nome,
-      cpf,
+      cpf: cpfFormatado,
       email,
       telefone,
       sexo,
@@ -138,7 +141,8 @@ export async function criarPaciente(req: Request, res: Response) {
     });
   }
 }
-// calculo pra converter data nasc em idade
+
+// Função para calcular idade
 function calcularIdade(dataNascimento: string): number {
   const nascimento = new Date(dataNascimento);
   const hoje = new Date();
@@ -149,6 +153,7 @@ function calcularIdade(dataNascimento: string): number {
   }
   return idade;
 }
+
 
 // Listar pacientes
 export const listarPacientes = async (req: Request, res: Response) => {
@@ -433,3 +438,6 @@ export const deletarPacienteSelecionados = async (
     res.status(500).json({ message: "Erro ao deletar pacientes", error });
   }
 };
+
+
+//RESOLVER PROBLEMA COM FORMATACAO DO CPF

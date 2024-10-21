@@ -2,7 +2,8 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import mongoose from "mongoose";
 import Professor from "../models/professor";
-import User, { UserInterface } from "../models/user";
+import User from "../models/user";
+import Paciente from "../models/Paciente";
 
 // criar professor
 export async function criarProfessor(req: Request, res: Response) {
@@ -12,21 +13,11 @@ export async function criarProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, disciplina } = req.body;
 
-    if (!nome) {
-      throw new Error("Por favor, informe o nome completo.");
-    }
-    if (!cpf) {
-      throw new Error("Por favor, informe o CPF.");
-    }
-    if (!telefone) {
-      throw new Error("Por favor, informe o telefone.");
-    }
-    if (!email) {
-      throw new Error("Por favor, informe o email.");
-    }
-    if (!disciplina) {
-      throw new Error("Por favor, informe a disciplina.");
-    }
+    if (!nome) throw new Error("Por favor, informe o nome completo.");
+    if (!cpf) throw new Error("Por favor, informe o CPF.");
+    if (!telefone) throw new Error("Por favor, informe o telefone.");
+    if (!email) throw new Error("Por favor, informe o email.");
+    if (!disciplina) throw new Error("Por favor, informe a disciplina.");
 
     const cpfFormatado = cpf.replace(/\D/g, "");
 
@@ -34,16 +25,27 @@ export async function criarProfessor(req: Request, res: Response) {
       session
     );
     const usuarioExistenteEmail = await User.exists({ email }).session(session);
+    const pacienteExistenteEmail = await Paciente.exists({ email }).session(
+      session
+    );
 
-    if (professorExistenteEmail || usuarioExistenteEmail) {
-      throw new Error("Já existe um professor ou usuário com este email.");
+    if (
+      professorExistenteEmail ||
+      usuarioExistenteEmail ||
+      pacienteExistenteEmail
+    ) {
+      throw new Error("Já existe um usuário com este email.");
     }
 
     const professorExistenteCPF = await Professor.exists({
       cpf: cpfFormatado,
     }).session(session);
-    if (professorExistenteCPF) {
-      throw new Error("Já existe um professor com este CPF.");
+    const pacienteExistenteCPF = await Paciente.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+
+    if (professorExistenteCPF || pacienteExistenteCPF) {
+      throw new Error("Já existe um usuário com este CPF.");
     }
 
     const newProfessor = new Professor({
@@ -71,16 +73,15 @@ export async function criarProfessor(req: Request, res: Response) {
     await session.commitTransaction();
     session.endSession();
 
-    res
-      .status(201)
-      .json({ message: "Cadastro de professor e usuário criado com sucesso." });
+    res.status(201).json({
+      message: "Cadastro de professor criado com sucesso.",
+    });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
+
     res.status(400).json({
-      error:
-        error.message ||
-        "Não foi possível criar o cadastro de professor e usuário.",
+      error: error.message || "Não foi possível criar o cadastro de professor.",
     });
   }
 }
@@ -144,43 +145,102 @@ export async function getProfessorById(req: Request, res: Response) {
 
 //atualizar um professor
 export async function atualizarProfessor(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
-    const { cpf, email, ...updateData } = req.body;
+    const { nome, cpf, email, senha, ...updateData } = req.body;
+    const cpfFormatado = cpf?.replace(/\D/g, "");
 
-    const professorExistente = await Professor.findOne({
+    const professorExistente = await Professor.findById(id).session(session);
+    if (!professorExistente) {
+      throw new Error("Professor não encontrado.");
+    }
+
+    const professorExistenteDuplicado = await Professor.findOne({
       _id: { $ne: id },
-      $or: [{ email }, { cpf }],
-    });
+      $or: [{ email }, { cpf: cpfFormatado }],
+    }).session(session);
+    const usuarioExistenteEmail = await User.findOne({ email }).session(
+      session
+    );
+    const pacienteExistenteEmail = await Paciente.findOne({ email }).session(
+      session
+    );
 
-    const usuarioExistenteEmail = await User.findOne({ email });
-
-    if (professorExistente || usuarioExistenteEmail) {
-      if (professorExistente?.email === email || usuarioExistenteEmail) {
-        return res
-          .status(400)
-          .send("Já existe um professor ou usuário com este email.");
+    if (
+      professorExistenteDuplicado ||
+      usuarioExistenteEmail ||
+      pacienteExistenteEmail
+    ) {
+      if (
+        professorExistenteDuplicado?.email === email ||
+        usuarioExistenteEmail ||
+        pacienteExistenteEmail
+      ) {
+        throw new Error("Já existe um usuário com este email.");
       }
-      if (professorExistente?.cpf === cpf) {
-        return res.status(400).send("Já existe um professor com este CPF.");
+      if (professorExistenteDuplicado?.cpf === cpfFormatado) {
+        throw new Error("Já existe um usuário com este CPF.");
       }
     }
 
     const professorAtualizado = await Professor.findByIdAndUpdate(
       id,
-      updateData,
-      {
-        new: true,
-      }
-    );
+      { nome, cpf: cpfFormatado, email, ...updateData },
+      { new: true }
+    ).session(session);
 
     if (!professorAtualizado) {
-      return res.status(404).send("Professor não encontrado");
+      throw new Error("Professor não encontrado.");
     }
 
-    res.json(professorAtualizado);
+    const usuarioExistente = await User.findOne({
+      cpf: professorExistente.cpf,
+    }).session(session);
+
+    if (!usuarioExistente) {
+      throw new Error("Usuário não encontrado.");
+    }
+
+    const dadosAtualizadosUsuario = {
+      nome: nome || usuarioExistente.nome,
+      cpf: cpfFormatado || usuarioExistente.cpf,
+      email: email || usuarioExistente.email,
+      ...(senha && { senha: await bcrypt.hash(senha, 10) }),
+    };
+
+    const usuarioAtualizado = await User.findByIdAndUpdate(
+      usuarioExistente._id,
+      dadosAtualizadosUsuario,
+      { new: true }
+    ).session(session);
+
+    if (!usuarioAtualizado) {
+      throw new Error("Usuário não encontrado.");
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
+    res.json({
+      message: "Professor atualizado com sucesso.",
+      professor: professorAtualizado,
+    });
   } catch (error: any) {
-    res.status(500).json({ message: error.message });
+    await session.abortTransaction();
+    session.endSession();
+
+    if (error.code === 11000 && error.keyPattern?.cpf) {
+      return res.status(400).json({
+        error: "Já existe um usuário com este CPF.",
+      });
+    }
+
+    res.status(400).json({
+      error: error.message || "Erro ao atualizar professor e usuário.",
+    });
   }
 }
 
@@ -197,18 +257,42 @@ export async function getProfessoresSelect(req: Request, res: Response) {
 
 //deletar um professor
 export async function deletarProfessor(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
-    const deletedProfessor = await Professor.findByIdAndDelete(req.params.id);
-    if (!deletedProfessor) {
-      return res.status(404).json({ message: "Professor não encontrado." });
+    const professorID = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(professorID)) {
+      throw new Error("ID de professor inválido.");
     }
+
+    const professorDeletado = await Professor.findByIdAndDelete(
+      professorID
+    ).session(session);
+    if (!professorDeletado) {
+      throw new Error("Professor não encontrado.");
+    }
+
+    const usuarioDeletado = await User.findOneAndDelete({
+      cpf: professorDeletado.cpf,
+    }).session(session);
+    if (!usuarioDeletado) {
+      throw new Error("Usuário relacionado ao professor não encontrado.");
+    }
+
+    await session.commitTransaction();
+    session.endSession();
     res.json({
-      message: "Professor excluído com sucesso.",
-      professor: deletedProfessor,
+      message: "Professor e usuário excluídos com sucesso.",
+      professor: professorDeletado,
     });
   } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: "Erro ao excluir professor." });
+    await session.abortTransaction();
+    session.endSession();
+    res
+      .status(400)
+      .json({ error: error.message || "Erro ao excluir professor e usuário." });
   }
 }
 
