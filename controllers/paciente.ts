@@ -41,17 +41,18 @@ export async function criarPaciente(req: Request, res: Response) {
 
     const cpfFormatado = cpf.replace(/\D/g, "");
 
-    const [
-      pacienteExistenteCPF,
-      usuarioExistenteCPF,
-      pacienteExistenteEmail,
-      usuarioExistenteEmail,
-    ] = await Promise.all([
-      Paciente.exists({ cpf: cpfFormatado }).session(session),
-      User.exists({ cpf: cpfFormatado }).session(session),
-      Paciente.exists({ email }).session(session),
-      User.exists({ email }).session(session),
-    ]);
+    const pacienteExistenteCPF = await Paciente.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    const usuarioExistenteCPF = await User.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    const pacienteExistenteEmail = await Paciente.exists({
+      email,
+    }).session(session);
+    const usuarioExistenteEmail = await User.exists({
+      email,
+    }).session(session);
 
     if (pacienteExistenteCPF || usuarioExistenteCPF) {
       throw new Error("Já existe um usuário com este CPF.");

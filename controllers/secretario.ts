@@ -19,21 +19,22 @@ export async function criarSecretario(req: Request, res: Response) {
 
     const cpfFormatado = cpf.replace(/\D/g, "");
 
-    const [
-      secretarioExistenteCPF,
-      usuarioExistenteCPF,
-      pacienteExistenteCPF,
-      secretarioExistenteEmail,
-      usuarioExistenteEmail,
-      pacienteExistenteEmail,
-    ] = await Promise.all([
-      Secretario.exists({ cpf: cpfFormatado }).session(session),
-      User.exists({ cpf: cpfFormatado }).session(session),
-      Paciente.exists({ cpf: cpfFormatado }).session(session),
-      Secretario.exists({ email }).session(session),
-      User.exists({ email }).session(session),
-      Paciente.exists({ email }).session(session),
-    ]);
+    const secretarioExistenteCPF = await Secretario.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    const usuarioExistenteCPF = await User.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    const pacienteExistenteCPF = await Paciente.exists({
+      cpf: cpfFormatado,
+    }).session(session);
+    const secretarioExistenteEmail = await Secretario.exists({ email }).session(
+      session
+    );
+    const usuarioExistenteEmail = await User.exists({ email }).session(session);
+    const pacienteExistenteEmail = await Paciente.exists({ email }).session(
+      session
+    );
 
     if (
       secretarioExistenteEmail ||
@@ -70,18 +71,16 @@ export async function criarSecretario(req: Request, res: Response) {
     await novoUser.save({ session });
 
     await session.commitTransaction();
-    session.endSession();
-
     res.status(201).json({
       message: "Cadastro de usuário criado com sucesso.",
     });
   } catch (error: any) {
     await session.abortTransaction();
-    session.endSession();
-
     res.status(400).json({
       error: error.message || "Não foi possível criar o cadastro do usuário.",
     });
+  } finally {
+    session.endSession();
   }
 }
 
