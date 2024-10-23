@@ -39,35 +39,19 @@ export async function criarPaciente(req: Request, res: Response) {
       alunoId,
     } = req.body;
 
-    if (!nome) throw new Error("Por favor, informe o nome completo.");
-    if (!cpf) throw new Error("Por favor, informe o CPF.");
-    if (!telefone) throw new Error("Por favor, informe o telefone.");
-    if (!email) throw new Error("Por favor, informe o email.");
-    if (!sexo) throw new Error("Por favor, informe o sexo.");
-    if (!dataNascimento)
-      throw new Error("Por favor, informe a data de nascimento.");
-    if (!alunoId) throw new Error("Por favor, associe um aluno ao paciente.");
-
     const cpfFormatado = cpf.replace(/\D/g, "");
-    const idade = calcularIdade(dataNascimento);
-    const menorDeIdade = idade < 18;
 
-    if (menorDeIdade && (!nomeDoContatoResponsavel || !outroContato)) {
-      throw new Error(
-        "Contato responsável é obrigatório para menores de idade."
-      );
-    }
-
-    const pacienteExistenteCPF = await Paciente.exists({
-      cpf: cpfFormatado,
-    }).session(session);
-    const usuarioExistenteCPF = await User.exists({
-      cpf: cpfFormatado,
-    }).session(session);
-    const pacienteExistenteEmail = await Paciente.exists({ email }).session(
-      session
-    );
-    const usuarioExistenteEmail = await User.exists({ email }).session(session);
+    const [
+      pacienteExistenteCPF,
+      usuarioExistenteCPF,
+      pacienteExistenteEmail,
+      usuarioExistenteEmail,
+    ] = await Promise.all([
+      Paciente.exists({ cpf: cpfFormatado }).session(session),
+      User.exists({ cpf: cpfFormatado }).session(session),
+      Paciente.exists({ email }).session(session),
+      User.exists({ email }).session(session),
+    ]);
 
     if (pacienteExistenteCPF || usuarioExistenteCPF) {
       throw new Error("Já existe um usuário com este CPF.");
@@ -94,7 +78,6 @@ export async function criarPaciente(req: Request, res: Response) {
       profissao,
       outroContato,
       nomeDoContatoResponsavel,
-      menorDeIdade,
       dataNascimento,
       naturalidade,
       nacionalidade,
@@ -129,18 +112,6 @@ export async function criarPaciente(req: Request, res: Response) {
       error: error.message || "Não foi possível criar o cadastro de paciente.",
     });
   }
-}
-
-// Função para calcular idade
-function calcularIdade(dataNascimento: string): number {
-  const nascimento = new Date(dataNascimento);
-  const hoje = new Date();
-  let idade = hoje.getFullYear() - nascimento.getFullYear();
-  const mes = hoje.getMonth() - nascimento.getMonth();
-  if (mes < 0 || (mes === 0 && hoje.getDate() < nascimento.getDate())) {
-    idade--;
-  }
-  return idade;
 }
 
 // Listar pacientes

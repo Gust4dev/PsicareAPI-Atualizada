@@ -13,39 +13,37 @@ export async function criarSecretario(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, turno } = req.body;
 
-    if (!nome) throw new Error("Por favor, informe o nome completo.");
-    if (!cpf) throw new Error("Por favor, informe o CPF.");
-    if (!telefone) throw new Error("Por favor, informe o telefone.");
-    if (!email) throw new Error("Por favor, informe o email.");
-    if (!turno) throw new Error("Por favor, informe o turno de trabalho.");
+    if (!nome || !cpf || !telefone || !email || !turno) {
+      throw new Error("Preencha todos os campos.");
+    }
 
     const cpfFormatado = cpf.replace(/\D/g, "");
 
-    const secretarioExistenteEmail = await Secretario.exists({ email }).session(
-      session
-    );
-    const usuarioExistenteEmail = await User.exists({ email }).session(session);
-    const pacienteExistenteEmail = await Paciente.exists({ email }).session(
-      session
-    );
+    const [
+      secretarioExistenteCPF,
+      usuarioExistenteCPF,
+      pacienteExistenteCPF,
+      secretarioExistenteEmail,
+      usuarioExistenteEmail,
+      pacienteExistenteEmail,
+    ] = await Promise.all([
+      Secretario.exists({ cpf: cpfFormatado }).session(session),
+      User.exists({ cpf: cpfFormatado }).session(session),
+      Paciente.exists({ cpf: cpfFormatado }).session(session),
+      Secretario.exists({ email }).session(session),
+      User.exists({ email }).session(session),
+      Paciente.exists({ email }).session(session),
+    ]);
 
     if (
       secretarioExistenteEmail ||
       usuarioExistenteEmail ||
       pacienteExistenteEmail
     ) {
-      throw new Error(
-        "Já existe um usuário com este email."
-      );
+      throw new Error("Já existe um usuário com este email.");
     }
 
-    const secretarioExistenteCPF = await Secretario.exists({
-      cpf: cpfFormatado,
-    }).session(session);
-    const pacienteExistenteCPF = await Paciente.exists({
-      cpf: cpfFormatado,
-    }).session(session);
-    if (secretarioExistenteCPF || pacienteExistenteCPF) {
+    if (secretarioExistenteCPF || pacienteExistenteCPF || usuarioExistenteCPF) {
       throw new Error("Já existe um usuário com este CPF.");
     }
 
@@ -75,16 +73,14 @@ export async function criarSecretario(req: Request, res: Response) {
     session.endSession();
 
     res.status(201).json({
-      message: "Cadastro de secretário e usuário criado com sucesso.",
+      message: "Cadastro de usuário criado com sucesso.",
     });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
 
     res.status(400).json({
-      error:
-        error.message ||
-        "Não foi possível criar o cadastro de secretário e usuário.",
+      error: error.message || "Não foi possível criar o cadastro do usuário.",
     });
   }
 }
@@ -150,25 +146,43 @@ export async function getSecretarioByID(req: Request, res: Response) {
 
 // atualizar secretário
 export async function atualizarSecretario(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
   try {
     const { id } = req.params;
-    const { cpf, email, senha, ...updateData } = req.body;
+    const { cpf, email, senha, nome, ...updateData } = req.body;
 
-    const secretarioExistente = await Secretario.findById(id);
+    const secretarioExistente = await Secretario.findById(id).session(session);
     if (!secretarioExistente) {
-      return res.status(404).send("Secretário não encontrado");
+      throw new Error("Secretário não encontrado.");
     }
 
     let cpfFormatado;
     if (cpf) {
       cpfFormatado = cpf.replace(/\D/g, "");
+
       const secretarioExistenteCPF = await Secretario.findOne({
         _id: { $ne: id },
         cpf: cpfFormatado,
-      });
-      if (secretarioExistenteCPF) {
+      }).session(session);
+
+      const pacienteExistenteCPF = await Paciente.findOne({
+        cpf: cpfFormatado,
+      }).session(session);
+
+      const usuarioExistenteCPF = await User.findOne({
+        cpf: cpfFormatado,
+      }).session(session);
+
+      if (
+        secretarioExistenteCPF ||
+        pacienteExistenteCPF ||
+        usuarioExistenteCPF
+      ) {
         return res.status(400).send("Já existe um usuário com este CPF.");
       }
+
       updateData.cpf = cpfFormatado;
     }
 
@@ -176,13 +190,21 @@ export async function atualizarSecretario(req: Request, res: Response) {
       const secretarioExistenteEmail = await Secretario.findOne({
         _id: { $ne: id },
         email,
-      });
-      const usuarioExistenteEmail = await User.findOne({ email });
+      }).session(session);
 
-      if (secretarioExistenteEmail || usuarioExistenteEmail) {
-        return res
-          .status(400)
-          .send("Já existe um usuário com este email.");
+      const pacienteExistenteEmail = await Paciente.findOne({ email }).session(
+        session
+      );
+      const usuarioExistenteEmail = await User.findOne({ email }).session(
+        session
+      );
+
+      if (
+        secretarioExistenteEmail ||
+        pacienteExistenteEmail ||
+        usuarioExistenteEmail
+      ) {
+        return res.status(400).send("Já existe um usuário com este email.");
       }
 
       updateData.email = email;
@@ -197,28 +219,51 @@ export async function atualizarSecretario(req: Request, res: Response) {
       id,
       updateData,
       { new: true }
-    );
+    ).session(session);
 
-    if (cpf || email || senha) {
+    if (cpf || email || senha || nome) {
       const updateUserData = {
-        nome: updateData.nome || secretarioExistente.nome,
+        nome: nome || secretarioExistente.nome,
         cpf: cpfFormatado || secretarioExistente.cpf,
         email: email || secretarioExistente.email,
         ...(senha && { senha: senhaCriptografada }),
       };
 
-      await User.findOneAndUpdate(
-        { email: secretarioExistente.email },
+      const usuarioAtualizado = await User.findOneAndUpdate(
+        { cpf: secretarioExistente.cpf },
         updateUserData,
         { new: true }
-      );
+      ).session(session);
+
+      if (!usuarioAtualizado) {
+        throw new Error("Usuário relacionado não encontrado.");
+      }
     }
+
+    await session.commitTransaction();
+    session.endSession();
 
     res.json({
       message: "Secretário atualizado com sucesso.",
       secretario: secretarioAtualizado,
     });
   } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+
+    if (error.code === 11000) {
+      if (error.keyPattern?.cpf) {
+        return res
+          .status(400)
+          .json({ message: "Já existe um usuário com este CPF." });
+      }
+      if (error.keyPattern?.email) {
+        return res
+          .status(400)
+          .json({ message: "Já existe um usuário com este email." });
+      }
+    }
+
     res.status(500).json({ message: error.message });
   }
 }

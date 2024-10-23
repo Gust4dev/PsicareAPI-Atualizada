@@ -13,42 +13,41 @@ export async function criarProfessor(req: Request, res: Response) {
   try {
     const { nome, cpf, telefone, email, disciplina } = req.body;
 
-    if (!nome) throw new Error("Por favor, informe o nome completo.");
-    if (!cpf) throw new Error("Por favor, informe o CPF.");
-    if (!telefone) throw new Error("Por favor, informe o telefone.");
-    if (!email) throw new Error("Por favor, informe o email.");
-    if (!disciplina) throw new Error("Por favor, informe a disciplina.");
+    if (!nome || !cpf || !telefone || !email || !disciplina) {
+      throw new Error("Por favor, preencha todos os campos obrigatórios.");
+    }
 
     const cpfFormatado = cpf.replace(/\D/g, "");
 
-    const professorExistenteEmail = await Professor.exists({ email }).session(
-      session
-    );
-    const usuarioExistenteEmail = await User.exists({ email }).session(session);
-    const pacienteExistenteEmail = await Paciente.exists({ email }).session(
-      session
-    );
+    const [
+      professorExistenteCPF,
+      usuarioExistenteCPF,
+      pacienteExistenteCPF,
+      professorExistenteEmail,
+      usuarioExistenteEmail,
+      pacienteExistenteEmail,
+    ] = await Promise.all([
+      Professor.exists({ cpf: cpfFormatado }).session(session),
+      User.exists({ cpf: cpfFormatado }).session(session),
+      Paciente.exists({ cpf: cpfFormatado }).session(session),
+      Professor.exists({ email }).session(session),
+      User.exists({ email }).session(session),
+      Paciente.exists({ email }).session(session),
+    ]);
 
     if (
       professorExistenteEmail ||
       usuarioExistenteEmail ||
       pacienteExistenteEmail
     ) {
-      throw new Error("Já existe um usuário com este email.");
+      throw new Error("Já existe um usuário com este email cadastrado.");
     }
 
-    const professorExistenteCPF = await Professor.exists({
-      cpf: cpfFormatado,
-    }).session(session);
-    const pacienteExistenteCPF = await Paciente.exists({
-      cpf: cpfFormatado,
-    }).session(session);
-
-    if (professorExistenteCPF || pacienteExistenteCPF) {
-      throw new Error("Já existe um usuário com este CPF.");
+    if (professorExistenteCPF || usuarioExistenteCPF || pacienteExistenteCPF) {
+      throw new Error("Já existe um usuário com este CPF cadastrado.");
     }
 
-    const newProfessor = new Professor({
+    const novoProfessor = new Professor({
       nome,
       cpf: cpfFormatado,
       telefone,
@@ -59,7 +58,7 @@ export async function criarProfessor(req: Request, res: Response) {
     const senha = cpfFormatado.slice(0, -2);
     const senhaCriptografada = await bcrypt.hash(senha, 10);
 
-    const novoUser = new User({
+    const novoUsuario = new User({
       nome,
       cpf: cpfFormatado,
       email,
@@ -67,21 +66,23 @@ export async function criarProfessor(req: Request, res: Response) {
       cargo: 2,
     });
 
-    await newProfessor.save({ session });
-    await novoUser.save({ session });
+    await novoProfessor.save({ session });
+    await novoUsuario.save({ session });
 
     await session.commitTransaction();
     session.endSession();
 
     res.status(201).json({
-      message: "Cadastro de professor criado com sucesso.",
+      message: "Cadastro de professor e usuário criado com sucesso.",
     });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
 
     res.status(400).json({
-      error: error.message || "Não foi possível criar o cadastro de professor.",
+      error:
+        error.message ||
+        "Não foi possível criar o cadastro de professor e usuário.",
     });
   }
 }
@@ -151,49 +152,76 @@ export async function atualizarProfessor(req: Request, res: Response) {
   try {
     const { id } = req.params;
     const { nome, cpf, email, senha, ...updateData } = req.body;
-    const cpfFormatado = cpf?.replace(/\D/g, "");
 
     const professorExistente = await Professor.findById(id).session(session);
     if (!professorExistente) {
       throw new Error("Professor não encontrado.");
     }
 
-    const professorExistenteDuplicado = await Professor.findOne({
-      _id: { $ne: id },
-      $or: [{ email }, { cpf: cpfFormatado }],
-    }).session(session);
-    const usuarioExistenteEmail = await User.findOne({ email }).session(
-      session
-    );
-    const pacienteExistenteEmail = await Paciente.findOne({ email }).session(
-      session
-    );
+    let cpfFormatado;
+    if (cpf) {
+      cpfFormatado = cpf.replace(/\D/g, "");
 
-    if (
-      professorExistenteDuplicado ||
-      usuarioExistenteEmail ||
-      pacienteExistenteEmail
-    ) {
+      const professorExistenteCPF = await Professor.findOne({
+        _id: { $ne: id },
+        cpf: cpfFormatado,
+      }).session(session);
+
+      const pacienteExistenteCPF = await Paciente.findOne({
+        cpf: cpfFormatado,
+      }).session(session);
+      const usuarioExistenteCPF = await User.findOne({
+        cpf: cpfFormatado,
+      }).session(session);
+
       if (
-        professorExistenteDuplicado?.email === email ||
-        usuarioExistenteEmail ||
-        pacienteExistenteEmail
+        professorExistenteCPF ||
+        pacienteExistenteCPF ||
+        usuarioExistenteCPF
       ) {
-        throw new Error("Já existe um usuário com este email.");
+        return res.status(400).send("Já existe um usuário com este CPF.");
       }
-      if (professorExistenteDuplicado?.cpf === cpfFormatado) {
-        throw new Error("Já existe um usuário com este CPF.");
+
+      updateData.cpf = cpfFormatado;
+    }
+
+    if (email) {
+      const professorExistenteEmail = await Professor.findOne({
+        _id: { $ne: id },
+        email,
+      }).session(session);
+
+      const pacienteExistenteEmail = await Paciente.findOne({ email }).session(
+        session
+      );
+      const usuarioExistenteEmail = await User.findOne({ email }).session(
+        session
+      );
+
+      if (
+        professorExistenteEmail ||
+        pacienteExistenteEmail ||
+        usuarioExistenteEmail
+      ) {
+        return res.status(400).send("Já existe um usuário com este email.");
       }
+
+      updateData.email = email;
+    }
+
+    let senhaCriptografada;
+    if (senha) {
+      senhaCriptografada = await bcrypt.hash(senha, 10);
     }
 
     const professorAtualizado = await Professor.findByIdAndUpdate(
       id,
-      { nome, cpf: cpfFormatado, email, ...updateData },
+      { nome, ...updateData },
       { new: true }
     ).session(session);
 
     if (!professorAtualizado) {
-      throw new Error("Professor não encontrado.");
+      throw new Error("Erro ao atualizar professor.");
     }
 
     const usuarioExistente = await User.findOne({
@@ -201,14 +229,14 @@ export async function atualizarProfessor(req: Request, res: Response) {
     }).session(session);
 
     if (!usuarioExistente) {
-      throw new Error("Usuário não encontrado.");
+      throw new Error("Usuário relacionado não encontrado.");
     }
 
     const dadosAtualizadosUsuario = {
       nome: nome || usuarioExistente.nome,
       cpf: cpfFormatado || usuarioExistente.cpf,
       email: email || usuarioExistente.email,
-      ...(senha && { senha: await bcrypt.hash(senha, 10) }),
+      ...(senha && { senha: senhaCriptografada }),
     };
 
     const usuarioAtualizado = await User.findByIdAndUpdate(
@@ -218,7 +246,7 @@ export async function atualizarProfessor(req: Request, res: Response) {
     ).session(session);
 
     if (!usuarioAtualizado) {
-      throw new Error("Usuário não encontrado.");
+      throw new Error("Erro ao atualizar usuário.");
     }
 
     await session.commitTransaction();
@@ -232,10 +260,17 @@ export async function atualizarProfessor(req: Request, res: Response) {
     await session.abortTransaction();
     session.endSession();
 
-    if (error.code === 11000 && error.keyPattern?.cpf) {
-      return res.status(400).json({
-        error: "Já existe um usuário com este CPF.",
-      });
+    if (error.code === 11000) {
+      if (error.keyPattern?.cpf) {
+        return res
+          .status(400)
+          .json({ message: "Já existe um usuário com este CPF." });
+      }
+      if (error.keyPattern?.email) {
+        return res
+          .status(400)
+          .json({ message: "Já existe um usuário com este email." });
+      }
     }
 
     res.status(400).json({
