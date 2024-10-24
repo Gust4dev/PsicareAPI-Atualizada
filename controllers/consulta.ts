@@ -26,31 +26,6 @@ export async function criarConsulta(req: Request, res: Response) {
       statusDaConsulta,
     } = req.body;
 
-    if (!Nome) {
-      throw new Error("O nome da consulta deve ser informado.");
-    }
-    if (!TipoDeConsulta) {
-      throw new Error("O tipo de consulta deve ser informado.");
-    }
-    if (!alunoId) {
-      throw new Error("O ID do aluno é obrigatório.");
-    }
-    if (!pacienteld) {
-      throw new Error("O ID do paciente é obrigatório.");
-    }
-    if (!start || !end || isNaN(new Date(start).getTime()) || isNaN(new Date(end).getTime())) {
-      throw new Error("Datas de início ou término inválidas.");
-    }
-    if (!sala) {
-      throw new Error("A sala deve ser informada.");
-    }
-    if (!intervalo) {
-      throw new Error("O intervalo de repetição deve ser informado.");
-    }
-    if (!frequenciaIntervalo || isNaN(frequenciaIntervalo) || parseInt(frequenciaIntervalo) < 1) {
-      throw new Error("A frequência de repetição deve ser um número maior ou igual a 1.");
-    }
-
     const aluno = await Aluno.findById(alunoId).populate("nome").session(session);
     const paciente = await Paciente.findById(pacienteld).populate("nome").session(session);
 

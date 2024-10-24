@@ -19,22 +19,6 @@ export async function criarRelatorio(req: Request, res: Response) {
       ativoRelatorio,
     } = req.body;
 
-    if (!id_paciente) {
-      throw new Error("Por favor, associe um paciente.");
-    }
-
-    if (!id_aluno) {
-      throw new Error("Por favor, associe um aluno.");
-    }
-
-    if (!conteudo) {
-      throw new Error("Por favor, insira o conteudo.");
-    }
-
-    if (!req.fileIds?.prontuario && !req.fileIds?.assinatura) {
-      throw new Error("Nenhum arquivo enviado ou processado.");
-    }
-
     const paciente = await Paciente.findById(id_paciente)
       .populate("nome", "dataNascimento")
       .session(session);
@@ -157,7 +141,6 @@ export async function listarRelatorios(req: Request, res: Response) {
     res.status(500).json({ message: "Erro ao buscar relatórios", error });
   }
 }
-
 
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {

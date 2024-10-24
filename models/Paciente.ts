@@ -1,4 +1,4 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document } from "mongoose";
 
 interface IPaciente extends Document {
   nome: string;
@@ -23,12 +23,12 @@ interface IPaciente extends Document {
   enderecoUF: string;
   dataInicioTratamento: Date;
   dataTerminoTratamento?: Date;
-  encaminhador: string;
+  encaminhador: string | null;
   tipoDeTratamento?: string;
-  alunoUnieva: boolean;
+  alunoUnieva?: boolean;
   funcionarioUnieva: boolean;
   ativoPaciente: boolean;
-  alunoId: Schema.Types.ObjectId;
+  alunoId?: Schema.Types.ObjectId | null;
 }
 
 const PacienteSchema = new Schema<IPaciente>({
@@ -54,15 +54,15 @@ const PacienteSchema = new Schema<IPaciente>({
   enderecoUF: { type: String, required: true },
   dataInicioTratamento: { type: Date, required: true },
   dataTerminoTratamento: { type: Date },
-  encaminhador: { type: String },
+  encaminhador: { type: String, default: null },
   tipoDeTratamento: { type: String },
-  alunoUnieva: { type: Boolean, required: true },
+  alunoUnieva: { type: Boolean },
   funcionarioUnieva: { type: Boolean, required: true },
   ativoPaciente: { type: Boolean, required: true, default: true },
-  alunoId:{ type: Schema.Types.ObjectId, ref: "Aluno", required: true},
+  alunoId: { type: Schema.Types.ObjectId, ref: "Aluno" },
 });
 
-PacienteSchema.index({ AlunoId: 1});
-const Paciente = model<IPaciente>('Paciente', PacienteSchema);
+PacienteSchema.index({ AlunoId: 1 });
+const Paciente = model<IPaciente>("Paciente", PacienteSchema);
 
 export default Paciente;

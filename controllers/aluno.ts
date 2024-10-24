@@ -15,18 +15,6 @@ export async function criarAluno(req: Request, res: Response) {
     const { matricula, periodo, nome, cpf, telefone, email, professorId } =
       req.body;
 
-    if (
-      !matricula ||
-      !periodo ||
-      !nome ||
-      !cpf ||
-      !telefone ||
-      !email ||
-      !professorId
-    ) {
-      throw new Error("Por favor, preencha todos os campos obrigatórios.");
-    }
-
     const cpfFormatado = cpf.replace(/\D/g, "");
 
     const alunoExistenteCPF = await Aluno.exists({ cpf: cpfFormatado }).session(
@@ -222,37 +210,50 @@ export async function atualizarAluno(req: Request, res: Response) {
 
     const cpfFormatado = cpf?.replace(/\D/g, "");
 
-    const alunoExistente = await Aluno.findOne({
-      _id: { $ne: id },
-      $or: [{ email }, { cpf: cpfFormatado }, { matricula }],
-    }).session(session);
-
-    const usuarioExistenteEmail = await User.findOne({ email }).session(
-      session
-    );
-    const pacienteExistenteCPF = await Paciente.findOne({
-      cpf: cpfFormatado,
-    }).session(session);
-
-    const aluno = await Aluno.findById(id).session(session);
-    const usuario = await User.findOne({ cpf: aluno?.cpf }).session(session);
-
-    if (!aluno || !usuario) {
+    const alunoExistente = await Aluno.findById(id).session(session);
+    if (!alunoExistente) {
       throw new Error("Aluno não encontrado.");
     }
 
-    if (alunoExistente || usuarioExistenteEmail || pacienteExistenteCPF) {
-      if (alunoExistente?.email === email || usuarioExistenteEmail) {
-        return res.status(400).send("Já existe um usuário com este email.");
+    if (email) {
+      if (email !== alunoExistente.email) {
+        const alunoExistenteEmail = await Aluno.findOne({ email }).session(
+          session
+        );
+        const pacienteExistenteEmail = await Paciente.findOne({
+          email,
+        }).session(session);
+        const usuarioExistenteEmail = await User.findOne({ email }).session(
+          session
+        );
+
+        if (
+          alunoExistenteEmail ||
+          pacienteExistenteEmail ||
+          usuarioExistenteEmail
+        ) {
+          return res.status(400).send("Já existe um usuário com este email.");
+        }
       }
-      if (alunoExistente?.cpf === cpfFormatado || pacienteExistenteCPF) {
-        return res
-          .status(400)
-          .send("Já existe um aluno ou paciente com este CPF.");
+    }
+
+    let senhaGerada;
+    if (cpfFormatado && cpfFormatado !== alunoExistente.cpf) {
+      const alunoExistenteCPF = await Aluno.findOne({
+        cpf: cpfFormatado,
+      }).session(session);
+      const pacienteExistenteCPF = await Paciente.findOne({
+        cpf: cpfFormatado,
+      }).session(session);
+      const usuarioExistenteCPF = await User.findOne({
+        cpf: cpfFormatado,
+      }).session(session);
+
+      if (alunoExistenteCPF || pacienteExistenteCPF || usuarioExistenteCPF) {
+        return res.status(400).send("Já existe um usuário com este CPF.");
       }
-      if (alunoExistente?.matricula === matricula) {
-        return res.status(400).send("Já existe um aluno com esta matrícula.");
-      }
+
+      senhaGerada = cpfFormatado.slice(0, -2);
     }
 
     const alunoAtualizado = await Aluno.findByIdAndUpdate(
@@ -261,11 +262,18 @@ export async function atualizarAluno(req: Request, res: Response) {
       { new: true }
     ).session(session);
 
-    usuario.nome = nome || aluno.nome;
-    usuario.email = email || aluno.email;
-    usuario.cpf = cpfFormatado || aluno.cpf;
+    const usuario = await User.findOne({ cpf: alunoExistente.cpf }).session(
+      session
+    );
+    if (!usuario) {
+      throw new Error("Usuário relacionado não encontrado.");
+    }
 
-    const novaSenha = cpfFormatado?.slice(0, -2);
+    usuario.nome = nome || alunoExistente.nome;
+    usuario.cpf = cpfFormatado || alunoExistente.cpf;
+    usuario.email = email || alunoExistente.email;
+
+    const novaSenha = senhaGerada || cpfFormatado?.slice(0, -2);
     if (novaSenha) {
       usuario.senha = await bcrypt.hash(novaSenha, 10);
     }
@@ -275,31 +283,12 @@ export async function atualizarAluno(req: Request, res: Response) {
     session.endSession();
 
     res.json({
-      message: "Usuário atualizado com sucesso.",
+      message: "Aluno atualizado com sucesso.",
       aluno: alunoAtualizado,
     });
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-
-    if (error.code === 11000) {
-      if (error.keyPattern?.cpf) {
-        return res
-          .status(400)
-          .json({ message: "Já existe um usuário com este CPF." });
-      }
-      if (error.keyPattern?.email) {
-        return res
-          .status(400)
-          .json({ message: "Já existe um usuário com este email." });
-      }
-      if (error.keyPattern?.matricula) {
-        return res
-          .status(400)
-          .json({ message: "Já existe um aluno com esta matrícula." });
-      }
-    }
-
     res.status(500).json({ message: error.message });
   }
 }
