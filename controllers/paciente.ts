@@ -311,7 +311,14 @@ export async function atualizarPaciente(req: Request, res: Response) {
 
   try {
     const { id } = req.params;
-    const { cpf, email, alunoId, funcionarioUnieva, ...updateData } = req.body;
+    const {
+      cpf,
+      email,
+      alunoId,
+      alunoUnieva,
+      funcionarioUnieva,
+      ...updateData
+    } = req.body;
 
     const pacienteExistente = await Paciente.findById(id).session(session);
     if (!pacienteExistente) {
@@ -349,23 +356,23 @@ export async function atualizarPaciente(req: Request, res: Response) {
       updateData.cpf = cpfFormatado;
     }
 
-    if (alunoId) {
-      const alunoExistente = await Aluno.findById(alunoId).session(session);
-      if (!alunoExistente) {
-        return res.status(400).send("O aluno informado não existe.");
+    if (alunoUnieva && !funcionarioUnieva) {
+      if (alunoId) {
+        const alunoExistente = await Aluno.findById(alunoId).session(session);
+        if (!alunoExistente) {
+          return res.status(400).send("O aluno informado não existe.");
+        }
+        updateData.alunoId = alunoId;
       }
-      updateData.alunoId = alunoId;
       updateData.alunoUnieva = true;
       updateData.funcionarioUnieva = false;
-    }
+    } else if (!alunoUnieva && funcionarioUnieva) {
+      updateData.funcionarioUnieva = true;
+      updateData.alunoUnieva = false;
 
-    if (funcionarioUnieva) {
       await Paciente.updateOne({ _id: id }, { $unset: { alunoId: 1 } }).session(
         session
       );
-
-      updateData.funcionarioUnieva = true;
-      updateData.alunoUnieva = false;
     }
 
     const pacienteAtualizado = await Paciente.findByIdAndUpdate(
