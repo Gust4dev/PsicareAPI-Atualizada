@@ -184,7 +184,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
       ...(encaminhador && {
         encaminhador: { $regex: encaminhador, $options: "i" },
       }),
-      ...(ativo !== undefined && { ativoPaciente: ativo === "true" }),
+      ativoPaciente: ativo === undefined ? true : ativo === "true",
     };
 
     if (dataInicioTratamento) {
@@ -261,7 +261,7 @@ export async function obterPacientePorID(req: Request, res: Response) {
 }
 
 // Listar pacientes por ID do aluno
-export async function listarPacientesPoralunoId(req: Request, res: Response) {
+export async function listarPacientesPorAlunoId(req: Request, res: Response) {
   try {
     const alunoId = req.params.id;
     const page: number = parseInt(req.query.page as string, 10) || 1;
@@ -272,7 +272,11 @@ export async function listarPacientesPoralunoId(req: Request, res: Response) {
       return res.status(404).json({ error: "Aluno não encontrado." });
     }
 
-    const query = { alunoId, ativoPaciente: true };
+    const ativo = req.query.ativo;
+    const query = {
+      alunoId,
+      ativoPaciente: ativo === undefined ? true : ativo === "true",
+    };
 
     const totalItems = await Paciente.countDocuments(query);
 
@@ -284,7 +288,7 @@ export async function listarPacientesPoralunoId(req: Request, res: Response) {
     if (!pacientes || pacientes.length === 0) {
       return res
         .status(404)
-        .json({ error: "Nenhum paciente ativo encontrado para este aluno." });
+        .json({ error: "Nenhum paciente encontrado para este aluno." });
     }
 
     res.json({
@@ -308,7 +312,14 @@ export async function atualizarPaciente(req: Request, res: Response) {
 
   try {
     const { id } = req.params;
-    const { cpf, email, alunoId, funcionarioUnieva, ...updateData } = req.body;
+    const {
+      cpf,
+      email,
+      alunoId,
+      alunoUnieva,
+      funcionarioUnieva,
+      ...updateData
+    } = req.body;
 
     const pacienteExistente = await Paciente.findById(id).session(session);
     if (!pacienteExistente) {
@@ -346,23 +357,23 @@ export async function atualizarPaciente(req: Request, res: Response) {
       updateData.cpf = cpfFormatado;
     }
 
-    if (alunoId) {
-      const alunoExistente = await Aluno.findById(alunoId).session(session);
-      if (!alunoExistente) {
-        return res.status(400).send("O aluno informado não existe.");
+    if (alunoUnieva && !funcionarioUnieva) {
+      if (alunoId) {
+        const alunoExistente = await Aluno.findById(alunoId).session(session);
+        if (!alunoExistente) {
+          return res.status(400).send("O aluno informado não existe.");
+        }
+        updateData.alunoId = alunoId;
       }
-      updateData.alunoId = alunoId;
       updateData.alunoUnieva = true;
       updateData.funcionarioUnieva = false;
-    }
+    } else if (!alunoUnieva && funcionarioUnieva) {
+      updateData.funcionarioUnieva = true;
+      updateData.alunoUnieva = false;
 
-    if (funcionarioUnieva) {
       await Paciente.updateOne({ _id: id }, { $unset: { alunoId: 1 } }).session(
         session
       );
-
-      updateData.funcionarioUnieva = true;
-      updateData.alunoUnieva = false;
     }
 
     const pacienteAtualizado = await Paciente.findByIdAndUpdate(

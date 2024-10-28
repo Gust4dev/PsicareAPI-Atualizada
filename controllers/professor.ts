@@ -148,69 +148,100 @@ export async function atualizarProfessor(req: Request, res: Response) {
 
   try {
     const { id } = req.params;
-    const { nome, cpf, email, senha, ...updateData } = req.body;
+    const { cpf, email, senha, nome, ...updateData } = req.body;
 
     const professorExistente = await Professor.findById(id).session(session);
     if (!professorExistente) {
       throw new Error("Professor não encontrado.");
     }
 
-    const cpfFormatado = cpf?.replace(/\D/g, "");
+    let cpfFormatado;
+    let senhaGerada;
+
+    if (cpf) {
+      cpfFormatado = cpf.replace(/\D/g, "");
+
+      if (cpfFormatado !== professorExistente.cpf) {
+        const professorExistenteCPF = await Professor.findOne({
+          cpf: cpfFormatado,
+        }).session(session);
+
+        const pacienteExistenteCPF = await Paciente.findOne({
+          cpf: cpfFormatado,
+        }).session(session);
+
+        const usuarioExistenteCPF = await User.findOne({
+          cpf: cpfFormatado,
+        }).session(session);
+
+        if (
+          professorExistenteCPF ||
+          pacienteExistenteCPF ||
+          usuarioExistenteCPF
+        ) {
+          return res.status(400).send("Já existe um usuário com este CPF.");
+        }
+
+        senhaGerada = cpfFormatado.slice(0, -2);
+        updateData.cpf = cpfFormatado;
+      }
+    }
 
     if (email) {
       if (email !== professorExistente.email) {
         const professorExistenteEmail = await Professor.findOne({
           email,
         }).session(session);
-        const usuarioExistenteEmail = await User.findOne({ email }).session(
-          session
-        );
 
-        if (professorExistenteEmail || usuarioExistenteEmail) {
+        const pacienteExistenteEmail = await Paciente.findOne({
+          email,
+        }).session(session);
+
+        const usuarioExistenteEmail = await User.findOne({
+          email,
+        }).session(session);
+
+        if (
+          professorExistenteEmail ||
+          pacienteExistenteEmail ||
+          usuarioExistenteEmail
+        ) {
           return res.status(400).send("Já existe um usuário com este email.");
         }
+        updateData.email = email;
       }
     }
 
-    let senhaGerada;
-    if (cpfFormatado && cpfFormatado !== professorExistente.cpf) {
-      const professorExistenteCPF = await Professor.findOne({
-        cpf: cpfFormatado,
-      }).session(session);
-      const usuarioExistenteCPF = await User.findOne({
-        cpf: cpfFormatado,
-      }).session(session);
-
-      if (professorExistenteCPF || usuarioExistenteCPF) {
-        return res.status(400).send("Já existe um usuário com este CPF.");
-      }
-
-      senhaGerada = cpfFormatado.slice(0, -2);
+    let senhaCriptografada;
+    if (senhaGerada || senha) {
+      const senhaParaCriptografar = senhaGerada || senha;
+      senhaCriptografada = await bcrypt.hash(senhaParaCriptografar, 10);
     }
 
     const professorAtualizado = await Professor.findByIdAndUpdate(
       id,
-      { nome, ...updateData, cpf: cpfFormatado, email },
+      updateData,
       { new: true }
     ).session(session);
 
-    const usuario = await User.findOne({ cpf: professorExistente.cpf }).session(
-      session
-    );
-    if (!usuario) {
-      throw new Error("Usuário relacionado não encontrado.");
+    if (cpf || email || senha || nome) {
+      const updateUserData = {
+        nome: nome || professorExistente.nome,
+        cpf: cpfFormatado || professorExistente.cpf,
+        email: email || professorExistente.email,
+        ...(senhaCriptografada && { senha: senhaCriptografada }),
+      };
+
+      const usuarioAtualizado = await User.findOneAndUpdate(
+        { cpf: professorExistente.cpf },
+        updateUserData,
+        { new: true }
+      ).session(session);
+
+      if (!usuarioAtualizado) {
+        throw new Error("Usuário relacionado não encontrado.");
+      }
     }
-
-    usuario.nome = nome || professorExistente.nome;
-    usuario.cpf = cpfFormatado || professorExistente.cpf;
-    usuario.email = email || professorExistente.email;
-
-    const novaSenha = senhaGerada || cpfFormatado?.slice(0, -2);
-    if (novaSenha) {
-      usuario.senha = await bcrypt.hash(novaSenha, 10);
-    }
-
-    await usuario.save({ session });
 
     await session.commitTransaction();
     session.endSession();
@@ -222,9 +253,21 @@ export async function atualizarProfessor(req: Request, res: Response) {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    res.status(500).json({
-      message: error.message,
-    });
+
+    if (error.code === 11000) {
+      if (error.keyPattern?.cpf) {
+        return res
+          .status(400)
+          .json({ message: "Já existe um usuário com este CPF." });
+      }
+      if (error.keyPattern?.email) {
+        return res
+          .status(400)
+          .json({ message: "Já existe um usuário com este email." });
+      }
+    }
+
+    res.status(500).json({ message: error.message });
   }
 }
 
