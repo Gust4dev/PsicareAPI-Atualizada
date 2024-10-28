@@ -26,22 +26,30 @@ export async function criarConsulta(req: Request, res: Response) {
       statusDaConsulta,
     } = req.body;
 
-    const aluno = await Aluno.findById(alunoId).populate("nome").session(session);
-    const paciente = await Paciente.findById(pacienteld).populate("nome").session(session);
+    const aluno = await Aluno.findById(alunoId)
+      .populate("nome")
+      .session(session);
+    const paciente = await Paciente.findById(pacienteld)
+      .populate("nome")
+      .session(session);
 
-    if (!aluno) {
-      throw new Error("O aluno informado não existe.");
-    }
-    if (!paciente) {
-      throw new Error("O paciente informado não existe.");
-    }
+    if (!aluno) throw new Error("O aluno informado não existe.");
+    if (!paciente) throw new Error("O paciente informado não existe.");
 
     const createdAt = createAt ? new Date(createAt) : new Date();
+    const startDate = new Date(start);
+    const endDate = new Date(end);
 
-    const startDate = new Date(createdAt);
-    const endDate = new Date(createdAt);
-    startDate.setHours(new Date(start).getHours(), new Date(start).getMinutes(), new Date(start).getSeconds());
-    endDate.setHours(new Date(end).getHours(), new Date(end).getMinutes(), new Date(end).getSeconds());
+    startDate.setHours(
+      startDate.getHours(),
+      startDate.getMinutes(),
+      startDate.getSeconds()
+    );
+    endDate.setHours(
+      endDate.getHours(),
+      endDate.getMinutes(),
+      endDate.getSeconds()
+    );
 
     const consultasNaSala = await Consulta.find({
       sala,
@@ -51,8 +59,9 @@ export async function criarConsulta(req: Request, res: Response) {
 
     if (consultasNaSala.length >= 10) {
       await session.abortTransaction();
-      session.endSession();
-      return res.status(400).json({ error: "Sala ocupada. Escolha outra sala." });
+      return res
+        .status(400)
+        .json({ error: "Sala ocupada. Escolha outra sala." });
     }
 
     const novasConsultas: any[] = [];
@@ -68,27 +77,28 @@ export async function criarConsulta(req: Request, res: Response) {
       end: endDate,
       observacao,
       pacienteld,
+      intervalo,
       nomePaciente: paciente.nome,
       sala,
       statusDaConsulta,
     });
 
-    if (intervalo === "Sessão Única") {
-      novasConsultas.push(createConsulta(startDate, endDate));
-    } else {
-      const intervaloDias = intervalo === "Semanal" ? 7 : 30;
-      for (let i = 0; i < parseInt(frequenciaIntervalo); i++) {
-        const novaStartDate = new Date(startDate);
-        novaStartDate.setDate(novaStartDate.getDate() + intervaloDias * i);
-        const novaEndDate = new Date(endDate);
-        novaEndDate.setDate(novaEndDate.getDate() + intervaloDias * i);
-        novasConsultas.push(createConsulta(novaStartDate, novaEndDate));
-      }
+    const intervaloDias =
+      intervalo === "Semanal" ? 7 : intervalo === "Mensal" ? 30 : 0;
+    if (intervaloDias === 0 || !frequenciaIntervalo) {
+      throw new Error("Intervalo ou frequência inválidos.");
+    }
+
+    for (let i = 0; i < parseInt(frequenciaIntervalo); i++) {
+      const novaStartDate = new Date(startDate);
+      novaStartDate.setDate(novaStartDate.getDate() + intervaloDias * i);
+      const novaEndDate = new Date(endDate);
+      novaEndDate.setDate(novaEndDate.getDate() + intervaloDias * i);
+      novasConsultas.push(createConsulta(novaStartDate, novaEndDate));
     }
 
     await Consulta.insertMany(novasConsultas, { session });
     await session.commitTransaction();
-    session.endSession();
 
     res.status(201).json({
       message: "Consulta(s) criada(s) com sucesso.",
@@ -96,8 +106,9 @@ export async function criarConsulta(req: Request, res: Response) {
     });
   } catch (error: any) {
     await session.abortTransaction();
-    session.endSession();
-    res.status(500).json({ message: "Erro ao criar consulta(s)." });
+    res
+      .status(500)
+      .json({ message: `Erro ao criar consulta(s): ${error.message}` });
   } finally {
     session.endSession();
   }
@@ -141,8 +152,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
     };
 
     if (createdAt) {
-      const dateStr = createdAt as string;
-      const date = new Date(dateStr);
+      const date = new Date(createdAt as string);
       searchQuery.createdAt = {
         $gte: date,
         $lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
@@ -151,16 +161,12 @@ export const listarConsultas = async (req: Request, res: Response) => {
 
     if (start) {
       const startDate = new Date(start as string);
-      searchQuery.start = {
-        $gte: startDate,
-      };
+      searchQuery.start = { $gte: startDate };
     }
 
     if (end) {
       const endDate = new Date(end as string);
-      searchQuery.end = {
-        $lte: endDate,
-      };
+      searchQuery.end = { $lte: endDate };
     }
 
     const consultas = await Consulta.find(searchQuery)
@@ -168,11 +174,16 @@ export const listarConsultas = async (req: Request, res: Response) => {
       .limit(limit)
       .lean();
 
+    const consultasFormatadas = consultas.map((consulta) => ({
+      ...consulta,
+      intervalo: consulta.intervalo || "Não especificado",
+    }));
+
     const totalItems = await Consulta.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
 
     res.json({
-      consultas,
+      consultas: consultasFormatadas,
       totalItems,
       totalPages,
       currentPage: page,
@@ -180,7 +191,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
   } catch (error) {
     res.status(500).json({ message: "Erro ao listar consultas", error });
   }
-}
+};
 
 export async function obterConsultaPorID(req: Request, res: Response) {
   try {
@@ -315,4 +326,4 @@ export const obterUltimaConsultaCriada = async (
       .status(500)
       .json({ message: "Erro ao buscar a última consulta criada" });
   }
-}
+};
