@@ -21,7 +21,7 @@ export async function criarConsulta(req: Request, res: Response) {
       frequenciaIntervalo,
       intervalo,
       observacao,
-      pacienteld,
+      pacienteId,
       sala,
       statusDaConsulta,
     } = req.body;
@@ -29,14 +29,13 @@ export async function criarConsulta(req: Request, res: Response) {
     const aluno = await Aluno.findById(alunoId)
       .populate("nome")
       .session(session);
-    const paciente = await Paciente.findById(pacienteld)
+    const paciente = await Paciente.findById(pacienteId)
       .populate("nome")
       .session(session);
 
     if (!aluno) throw new Error("O aluno informado não existe.");
     if (!paciente) throw new Error("O paciente informado não existe.");
 
-    const createdAt = createAt ? new Date(createAt) : new Date();
     const startDate = new Date(start);
     const endDate = new Date(end);
 
@@ -72,15 +71,16 @@ export async function criarConsulta(req: Request, res: Response) {
       allDay,
       alunoId,
       nomeAluno: aluno.nome,
-      createdAt,
+      createAt,
       start: startDate,
       end: endDate,
       observacao,
-      pacienteld,
+      pacienteId,
       intervalo,
       nomePaciente: paciente.nome,
       sala,
       statusDaConsulta,
+      frequenciaIntervalo,
     });
 
     const intervaloDias =
@@ -123,7 +123,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
     nomePaciente,
     sala,
     statusDaConsulta,
-    createdAt,
+    createAt,
     start,
     end,
   } = req.query;
@@ -151,12 +151,16 @@ export const listarConsultas = async (req: Request, res: Response) => {
       ...(statusDaConsulta === undefined && { statusDaConsulta: "Pendente" }),
     };
 
-    if (createdAt) {
-      const date = new Date(createdAt as string);
-      searchQuery.createdAt = {
-        $gte: date,
-        $lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
-      };
+    if (createAt) {
+      const date = new Date(createAt as string);
+      if (!isNaN(date.getTime())) {
+        searchQuery.createAt = {
+          $gte: date,
+          $lt: new Date(date.getTime() + 24 * 60 * 60 * 1000),
+        };
+      } else {
+        return res.status(400).json({ message: "Data inválida para createAt" });
+      }
     }
 
     if (start) {
@@ -176,7 +180,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
 
     const consultasFormatadas = consultas.map((consulta) => ({
       ...consulta,
-      intervalo: consulta.intervalo || "Não especificado",
+      frequenciaIntervalo: consulta.frequenciaIntervalo,
     }));
 
     const totalItems = await Consulta.countDocuments(searchQuery);
@@ -232,7 +236,7 @@ export async function atualizarConsulta(req: Request, res: Response) {
       Nome,
       TipoDeConsulta,
       alunoId,
-      pacienteld,
+      pacienteId,
       sala,
       start,
       end,
@@ -244,7 +248,7 @@ export async function atualizarConsulta(req: Request, res: Response) {
     }
 
     const alunoExistente = await Aluno.findById(alunoId);
-    const pacienteExistente = await Paciente.findById(pacienteld);
+    const pacienteExistente = await Paciente.findById(pacienteId);
     if (!alunoExistente || !pacienteExistente) {
       return res.status(400).send("Aluno ou paciente informado não existe.");
     }
@@ -269,7 +273,7 @@ export async function atualizarConsulta(req: Request, res: Response) {
         Nome,
         TipoDeConsulta,
         alunoId,
-        pacienteld,
+        pacienteId,
         sala,
         start,
         end,

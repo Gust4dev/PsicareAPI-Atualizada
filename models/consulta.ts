@@ -12,7 +12,7 @@ interface ConsultaInterface extends Document {
   frequenciaIntervalo?: string;
   intervalo?: string;
   observacao: string;
-  pacienteld: string;
+  pacienteId: string;
   nomePaciente: string;
   sala: string;
   statusDaConsulta?: string;
@@ -31,7 +31,7 @@ const ConsultaSchema: Schema = new Schema(
     frequenciaIntervalo: { type: String },
     intervalo: { type: String },
     observacao: { type: String },
-    pacienteld: { type: String, required: true },
+    pacienteId: { type: String, required: true },
     nomePaciente: { type: String, required: true },
     sala: { type: String, required: true },
     statusDaConsulta: { type: String, default: "Pendente" },
