@@ -224,7 +224,6 @@ export const listarPacientes = async (req: Request, res: Response) => {
     }
 
     const pacientes = await Paciente.find(searchQuery)
-      .populate("alunoId", "nome")
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
