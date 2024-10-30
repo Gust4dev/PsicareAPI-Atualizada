@@ -38,34 +38,26 @@ export async function criarConsulta(req: Request, res: Response) {
 
     const startDate = new Date(start);
     const endDate = new Date(end);
+    const initialCreateAt = new Date(createAt);
 
-    startDate.setHours(
-      startDate.getHours(),
-      startDate.getMinutes(),
-      startDate.getSeconds()
-    );
-    endDate.setHours(
-      endDate.getHours(),
-      endDate.getMinutes(),
-      endDate.getSeconds()
-    );
-
-    const consultasNaSala = await Consulta.find({
-      sala,
-      start: { $lte: endDate },
-      end: { $gte: startDate },
-    });
-
-    if (consultasNaSala.length >= 10) {
-      await session.abortTransaction();
-      return res
-        .status(400)
-        .json({ error: "Sala ocupada. Escolha outra sala." });
+    const intervaloDias =
+      intervalo === "Semanal"
+        ? 7
+        : intervalo === "Mensal"
+        ? 30
+        : intervalo === "Sessão Única"
+        ? 1
+        : 0;
+    if (intervaloDias === 0 || !frequenciaIntervalo) {
+      throw new Error("Intervalo ou frequência inválidos.");
     }
 
     const novasConsultas: any[] = [];
-
-    const createConsulta = (startDate: Date, endDate: Date) => ({
+    const createConsulta = (
+      createAt: Date,
+      startDate: Date,
+      endDate: Date
+    ) => ({
       Nome,
       TipoDeConsulta,
       allDay,
@@ -83,18 +75,30 @@ export async function criarConsulta(req: Request, res: Response) {
       frequenciaIntervalo,
     });
 
-    const intervaloDias =
-      intervalo === "Semanal" ? 7 : intervalo === "Mensal" ? 30 : 0;
-    if (intervaloDias === 0 || !frequenciaIntervalo) {
-      throw new Error("Intervalo ou frequência inválidos.");
-    }
-
     for (let i = 0; i < parseInt(frequenciaIntervalo); i++) {
       const novaStartDate = new Date(startDate);
       novaStartDate.setDate(novaStartDate.getDate() + intervaloDias * i);
       const novaEndDate = new Date(endDate);
       novaEndDate.setDate(novaEndDate.getDate() + intervaloDias * i);
-      novasConsultas.push(createConsulta(novaStartDate, novaEndDate));
+      const novoCreateAt = new Date(initialCreateAt);
+      novoCreateAt.setDate(novoCreateAt.getDate() + intervaloDias * i);
+
+      const conflitoNaSala = await Consulta.findOne({
+        sala,
+        start: { $lte: novaEndDate },
+        end: { $gte: novaStartDate },
+      }).session(session);
+
+      if (conflitoNaSala) {
+        await session.abortTransaction();
+        return res.status(400).json({
+          error: `Conflito de horário na sala para a data ${novaStartDate.toISOString()}. Escolha outro horário ou sala.`,
+        });
+      }
+
+      novasConsultas.push(
+        createConsulta(novoCreateAt, novaStartDate, novaEndDate)
+      );
     }
 
     await Consulta.insertMany(novasConsultas, { session });
@@ -148,7 +152,6 @@ export const listarConsultas = async (req: Request, res: Response) => {
       ...(statusDaConsulta && {
         statusDaConsulta: { $regex: statusDaConsulta, $options: "i" },
       }),
-      ...(statusDaConsulta === undefined && { statusDaConsulta: "Pendente" }),
     };
 
     if (createAt) {
@@ -240,6 +243,7 @@ export async function atualizarConsulta(req: Request, res: Response) {
       sala,
       start,
       end,
+      createAt,
       ...updateData
     } = req.body;
 
@@ -277,6 +281,7 @@ export async function atualizarConsulta(req: Request, res: Response) {
         sala,
         start,
         end,
+        createAt,
         ...updateData,
       },
       { new: true }

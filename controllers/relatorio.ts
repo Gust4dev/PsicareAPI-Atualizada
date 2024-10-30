@@ -11,15 +11,15 @@ export async function criarRelatorio(req: Request, res: Response) {
 
   try {
     const {
-      id_paciente,
-      id_aluno,
+      pacienteId,
+      alunoId,
       nome_funcionario,
       ultimaAtualizacao,
       conteudo,
       ativoRelatorio,
     } = req.body;
 
-    const paciente = await Paciente.findById(id_paciente)
+    const paciente = await Paciente.findById(pacienteId)
       .populate("nome", "dataNascimento")
       .session(session);
 
@@ -27,7 +27,7 @@ export async function criarRelatorio(req: Request, res: Response) {
       throw new Error("Paciente não encontrado.");
     }
 
-    const aluno = await Aluno.findById(id_aluno)
+    const aluno = await Aluno.findById(alunoId)
       .populate("nome")
       .session(session);
 
@@ -36,21 +36,19 @@ export async function criarRelatorio(req: Request, res: Response) {
     }
 
     const novoRelatorio = new Relatorio({
-      id_paciente,
+      pacienteId,
       nomePaciente: paciente.nome,
       dataNascimentoPaciente: paciente.dataNascimento,
       dataInicioTratamento: paciente.dataInicioTratamento,
       dataTerminoTratamento: paciente.dataTerminoTratamento,
       tipoTratamento: paciente.tipoDeTratamento,
       alunoUnieva: aluno.alunoUnieva,
-      id_aluno: aluno._id,
+      alunoId: aluno._id,
       nomeAluno: aluno.nome,
       funcionarioUnieva: aluno.funcionarioUnieva,
       nome_funcionario,
       dataCriacao: new Date(),
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
-      prontuario: req.fileIds?.prontuario || null,
-      assinatura: req.fileIds?.assinatura || null,
       conteudo,
       ativoRelatorio: ativoRelatorio ?? true,
     });
@@ -72,6 +70,7 @@ export async function criarRelatorio(req: Request, res: Response) {
       .json({ message: error.message || "Erro ao criar o relatório." });
   }
 }
+
 //Listar relatorios
 export async function listarRelatorios(req: Request, res: Response) {
   const {

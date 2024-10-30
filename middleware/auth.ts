@@ -24,31 +24,9 @@ const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
 export const uploadFilesToGridFS = (req: Request, res: Response, next: NextFunction) => {
-  const bucket: GridFSBucket = getGridFSBucket();
-  const { prontuario, assinatura } = req.files as any;
-
-  req.fileIds = {};
-
-  if (prontuario) {
-    const prontuarioStream = bucket.openUploadStream(prontuario[0].originalname);
-    prontuarioStream.end(prontuario[0].buffer);
-    prontuarioStream.on("finish", () => {
-      req.fileIds!.prontuario = prontuarioStream.id;
-      if (!assinatura) next();
-    });
-  }
-
-  if (assinatura) {
-    const assinaturaStream = bucket.openUploadStream(assinatura[0].originalname);
-    assinaturaStream.end(assinatura[0].buffer);
-    assinaturaStream.on("finish", () => {
-      req.fileIds!.assinatura = assinaturaStream.id;
-      next();
-    });
-  }
-
-  if (!prontuario && !assinatura) next();
+  next(); // removido temporariamente 
 };
+
 
 export const downloadFileFromGridFS = (req: Request, res: Response) => {
   const bucket: GridFSBucket = getGridFSBucket();
