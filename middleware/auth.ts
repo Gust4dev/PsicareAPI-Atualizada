@@ -54,8 +54,8 @@ export const downloadFileFromGridFS = (req: Request, res: Response) => {
 
   downloadStream.on("file", (file) => {
     res.set({
-      'Content-Type': file.contentType,
-      'Content-Disposition': `attachment; filename="${file.filename}"`,
+      "Content-Type": file.contentType,
+      "Content-Disposition": `attachment; filename="${file.filename}"`,
     });
   });
 

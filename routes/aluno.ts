@@ -17,7 +17,11 @@ const router = Router();
 router.post("/", authMiddleware([0]), criarAluno);
 router.get("/", authMiddleware([0, 1, 2]), listarAlunos);
 router.get("/:id", authMiddleware([0, 1, 2]), obterAlunoPorID);
-router.get("/professor/:id", authMiddleware([0, 1, 2]), listarAlunosPorProfessorId);
+router.get(
+  "/professor/:id",
+  authMiddleware([0, 1, 2]),
+  listarAlunosPorProfessorId
+);
 router.get("/ultimo/criado", authMiddleware([0, 1]), obterUltimoAlunoCriado);
 router.patch("/:id", authMiddleware([0]), atualizarAluno);
 router.delete("/:id", authMiddleware([0]), deletarAluno);

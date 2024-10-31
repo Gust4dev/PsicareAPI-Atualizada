@@ -12,12 +12,26 @@ export async function criarRelatorio(req: Request, res: Response) {
   try {
     const {
       pacienteId,
-      alunoId,
       nome_funcionario,
       ultimaAtualizacao,
       conteudo,
       ativoRelatorio,
+      alunoId,
     } = req.body;
+
+    if (req.user?.cargo === 3) {
+      if (!req.user.alunoId) {
+        return res.status(401).json({
+          message: "Usuário aluno não autenticado ou alunoId não encontrado.",
+        });
+      }
+    } else {
+      if (!alunoId) {
+        return res.status(400).json({
+          message: "alunoId deve ser fornecido para administradores.",
+        });
+      }
+    }
 
     const paciente = await Paciente.findById(pacienteId)
       .populate("nome", "dataNascimento")
@@ -27,7 +41,8 @@ export async function criarRelatorio(req: Request, res: Response) {
       throw new Error("Paciente não encontrado.");
     }
 
-    const aluno = await Aluno.findById(alunoId)
+    const alunoIdToUse = req.user?.cargo === 3 ? req.user.alunoId : alunoId;
+    const aluno = await Aluno.findById(alunoIdToUse)
       .populate("nome")
       .session(session);
 
@@ -81,7 +96,7 @@ export async function listarRelatorios(req: Request, res: Response) {
     dataCriacao,
     ativoRelatorio,
   } = req.query;
-  
+
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
@@ -106,6 +121,12 @@ export async function listarRelatorios(req: Request, res: Response) {
 
     if (req.user && req.user.cargo === 3 && req.user.alunoId) {
       searchQuery.alunoId = req.user.alunoId;
+    } else if (req.user && req.user.cargo === 2 && req.user.professorId) {
+      const alunos = await Aluno.find({
+        professorId: req.user.professorId,
+      }).select("_id");
+      const alunoIds = alunos.map((aluno) => aluno._id);
+      searchQuery.alunoId = { $in: alunoIds };
     }
 
     if (dataCriacao) {
@@ -146,7 +167,6 @@ export async function listarRelatorios(req: Request, res: Response) {
   }
 }
 
-
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {
   const { id } = req.params;
@@ -154,7 +174,7 @@ export async function atualizarRelatorio(req: Request, res: Response) {
   const { prontuario, assinatura } = req.fileIds || {};
 
   try {
-    const relatorioAtualizado = await Relatorio.findByIdAndUpdate(
+    await Relatorio.findByIdAndUpdate(
       id,
       {
         $set: {
@@ -164,15 +184,34 @@ export async function atualizarRelatorio(req: Request, res: Response) {
         },
       },
       { new: true, runValidators: true }
-    ).lean();
+    );
+
+    const relatorioAtualizado = await Relatorio.findById(id)
+      .populate<{ alunoId: { nome: string } }>("alunoId", "nome")
+      .populate<{ pacienteId: { nome: string } }>("pacienteId", "nome")
+      .lean();
 
     if (!relatorioAtualizado) {
       return res.status(404).json({ message: "Relatório não encontrado" });
     }
 
+    const nomeAluno = relatorioAtualizado.alunoId?.nome || null;
+    const nomePaciente = relatorioAtualizado.pacienteId?.nome || null;
+
+    await Relatorio.findByIdAndUpdate(id, {
+      $set: {
+        nomeAluno,
+        nomePaciente,
+      },
+    });
+
     res.json({
       message: "Relatório atualizado com sucesso",
-      relatorio: relatorioAtualizado,
+      relatorio: {
+        ...relatorioAtualizado,
+        nomeAluno,
+        nomePaciente,
+      },
     });
   } catch (error) {
     res.status(500).json({ message: "Erro ao atualizar relatório", error });

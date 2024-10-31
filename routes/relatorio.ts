@@ -17,7 +17,7 @@ const router = Router();
 
 // Rotas Relatorio
 router.post(
-  "/",
+  "/", authMiddleware([0, 1, 3]),
   upload.fields([{ name: "prontuario" }, { name: "assinatura" }]),
   uploadFilesToGridFS,
   criarRelatorio

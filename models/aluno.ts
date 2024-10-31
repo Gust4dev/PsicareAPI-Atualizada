@@ -1,4 +1,4 @@
-import mongoose, { Schema, Document } from 'mongoose';
+import mongoose, { Schema, Document } from "mongoose";
 
 export interface AlunoInterface extends Document {
   matricula: string;
@@ -9,10 +9,9 @@ export interface AlunoInterface extends Document {
   email: string;
   nomeProfessor: string;
   professorId: Schema.Types.ObjectId;
-  alunoUnieva: boolean; 
+  alunoUnieva: boolean;
   funcionarioUnieva: boolean;
 }
-
 
 const AlunoSchema: Schema = new Schema({
   matricula: { type: String, required: true, unique: true },
@@ -22,11 +21,15 @@ const AlunoSchema: Schema = new Schema({
   telefone: { type: String, required: true },
   email: { type: String, required: true, unique: true },
   nomeProfessor: { type: String, required: true },
-  professorId: { type: Schema.Types.ObjectId, ref: 'Professor', required: true },
+  professorId: {
+    type: Schema.Types.ObjectId,
+    ref: "Professor",
+    required: true,
+  },
   alunoUnieva: { type: Boolean, default: true },
   funcionarioUnieva: { type: Boolean, default: false },
 });
 
 AlunoSchema.index({ professorId: 1 });
 
-export const Aluno = mongoose.model<AlunoInterface>('Aluno', AlunoSchema);
+export const Aluno = mongoose.model<AlunoInterface>("Aluno", AlunoSchema);

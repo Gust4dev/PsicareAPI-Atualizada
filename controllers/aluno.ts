@@ -152,7 +152,6 @@ export const listarAlunos = async (req: Request, res: Response) => {
   }
 };
 
-
 // Obter dados de um aluno por ID
 export async function obterAlunoPorID(req: Request, res: Response) {
   try {
