@@ -5,6 +5,8 @@ import { GridFSBucket } from "mongodb";
 import { getGridFSBucket } from "../config/gridfs";
 import multer from "multer";
 import { ObjectId } from "mongodb";
+import Professor from "../models/professor";
+import { Aluno } from "../models/aluno";
 
 dotenv.config();
 
@@ -12,9 +14,11 @@ declare module "express-serve-static-core" {
   interface Request {
     user?: {
       cargo: number;
+      professorId?: string;
+      alunoId?: string;
       [key: string]: any;
     };
-    fileIds?: { prontuario?: any, assinatura?: any };
+    fileIds?: { prontuario?: any; assinatura?: any };
   }
 }
 
@@ -23,10 +27,13 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-export const uploadFilesToGridFS = (req: Request, res: Response, next: NextFunction) => {
-  next(); // removido temporariamente 
+export const uploadFilesToGridFS = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  next(); // removido temporariamente
 };
-
 
 export const downloadFileFromGridFS = (req: Request, res: Response) => {
   const bucket: GridFSBucket = getGridFSBucket();
@@ -48,7 +55,7 @@ export const downloadFileFromGridFS = (req: Request, res: Response) => {
   downloadStream.on("file", (file) => {
     res.set({
       'Content-Type': file.contentType,
-      'Content-Disposition': `attachment; filename="${file.filename}"`
+      'Content-Disposition': `attachment; filename="${file.filename}"`,
     });
   });
 
@@ -60,7 +67,7 @@ export const downloadFileFromGridFS = (req: Request, res: Response) => {
 };
 
 export const authMiddleware = (requiredRoles: number[]) => {
-  return (req: Request, res: Response, next: NextFunction) => {
+  return async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers["authorization"];
     const token = authHeader && authHeader.split(" ")[1];
 
@@ -71,10 +78,27 @@ export const authMiddleware = (requiredRoles: number[]) => {
     try {
       const decoded = jwt.verify(token, JWT_SECRET) as {
         cargo: number;
+        email: string;
         [key: string]: any;
       };
 
       req.user = decoded;
+
+      if (decoded.cargo === 2) {
+        const professor = await Professor.findOne({ email: decoded.email });
+        if (professor && professor._id) {
+          req.user.professorId = professor._id.toString();
+        } else {
+          console.error("Professor não encontrado com o email fornecido.");
+        }
+      } else if (decoded.cargo === 3) {
+        const aluno = await Aluno.findOne({ email: decoded.email });
+        if (aluno && aluno._id) {
+          req.user.alunoId = aluno._id.toString();
+        } else {
+          console.error("Aluno não encontrado com o email fornecido.");
+        }
+      }
 
       if (requiredRoles.includes(decoded.cargo)) {
         return next();

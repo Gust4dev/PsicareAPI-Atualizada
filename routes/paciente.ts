@@ -15,7 +15,7 @@ const router = Router();
 
 // Rotas para Pacientes
 router.post("/", authMiddleware([0, 1]), criarPaciente);
-router.get("/", authMiddleware([0, 1, 2]), listarPacientes);
+router.get("/", authMiddleware([0, 1, 2, 3]), listarPacientes);
 router.get("/:id", authMiddleware([0, 1, 2]), obterPacientePorID);
 router.get("/aluno/:id", authMiddleware([0, 1, 2]), listarPacientesPorAlunoId);
 router.get("/ultimo/criado", authMiddleware([0, 1]), obterUltimoPacienteCriado);

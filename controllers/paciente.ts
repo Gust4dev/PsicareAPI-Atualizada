@@ -223,6 +223,18 @@ export const listarPacientes = async (req: Request, res: Response) => {
       };
     }
 
+    if (req.user && req.user.cargo === 3 && req.user.alunoId) {
+      searchQuery.alunoId = req.user.alunoId;
+    }
+
+    if (req.user && req.user.cargo === 2 && req.user.professorId) {
+      const alunos = await Aluno.find({
+        professorId: req.user.professorId,
+      }).select("_id");
+      const alunoIds = alunos.map((aluno) => aluno._id);
+      searchQuery.alunoId = { $in: alunoIds };
+    }
+
     const pacientes = await Paciente.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit)

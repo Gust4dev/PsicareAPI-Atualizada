@@ -107,7 +107,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
   const limit = 15;
 
   try {
-    const searchQuery = {
+    const searchQuery: any = {
       ...(q && {
         $or: [
           { nome: { $regex: q, $options: "i" } },
@@ -116,7 +116,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
           { matricula: { $regex: q, $options: "i" } },
           { telefone: { $regex: q, $options: "i" } },
           { periodo: { $regex: q, $options: "i" } },
-          { nomeProfessor: { $regex: q, $options: "i" } },
+          { nomeProfessor: { $regex: nomeProfessor, $options: "i" } },
         ],
       }),
       ...(nome && { nome: { $regex: nome, $options: "i" } }),
@@ -129,6 +129,10 @@ export const listarAlunos = async (req: Request, res: Response) => {
         nomeProfessor: { $regex: nomeProfessor, $options: "i" },
       }),
     };
+
+    if (req.user && req.user.cargo === 2 && req.user.professorId) {
+      searchQuery.professorId = req.user.professorId;
+    }
 
     const alunos = await Aluno.find(searchQuery)
       .skip((page - 1) * limit)
@@ -147,6 +151,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Erro ao buscar alunos", error });
   }
 };
+
 
 // Obter dados de um aluno por ID
 export async function obterAlunoPorID(req: Request, res: Response) {

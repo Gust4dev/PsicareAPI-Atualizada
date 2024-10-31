@@ -90,8 +90,10 @@ export const listarProfessores = async (req: Request, res: Response) => {
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
+  const { cargo, userId } = req.user as any;
+
   try {
-    const searchQuery = {
+    let searchQuery: any = {
       ...(q && {
         $or: [
           { nome: { $regex: q, $options: "i" } },
@@ -107,6 +109,17 @@ export const listarProfessores = async (req: Request, res: Response) => {
       ...(email && { email: { $regex: email, $options: "i" } }),
       ...(disciplina && { disciplina: { $regex: disciplina, $options: "i" } }),
     };
+
+    if (cargo === 2) {
+      const professor = await Professor.findOne({ userId });
+      if (professor) {
+        searchQuery = { ...searchQuery, _id: professor._id };
+      } else {
+        return res
+          .status(403)
+          .json({ message: "Acesso restrito aos dados do próprio professor" });
+      }
+    }
 
     const professores = await Professor.find(searchQuery)
       .skip((page - 1) * limit)

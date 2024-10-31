@@ -92,7 +92,7 @@ export async function criarConsulta(req: Request, res: Response) {
       if (conflitoNaSala) {
         await session.abortTransaction();
         return res.status(400).json({
-          error: `Conflito de horário na sala para a data ${novaStartDate.toISOString()}. Escolha outro horário ou sala.`,
+          error: `Conflito de horário na sala. Escolha outro horário ou sala.`,
         });
       }
 
@@ -154,6 +154,10 @@ export const listarConsultas = async (req: Request, res: Response) => {
       }),
     };
 
+    if (req.user && req.user.cargo === 3 && req.user.alunoId) {
+      searchQuery.alunoId = req.user.alunoId;
+    }
+
     if (createAt) {
       const date = new Date(createAt as string);
       if (!isNaN(date.getTime())) {
@@ -200,6 +204,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
   }
 };
 
+//obter consulta por id
 export async function obterConsultaPorID(req: Request, res: Response) {
   try {
     const consultaID = req.params.id;

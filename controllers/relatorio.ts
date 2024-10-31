@@ -81,6 +81,7 @@ export async function listarRelatorios(req: Request, res: Response) {
     dataCriacao,
     ativoRelatorio,
   } = req.query;
+  
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
 
@@ -102,6 +103,10 @@ export async function listarRelatorios(req: Request, res: Response) {
         tipoTratamento: { $regex: tipoTratamento, $options: "i" },
       }),
     };
+
+    if (req.user && req.user.cargo === 3 && req.user.alunoId) {
+      searchQuery.alunoId = req.user.alunoId;
+    }
 
     if (dataCriacao) {
       const dateStr = dataCriacao as string;
@@ -140,6 +145,7 @@ export async function listarRelatorios(req: Request, res: Response) {
     res.status(500).json({ message: "Erro ao buscar relatórios", error });
   }
 }
+
 
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {
