@@ -35,9 +35,8 @@ const RelatorioSchema: Schema = new Schema({
   alunoId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Aluno",
-    required: true,
   },
-  nomeAluno: { type: String, required: true },
+  nomeAluno: { type: String },
   funcionarioUnieva: { type: Boolean, default: false },
   nome_funcionario: { type: String, required: false },
   dataCriacao: { type: Date, default: Date.now },

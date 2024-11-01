@@ -19,18 +19,19 @@ export async function criarRelatorio(req: Request, res: Response) {
       alunoId,
     } = req.body;
 
+    let alunoIdToUse = alunoId;
+
     if (req.user?.cargo === 3) {
       if (!req.user.alunoId) {
         return res.status(401).json({
-          message: "Usuário aluno não autenticado ou alunoId não encontrado.",
+          message: "Usuário não autenticado.",
         });
       }
-    } else {
-      if (!alunoId) {
-        return res.status(400).json({
-          message: "alunoId deve ser fornecido para administradores.",
-        });
-      }
+      alunoIdToUse = req.user.alunoId;
+    } else if (!alunoId && !nome_funcionario) {
+      return res.status(400).json({
+        message: "Aluno ou funcionário deve ser vinculado.",
+      });
     }
 
     const paciente = await Paciente.findById(pacienteId)
@@ -41,13 +42,18 @@ export async function criarRelatorio(req: Request, res: Response) {
       throw new Error("Paciente não encontrado.");
     }
 
-    const alunoIdToUse = req.user?.cargo === 3 ? req.user.alunoId : alunoId;
-    const aluno = await Aluno.findById(alunoIdToUse)
-      .populate("nome")
-      .session(session);
+    let aluno = null;
+    let nomeAluno = null;
 
-    if (!aluno) {
-      throw new Error("Aluno não encontrado.");
+    if (alunoIdToUse) {
+      aluno = await Aluno.findById(alunoIdToUse)
+        .populate("nome")
+        .session(session);
+
+      if (!aluno) {
+        throw new Error("Aluno não encontrado.");
+      }
+      nomeAluno = aluno.nome;
     }
 
     const novoRelatorio = new Relatorio({
@@ -57,11 +63,11 @@ export async function criarRelatorio(req: Request, res: Response) {
       dataInicioTratamento: paciente.dataInicioTratamento,
       dataTerminoTratamento: paciente.dataTerminoTratamento,
       tipoTratamento: paciente.tipoDeTratamento,
-      alunoUnieva: aluno.alunoUnieva,
-      alunoId: aluno._id,
-      nomeAluno: aluno.nome,
-      funcionarioUnieva: aluno.funcionarioUnieva,
-      nome_funcionario,
+      alunoUnieva: !!alunoIdToUse,
+      alunoId: alunoIdToUse || null,
+      nomeAluno: nomeAluno || null,
+      funcionarioUnieva: !alunoIdToUse,
+      nome_funcionario: nomeAluno ? null : nome_funcionario,
       dataCriacao: new Date(),
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
       conteudo,
@@ -146,18 +152,29 @@ export async function listarRelatorios(req: Request, res: Response) {
     const totalItems = await Relatorio.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
 
-    const relatoriosComArquivos = relatorios.map((relatorio) => ({
-      ...relatorio,
-      prontuario: relatorio.prontuario
-        ? `/relatorio/download/${relatorio.prontuario}`
-        : null,
-      assinatura: relatorio.assinatura
-        ? `/relatorio/download/${relatorio.assinatura}`
-        : null,
-    }));
+    const relatoriosComCamposFiltrados = relatorios.map((relatorio) => {
+      const camposFiltrados: any = {
+        ...relatorio,
+        prontuario: relatorio.prontuario
+          ? `/relatorio/download/${relatorio.prontuario}`
+          : null,
+        assinatura: relatorio.assinatura
+          ? `/relatorio/download/${relatorio.assinatura}`
+          : null,
+      };
+
+      if (relatorio.alunoUnieva) {
+        delete camposFiltrados.nome_funcionario;
+      } else if (relatorio.funcionarioUnieva) {
+        delete camposFiltrados.alunoId;
+        delete camposFiltrados.nomeAluno;
+      }
+
+      return camposFiltrados;
+    });
 
     res.json({
-      relatorios: relatoriosComArquivos,
+      relatorios: relatoriosComCamposFiltrados,
       totalItems,
       totalPages,
       currentPage: page,
@@ -170,10 +187,26 @@ export async function listarRelatorios(req: Request, res: Response) {
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {
   const { id } = req.params;
-  const dadosAtualizados = req.body;
+  let dadosAtualizados = req.body;
   const { prontuario, assinatura } = req.fileIds || {};
 
   try {
+    if (req.user) {
+      if (req.user.cargo === 3) {
+        dadosAtualizados = {
+          ...dadosAtualizados,
+          alunoId: req.user.alunoId,
+          nome_funcionario: null,
+        };
+      } else if (req.user.cargo === 2) {
+        dadosAtualizados = {
+          assinatura: assinatura ? assinatura : undefined,
+        };
+      } else if (req.user.cargo === 3 && dadosAtualizados.funcionarioUnieva) {
+        dadosAtualizados.nome_funcionario = null;
+      }
+    }
+
     await Relatorio.findByIdAndUpdate(
       id,
       {
