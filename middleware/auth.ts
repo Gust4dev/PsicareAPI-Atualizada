@@ -1,10 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import mongoose from "mongoose";
 import { GridFSBucket } from "mongodb";
 import { getGridFSBucket } from "../config/gridfs";
 import multer from "multer";
-import { ObjectId } from "mongodb";
 import Professor from "../models/professor";
 import { Aluno } from "../models/aluno";
 
@@ -27,43 +27,83 @@ const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
 const storage = multer.memoryStorage();
 export const upload = multer({ storage });
 
-export const uploadFilesToGridFS = (
+export async function getFilesWithNames(ids: mongoose.Types.ObjectId[]) {
+  const bucket: GridFSBucket = getGridFSBucket();
+
+  const filesWithNames = await Promise.all(
+    ids.map(async (id) => {
+      try {
+        if (!(id instanceof mongoose.Types.ObjectId)) {
+          console.warn(`ID inválido detectado: ${id}`);
+          return { id, nome: "ID inválido" };
+        }
+
+        const files = await bucket.find({ _id: id }).toArray();
+
+        if (files.length > 0) {
+          return { id: files[0]._id, nome: files[0].filename };
+        } else {
+          console.warn(`Nenhum arquivo encontrado no GridFS para o ID ${id}`);
+          return { id, nome: "Nome do arquivo não encontrado" };
+        }
+      } catch (error: any) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Erro desconhecido";
+        console.error(
+          `Erro ao buscar arquivo no GridFS para o ID ${id}:`,
+          errorMessage
+        );
+        return { id, nome: "Erro ao buscar o nome do arquivo" };
+      }
+    })
+  );
+  return filesWithNames.filter((file) => file !== null);
+}
+
+export const uploadFilesToGridFS = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  next(); // removido temporariamente
-};
-
-export const downloadFileFromGridFS = (req: Request, res: Response) => {
   const bucket: GridFSBucket = getGridFSBucket();
-  const { fileId } = req.params;
+  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
 
-  if (!fileId) {
-    return res.status(400).send("File ID não fornecido.");
+  if (!req.fileIds) {
+    req.fileIds = { prontuario: [], assinatura: [] };
   }
 
-  let fileObjectId: ObjectId;
   try {
-    fileObjectId = new ObjectId(fileId);
+    for (const field in files) {
+      if (field === "prontuario" || field === "assinatura") {
+        for (const file of files[field]) {
+          const uploadStream = bucket.openUploadStream(file.originalname, {
+            contentType: file.mimetype,
+          });
+          uploadStream.end(file.buffer);
+
+          await new Promise<void>((resolve, reject) => {
+            uploadStream.on("finish", () => {
+              req.fileIds![field].push(uploadStream.id);
+              resolve();
+            });
+            uploadStream.on("error", (error) => {
+              console.error(
+                `Erro no upload do arquivo ${file.originalname}:`,
+                error
+              );
+              reject(error);
+            });
+          });
+        }
+      }
+    }
+    next();
   } catch (error) {
-    return res.status(400).send("ID de arquivo inválido.");
+    console.error("Erro ao fazer upload dos arquivos:", error);
+    res
+      .status(500)
+      .json({ message: "Erro ao fazer upload dos arquivos", error });
   }
-
-  const downloadStream = bucket.openDownloadStream(fileObjectId);
-
-  downloadStream.on("file", (file) => {
-    res.set({
-      "Content-Type": file.contentType,
-      "Content-Disposition": `attachment; filename="${file.filename}"`,
-    });
-  });
-
-  downloadStream.on("error", () => {
-    res.status(404).send("Arquivo não encontrado.");
-  });
-
-  downloadStream.pipe(res);
 };
 
 export const authMiddleware = (requiredRoles: number[]) => {

@@ -3,6 +3,8 @@ import mongoose from "mongoose";
 import Relatorio from "../models/relatorio";
 import Paciente from "../models/Paciente";
 import { Aluno } from "../models/aluno";
+import { getGridFSBucket } from "../config/gridfs";
+import { getFilesWithNames } from "../middleware/auth";
 
 // Criar relatório
 export async function criarRelatorio(req: Request, res: Response) {
@@ -56,6 +58,12 @@ export async function criarRelatorio(req: Request, res: Response) {
       nomeAluno = aluno.nome;
     }
 
+    const prontuarioIds = req.fileIds?.prontuario || [];
+    const assinaturaIds = req.fileIds?.assinatura || [];
+
+    const prontuarioFiles = await getFilesWithNames(prontuarioIds);
+    const assinaturaFiles = await getFilesWithNames(assinaturaIds);
+
     const novoRelatorio = new Relatorio({
       pacienteId,
       nomePaciente: paciente.nome,
@@ -72,10 +80,11 @@ export async function criarRelatorio(req: Request, res: Response) {
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
       conteudo,
       ativoRelatorio: ativoRelatorio ?? true,
+      prontuario: prontuarioFiles,
+      assinatura: assinaturaFiles,
     });
 
     await novoRelatorio.save({ session });
-
     await session.commitTransaction();
     session.endSession();
 
@@ -84,11 +93,13 @@ export async function criarRelatorio(req: Request, res: Response) {
       relatorio: novoRelatorio,
     });
   } catch (error: any) {
+    console.error("Erro ao criar relatório:", error.message);
+
     await session.abortTransaction();
     session.endSession();
-    return res
-      .status(400)
-      .json({ message: error.message || "Erro ao criar o relatório." });
+    return res.status(400).json({
+      message: error.message || "Erro ao criar o relatório.",
+    });
   }
 }
 
@@ -156,11 +167,17 @@ export async function listarRelatorios(req: Request, res: Response) {
       const camposFiltrados: any = {
         ...relatorio,
         prontuario: relatorio.prontuario
-          ? `/relatorio/download/${relatorio.prontuario}`
-          : null,
+          ? relatorio.prontuario.map((item) => ({
+              nome: item.nome,
+              id: `/relatorio/download/${item.id}`,
+            }))
+          : [],
         assinatura: relatorio.assinatura
-          ? `/relatorio/download/${relatorio.assinatura}`
-          : null,
+          ? relatorio.assinatura.map((item) => ({
+              nome: item.nome,
+              id: `/relatorio/download/${item.id}`,
+            }))
+          : [],
       };
 
       if (relatorio.alunoUnieva) {
@@ -186,112 +203,160 @@ export async function listarRelatorios(req: Request, res: Response) {
 
 //atualizar relatorio
 export async function atualizarRelatorio(req: Request, res: Response) {
-  const { id } = req.params;
-  let dadosAtualizados = req.body;
-  const { prontuario, assinatura } = req.fileIds || {};
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  if (!req.params.id) {
+    return res.status(400).json({ message: "ID do relatório não fornecido." });
+  }
+
+  const relatorioId = new mongoose.Types.ObjectId(req.params.id);
+  const relatorio = await Relatorio.findById(relatorioId);
+  if (!relatorio) {
+    return res.status(404).json({ message: "Relatório não encontrado." });
+  }
 
   try {
-    if (req.user) {
-      if (req.user.cargo === 3) {
-        dadosAtualizados = {
-          ...dadosAtualizados,
-          alunoId: req.user.alunoId,
-          nome_funcionario: null,
-        };
-      } else if (req.user.cargo === 2) {
-        dadosAtualizados = {
-          assinatura: assinatura ? assinatura : undefined,
-        };
-      } else if (req.user.cargo === 3 && dadosAtualizados.funcionarioUnieva) {
-        dadosAtualizados.nome_funcionario = null;
+    const prontuarioIds = req.fileIds?.prontuario || [];
+    const assinaturaIds = req.fileIds?.assinatura || [];
+
+    const prontuarioFiles = await getFilesWithNames(prontuarioIds);
+    const assinaturaFiles = await getFilesWithNames(assinaturaIds);
+
+    if (req.user && req.user.cargo === 2) {
+      if (assinaturaFiles.length > 0) {
+        relatorio.assinatura =
+          relatorio.assinatura?.filter(
+            (file) =>
+              !assinaturaFiles.some((newFile) => newFile.id.equals(file.id))
+          ) || [];
+
+        relatorio.assinatura.push(...assinaturaFiles);
+      }
+    } else {
+      relatorio.prontuario =
+        relatorio.prontuario?.filter((file) =>
+          prontuarioFiles.some((newFile) => newFile.id.equals(file.id))
+        ) || [];
+
+      const novosProntuarios = prontuarioFiles.filter(
+        (newFile) =>
+          !relatorio.prontuario?.some((file) => file.id.equals(newFile.id))
+      );
+      relatorio.prontuario.push(...novosProntuarios);
+
+      if (assinaturaFiles.length > 0) {
+        relatorio.assinatura =
+          relatorio.assinatura?.filter(
+            (file) =>
+              !assinaturaFiles.some((newFile) => newFile.id.equals(file.id))
+          ) || [];
+        relatorio.assinatura.push(...assinaturaFiles);
       }
     }
 
-    await Relatorio.findByIdAndUpdate(
-      id,
-      {
-        $set: {
-          ...dadosAtualizados,
-          prontuario: prontuario ? prontuario : undefined,
-          assinatura: assinatura ? assinatura : undefined,
-        },
-      },
-      { new: true, runValidators: true }
+    await relatorio.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      message: "Relatório atualizado com sucesso.",
+      relatorio,
+    });
+  } catch (error: any) {
+    console.error("Erro ao atualizar relatório:", error);
+
+    await session.abortTransaction();
+    session.endSession();
+    return res.status(400).json({
+      message: error.message || "Erro ao atualizar o relatório.",
+    });
+  }
+}
+
+//Download arquivo
+export async function baixarArquivo(req: Request, res: Response) {
+  const fileId = req.params.fileId;
+
+  const gfs = getGridFSBucket();
+
+  try {
+    const readstream = gfs.openDownloadStream(
+      new mongoose.Types.ObjectId(fileId)
     );
 
-    const relatorioAtualizado = await Relatorio.findById(id)
-      .populate<{ alunoId: { nome: string } }>("alunoId", "nome")
-      .populate<{ pacienteId: { nome: string } }>("pacienteId", "nome")
-      .lean();
-
-    if (!relatorioAtualizado) {
-      return res.status(404).json({ message: "Relatório não encontrado" });
-    }
-
-    const nomeAluno = relatorioAtualizado.alunoId?.nome || null;
-    const nomePaciente = relatorioAtualizado.pacienteId?.nome || null;
-
-    await Relatorio.findByIdAndUpdate(id, {
-      $set: {
-        nomeAluno,
-        nomePaciente,
-      },
+    readstream.on("error", (err) => {
+      console.error("Erro ao abrir o stream de download:", err);
+      return res.status(404).json({ message: "Arquivo não encontrado." });
     });
 
-    res.json({
-      message: "Relatório atualizado com sucesso",
-      relatorio: {
-        ...relatorioAtualizado,
-        nomeAluno,
-        nomePaciente,
-      },
+    readstream.on("file", (file) => {
+      if (!file || file.length === 0) {
+        return res.status(404).json({ message: "Arquivo não encontrado." });
+      }
+
+      res.set("Content-Type", file.contentType);
+      res.set("Content-Disposition", `attachment; filename=${file.filename}`);
     });
-  } catch (error) {
-    res.status(500).json({ message: "Erro ao atualizar relatório", error });
+
+    readstream.pipe(res);
+  } catch (err) {
+    console.error("Erro ao baixar o arquivo:", err);
+    res.status(500).json({ message: "Erro ao baixar o arquivo.", error: err });
   }
 }
 
 //Deletar relatorio
 export async function deletarRelatorio(req: Request, res: Response) {
   const { id } = req.params;
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
   try {
-    const relatorioDeletado = await Relatorio.findByIdAndDelete(id).lean();
+    const relatorio = await Relatorio.findById(id).lean();
 
-    if (!relatorioDeletado) {
+    if (!relatorio) {
       return res.status(404).json({ message: "Relatório não encontrado" });
     }
 
+    const relatorioDeletado = await Relatorio.findByIdAndDelete(id).session(
+      session
+    );
+
+    const bucket = getGridFSBucket();
+
+    const arquivosParaDeletar = [
+      ...(relatorio.prontuario || []),
+      ...(relatorio.assinatura || []),
+    ];
+
+    for (const file of arquivosParaDeletar) {
+      if (file && file.id) {
+        try {
+          await bucket.delete(new mongoose.Types.ObjectId(file.id));
+        } catch (deleteError) {
+          console.error(
+            `Erro ao deletar o arquivo com ID ${file.id}:`,
+            deleteError
+          );
+        }
+      } else {
+      }
+    }
+
+    await session.commitTransaction();
+    session.endSession();
+
     res.json({
-      message: "Relatório deletado com sucesso",
+      message: "Relatório e arquivos deletados com sucesso",
       relatorio: relatorioDeletado,
     });
   } catch (error) {
-    res.status(500).json({ message: "Erro ao deletar relatório", error });
-  }
-}
-
-//Arquivar relatorio
-export async function arquivarRelatorio(req: Request, res: Response) {
-  try {
-    const { id } = req.params;
-
-    const relatorio = await Relatorio.findById(id);
-
-    if (!relatorio) {
-      return res.status(404).json({ error: "Relatório não encontrado." });
-    }
-
-    if (!relatorio.ativoRelatorio) {
-      return res.status(400).json({ error: "Relatório já está arquivado." });
-    }
-
-    relatorio.ativoRelatorio = false;
-
-    await relatorio.save();
-
-    res.status(200).json({ message: "Relatório arquivado com sucesso." });
-  } catch (error: any) {
-    res.status(500).json({ error: "Erro ao arquivar relatório." });
+    console.error("Erro ao tentar deletar relatório e arquivos:", error);
+    await session.abortTransaction();
+    session.endSession();
+    res
+      .status(500)
+      .json({ message: "Erro ao deletar relatório e arquivos", error });
   }
 }

@@ -8,7 +8,7 @@ declare namespace Express {
       userId?: string;
       [key: string]: any;
     };
-    fileIds?: { prontuario?: any; assinatura?: any };
+    fileIds?: { prontuario?: ObjectId[]; assinatura?: ObjectId[] };
   }
 }
 
