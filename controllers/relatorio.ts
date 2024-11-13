@@ -19,6 +19,7 @@ export async function criarRelatorio(req: Request, res: Response) {
       conteudo,
       ativoRelatorio,
       alunoId,
+      dataCriacao,
     } = req.body;
 
     let alunoIdToUse = alunoId;
@@ -66,6 +67,7 @@ export async function criarRelatorio(req: Request, res: Response) {
 
     const novoRelatorio = new Relatorio({
       pacienteId,
+      dataCriacao,
       nomePaciente: paciente.nome,
       dataNascimentoPaciente: paciente.dataNascimento,
       dataInicioTratamento: paciente.dataInicioTratamento,
@@ -76,7 +78,6 @@ export async function criarRelatorio(req: Request, res: Response) {
       nomeAluno: nomeAluno || null,
       funcionarioUnieva: !alunoIdToUse,
       nome_funcionario: nomeAluno ? null : nome_funcionario,
-      dataCriacao: new Date(),
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
       conteudo,
       ativoRelatorio: ativoRelatorio ?? true,
