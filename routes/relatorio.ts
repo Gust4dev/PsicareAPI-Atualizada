@@ -5,6 +5,7 @@ import {
   atualizarRelatorio,
   deletarRelatorio,
   baixarArquivo,
+  arquivarRelatorio,
 } from "../controllers/relatorio";
 import {
   authMiddleware,
@@ -22,7 +23,16 @@ router.post(
   uploadFilesToGridFS,
   criarRelatorio
 );
-
+router.get("/download/:fileId", baixarArquivo);
+router.get("/", authMiddleware([0, 2, 3]), listarRelatorios);
+router.delete("/:id", authMiddleware([0]), deletarRelatorio);
+router.patch("/arquivar/:id", authMiddleware([0, 3]), arquivarRelatorio);
+router.patch(
+  "/:id",
+  authMiddleware([0, 2, 3]),
+  uploadFilesToGridFS,
+  atualizarRelatorio
+);
 router.patch(
   "/:id",
   authMiddleware([0, 2, 3]),
@@ -30,15 +40,5 @@ router.patch(
   uploadFilesToGridFS,
   atualizarRelatorio
 );
-
-router.get("/", authMiddleware([0, 2, 3]), listarRelatorios);
-router.delete("/:id", authMiddleware([0]), deletarRelatorio);
-router.patch(
-  "/:id",
-  authMiddleware([0, 2, 3]),
-  uploadFilesToGridFS,
-  atualizarRelatorio
-);
-router.get("/download/:fileId", baixarArquivo);
 
 export default router;

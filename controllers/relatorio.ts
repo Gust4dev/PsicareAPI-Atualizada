@@ -111,6 +111,7 @@ export async function listarRelatorios(req: Request, res: Response) {
     nomeAluno,
     nomePaciente,
     tipoTratamento,
+    nome_funcionario,
     dataCriacao,
     ativoRelatorio,
   } = req.query;
@@ -126,6 +127,7 @@ export async function listarRelatorios(req: Request, res: Response) {
           { nomeAluno: { $regex: q, $options: "i" } },
           { nomePaciente: { $regex: q, $options: "i" } },
           { tipoTratamento: { $regex: q, $options: "i" } },
+          { nome_funcionario: { $regex: q, $options: "i" } },
         ],
       }),
       ...(nomeAluno && { nomeAluno: { $regex: nomeAluno, $options: "i" } }),
@@ -134,6 +136,9 @@ export async function listarRelatorios(req: Request, res: Response) {
       }),
       ...(tipoTratamento && {
         tipoTratamento: { $regex: tipoTratamento, $options: "i" },
+      }),
+      ...(nome_funcionario && {
+        nome_funcionario: { $regex: nome_funcionario, $options: "i" },
       }),
     };
 
@@ -304,6 +309,31 @@ export async function baixarArquivo(req: Request, res: Response) {
   } catch (err) {
     console.error("Erro ao baixar o arquivo:", err);
     res.status(500).json({ message: "Erro ao baixar o arquivo.", error: err });
+  }
+}
+
+//Arquivar relatorio
+export async function arquivarRelatorio(req: Request, res: Response) {
+  try {
+    const { id } = req.params;
+
+    const relatorio = await Relatorio.findById(id);
+
+    if (!relatorio) {
+      return res.status(404).json({ error: "Relatório não encontrado." });
+    }
+
+    if (!relatorio.ativoRelatorio) {
+      return res.status(400).json({ error: "Relatório já está arquivado." });
+    }
+
+    relatorio.ativoRelatorio = false;
+
+    await relatorio.save();
+
+    res.status(200).json({ message: "Relatório arquivado com sucesso." });
+  } catch (error: any) {
+    res.status(500).json({ error: "Erro ao arquivar relatório." });
   }
 }
 
