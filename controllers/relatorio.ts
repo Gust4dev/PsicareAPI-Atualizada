@@ -261,7 +261,7 @@ export async function atualizarRelatorio(req: Request, res: Response) {
       }
     }
 
-    await relatorio.save({ session });
+    await Relatorio.findByIdAndUpdate(relatorioId, relatorio, { session });
     await session.commitTransaction();
     session.endSession();
 
@@ -279,6 +279,7 @@ export async function atualizarRelatorio(req: Request, res: Response) {
     });
   }
 }
+
 
 //Download arquivo
 export async function baixarArquivo(req: Request, res: Response) {
