@@ -261,13 +261,22 @@ export async function atualizarRelatorio(req: Request, res: Response) {
       }
     }
 
-    await Relatorio.findByIdAndUpdate(relatorioId, relatorio, { session });
+    if (typeof req.body.ativoRelatorio !== "undefined") {
+      relatorio.ativoRelatorio = req.body.ativoRelatorio;
+    }
+
+    const relatorioAtualizado = await Relatorio.findByIdAndUpdate(
+      relatorioId,
+      relatorio,
+      { new: true, session }
+    );
+
     await session.commitTransaction();
     session.endSession();
 
     return res.status(200).json({
       message: "Relatório atualizado com sucesso.",
-      relatorio,
+      relatorio: relatorioAtualizado,
     });
   } catch (error: any) {
     console.error("Erro ao atualizar relatório:", error);
@@ -279,7 +288,6 @@ export async function atualizarRelatorio(req: Request, res: Response) {
     });
   }
 }
-
 
 //Download arquivo
 export async function baixarArquivo(req: Request, res: Response) {
