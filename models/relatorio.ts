@@ -39,12 +39,22 @@ const RelatorioSchema: Schema = new Schema({
   nomeAluno: { type: String },
   funcionarioUnieva: { type: Boolean, default: false },
   nome_funcionario: { type: String, required: false },
-  dataCriacao: { type: Date },
-  ultimaAtualizacao: { type: Date, default: Date.now }, 
+  dataCriacao: { type: Date, default: Date.now },
+  ultimaAtualizacao: { type: Date, default: Date.now },
   conteudo: { type: String, required: true },
   ativoRelatorio: { type: Boolean, default: true },
-  prontuario: [{ id: mongoose.Schema.Types.ObjectId, nome: String }],
-  assinatura: [{ id: mongoose.Schema.Types.ObjectId, nome: String }],
+  prontuario: [
+    {
+      id: { type: mongoose.Schema.Types.ObjectId, required: true },
+      nome: { type: String, required: true },
+    },
+  ],
+  assinatura: [
+    {
+      id: { type: mongoose.Schema.Types.ObjectId, required: true },
+      nome: { type: String, required: true },
+    },
+  ],
 });
 
 export default mongoose.model<IRelatorio>("Relatorio", RelatorioSchema);

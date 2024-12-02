@@ -6,6 +6,7 @@ import {
   deletarRelatorio,
   baixarArquivo,
   arquivarRelatorio,
+  atualizarAssinaturaProfessor,
 } from "../controllers/relatorio";
 import {
   authMiddleware,
@@ -23,16 +24,23 @@ router.post(
   uploadFilesToGridFS,
   criarRelatorio
 );
+
 router.get("/download/:fileId", baixarArquivo);
+
 router.get("/", authMiddleware([0, 2, 3]), listarRelatorios);
+
 router.delete("/:id", authMiddleware([0]), deletarRelatorio);
+
 router.patch("/arquivar/:id", authMiddleware([0, 3]), arquivarRelatorio);
+
 router.patch(
-  "/:id",
-  authMiddleware([0, 2, 3]),
+  "/assinatura/:id",
+  upload.fields([{ name: "prontuario" }, { name: "assinatura" }]),
   uploadFilesToGridFS,
-  atualizarRelatorio
+  atualizarAssinaturaProfessor
 );
+
+
 router.patch(
   "/:id",
   authMiddleware([0, 2, 3]),

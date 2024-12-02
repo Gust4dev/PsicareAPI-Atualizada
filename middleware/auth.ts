@@ -33,31 +33,21 @@ export async function getFilesWithNames(ids: mongoose.Types.ObjectId[]) {
   const filesWithNames = await Promise.all(
     ids.map(async (id) => {
       try {
-        if (!(id instanceof mongoose.Types.ObjectId)) {
-          console.warn(`ID inválido detectado: ${id}`);
-          return { id, nome: "ID inválido" };
-        }
-
-        const files = await bucket.find({ _id: id }).toArray();
+        const files = await bucket
+          .find({ _id: new mongoose.Types.ObjectId(id) })
+          .toArray();
 
         if (files.length > 0) {
           return { id: files[0]._id, nome: files[0].filename };
-        } else {
-          console.warn(`Nenhum arquivo encontrado no GridFS para o ID ${id}`);
-          return { id, nome: "Nome do arquivo não encontrado" };
         }
-      } catch (error: any) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Erro desconhecido";
-        console.error(
-          `Erro ao buscar arquivo no GridFS para o ID ${id}:`,
-          errorMessage
-        );
+
+        return { id, nome: "Nome do arquivo não encontrado" };
+      } catch {
         return { id, nome: "Erro ao buscar o nome do arquivo" };
       }
     })
   );
-  return filesWithNames.filter((file) => file !== null);
+  return filesWithNames;
 }
 
 export const uploadFilesToGridFS = async (

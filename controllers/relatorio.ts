@@ -212,79 +212,152 @@ export async function atualizarRelatorio(req: Request, res: Response) {
   const session = await mongoose.startSession();
   session.startTransaction();
 
-  if (!req.params.id) {
-    return res.status(400).json({ message: "ID do relatório não fornecido." });
-  }
-
-  const relatorioId = new mongoose.Types.ObjectId(req.params.id);
-  const relatorio = await Relatorio.findById(relatorioId);
-  if (!relatorio) {
-    return res.status(404).json({ message: "Relatório não encontrado." });
-  }
-
   try {
-    const prontuarioIds = req.fileIds?.prontuario || [];
-    const assinaturaIds = req.fileIds?.assinatura || [];
+    const { id } = req.params;
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "ID do relatório não fornecido." });
+    }
 
-    const prontuarioFiles = await getFilesWithNames(prontuarioIds);
-    const assinaturaFiles = await getFilesWithNames(assinaturaIds);
+    const relatorioExistente = await Relatorio.findById(id).session(session);
+    if (!relatorioExistente) {
+      return res.status(404).json({ message: "Relatório não encontrado." });
+    }
 
-    if (req.user && req.user.cargo === 2) {
-      if (assinaturaFiles.length > 0) {
-        relatorio.assinatura =
-          relatorio.assinatura?.filter(
-            (file) =>
-              !assinaturaFiles.some((newFile) => newFile.id.equals(file.id))
-          ) || [];
+    const {
+      pacienteId,
+      nomePaciente,
+      dataNascimentoPaciente,
+      dataInicioTratamento,
+      dataTerminoTratamento,
+      tipoTratamento,
+      alunoUnieva,
+      alunoId,
+      nomeAluno,
+      funcionarioUnieva,
+      nome_funcionario,
+      conteudo,
+      ativoRelatorio,
+    } = req.body;
 
-        relatorio.assinatura.push(...assinaturaFiles);
+    const dadosAtualizados: Partial<typeof Relatorio> = {
+      ...(pacienteId && { pacienteId }),
+      ...(nomePaciente && { nomePaciente }),
+      ...(dataNascimentoPaciente && { dataNascimentoPaciente }),
+      ...(dataInicioTratamento && { dataInicioTratamento }),
+      ...(dataTerminoTratamento && { dataTerminoTratamento }),
+      ...(tipoTratamento && { tipoTratamento }),
+      ...(alunoUnieva !== undefined && { alunoUnieva }),
+      ...(alunoId && { alunoId }),
+      ...(nomeAluno && { nomeAluno }),
+      ...(funcionarioUnieva !== undefined && { funcionarioUnieva }),
+      ...(nome_funcionario && { nome_funcionario }),
+      ...(conteudo && { conteudo }),
+      ...(ativoRelatorio !== undefined && { ativoRelatorio }),
+    };
+
+    const files = req.files as
+      | {
+          prontuario?: Express.Multer.File[];
+          assinatura?: Express.Multer.File[];
+        }
+      | undefined;
+
+    if (files) {
+      if (files.prontuario) {
+        relatorioExistente.prontuario = files.prontuario.map((file) => ({
+          id: new mongoose.Types.ObjectId(),
+          nome: file.originalname,
+        }));
       }
-    } else {
-      relatorio.prontuario =
-        relatorio.prontuario?.filter((file) =>
-          prontuarioFiles.some((newFile) => newFile.id.equals(file.id))
-        ) || [];
 
-      const novosProntuarios = prontuarioFiles.filter(
-        (newFile) =>
-          !relatorio.prontuario?.some((file) => file.id.equals(newFile.id))
-      );
-      relatorio.prontuario.push(...novosProntuarios);
-
-      if (assinaturaFiles.length > 0) {
-        relatorio.assinatura =
-          relatorio.assinatura?.filter(
-            (file) =>
-              !assinaturaFiles.some((newFile) => newFile.id.equals(file.id))
-          ) || [];
-        relatorio.assinatura.push(...assinaturaFiles);
+      if (files.assinatura) {
+        relatorioExistente.assinatura = files.assinatura.map((file) => ({
+          id: new mongoose.Types.ObjectId(),
+          nome: file.originalname,
+        }));
       }
     }
 
-    if (typeof req.body.ativoRelatorio !== "undefined") {
-      relatorio.ativoRelatorio = req.body.ativoRelatorio;
-    }
+    Object.assign(relatorioExistente, dadosAtualizados);
+    relatorioExistente.ultimaAtualizacao = new Date();
 
-    const relatorioAtualizado = await Relatorio.findByIdAndUpdate(
-      relatorioId,
-      relatorio,
-      { new: true, session }
-    );
+    await relatorioExistente.save({ session });
 
     await session.commitTransaction();
     session.endSession();
 
     return res.status(200).json({
       message: "Relatório atualizado com sucesso.",
-      relatorio: relatorioAtualizado,
+      relatorio: relatorioExistente,
     });
   } catch (error: any) {
-    console.error("Erro ao atualizar relatório:", error);
-
     await session.abortTransaction();
     session.endSession();
-    return res.status(400).json({
-      message: error.message || "Erro ao atualizar o relatório.",
+    console.error("Erro ao atualizar relatório:", error);
+    return res.status(500).json({
+      message: error.message || "Erro interno ao atualizar o relatório.",
+    });
+  }
+}
+
+//atualizar assinatura do professor
+export async function atualizarAssinaturaProfessor(
+  req: Request,
+  res: Response
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res
+        .status(400)
+        .json({ message: "ID do relatório não fornecido." });
+    }
+
+    const relatorioExistente = await Relatorio.findById(id).session(session);
+
+    if (!relatorioExistente) {
+      return res.status(404).json({ message: "Relatório não encontrado." });
+    }
+
+    // Garantindo que req.files seja tratado como um objeto mapeado
+    const filesMap = req.files as
+      | { [fieldname: string]: Express.Multer.File[] }
+      | undefined;
+    const assinaturaFiles = filesMap?.assinatura;
+
+    if (assinaturaFiles && assinaturaFiles.length > 0) {
+      // Atualiza apenas o campo assinatura
+      relatorioExistente.assinatura = assinaturaFiles.map((file) => ({
+        id: new mongoose.Types.ObjectId(),
+        nome: file.originalname,
+      }));
+    } else {
+      console.log("Nenhum arquivo de assinatura foi enviado.");
+    }
+
+    relatorioExistente.ultimaAtualizacao = new Date();
+    await relatorioExistente.save({ session });
+
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({
+      message: "Assinatura atualizada com sucesso.",
+      assinatura: relatorioExistente.assinatura,
+    });
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    console.error("Erro ao atualizar assinatura:", error);
+
+    return res.status(500).json({
+      message: error.message || "Erro interno ao atualizar a assinatura.",
     });
   }
 }
