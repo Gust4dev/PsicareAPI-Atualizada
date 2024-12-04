@@ -133,7 +133,8 @@ export const listarConsultas = async (req: Request, res: Response) => {
   } = req.query;
 
   const page: number = parseInt(req.query.page as string, 10) || 1;
-  const limit: number = 15;
+  const hasDateFilters = start || end;
+  const limit: number = hasDateFilters ? 0 : 15;
 
   try {
     const searchQuery: any = {
@@ -154,7 +155,7 @@ export const listarConsultas = async (req: Request, res: Response) => {
       }),
     };
 
-    if (req.user && req.user.cargo === 3 && req.user.alunoId) {
+    if (req.user?.cargo === 3 && req.user?.alunoId) {
       searchQuery.alunoId = req.user.alunoId;
     }
 
@@ -180,18 +181,22 @@ export const listarConsultas = async (req: Request, res: Response) => {
       searchQuery.end = { $lte: endDate };
     }
 
-    const consultas = await Consulta.find(searchQuery)
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    const consultasQuery = Consulta.find(searchQuery);
+    if (!hasDateFilters) {
+      consultasQuery.skip((page - 1) * limit).limit(limit);
+    }
+
+    const consultas = await consultasQuery.lean();
 
     const consultasFormatadas = consultas.map((consulta) => ({
       ...consulta,
       frequenciaIntervalo: consulta.frequenciaIntervalo,
     }));
 
-    const totalItems = await Consulta.countDocuments(searchQuery);
-    const totalPages = Math.ceil(totalItems / limit);
+    const totalItems = hasDateFilters
+      ? consultas.length
+      : await Consulta.countDocuments(searchQuery);
+    const totalPages = hasDateFilters ? 1 : Math.ceil(totalItems / limit);
 
     res.json({
       consultas: consultasFormatadas,

@@ -227,35 +227,49 @@ export async function atualizarRelatorio(req: Request, res: Response) {
 
     const {
       pacienteId,
-      nomePaciente,
       dataNascimentoPaciente,
       dataInicioTratamento,
       dataTerminoTratamento,
       tipoTratamento,
       alunoUnieva,
       alunoId,
-      nomeAluno,
       funcionarioUnieva,
       nome_funcionario,
       conteudo,
       ativoRelatorio,
     } = req.body;
 
-    const dadosAtualizados: Partial<typeof Relatorio> = {
+    const dadosAtualizados: any = {
       ...(pacienteId && { pacienteId }),
-      ...(nomePaciente && { nomePaciente }),
       ...(dataNascimentoPaciente && { dataNascimentoPaciente }),
       ...(dataInicioTratamento && { dataInicioTratamento }),
       ...(dataTerminoTratamento && { dataTerminoTratamento }),
       ...(tipoTratamento && { tipoTratamento }),
       ...(alunoUnieva !== undefined && { alunoUnieva }),
       ...(alunoId && { alunoId }),
-      ...(nomeAluno && { nomeAluno }),
       ...(funcionarioUnieva !== undefined && { funcionarioUnieva }),
       ...(nome_funcionario && { nome_funcionario }),
       ...(conteudo && { conteudo }),
       ...(ativoRelatorio !== undefined && { ativoRelatorio }),
     };
+
+    if (pacienteId) {
+      const paciente = await Paciente.findById(pacienteId);
+      if (paciente) {
+        dadosAtualizados.nomePaciente = paciente.nome;
+      } else {
+        return res.status(400).json({ message: "Paciente não encontrado." });
+      }
+    }
+
+    if (alunoId) {
+      const aluno = await Aluno.findById(alunoId);
+      if (aluno) {
+        dadosAtualizados.nomeAluno = aluno.nome;
+      } else {
+        return res.status(400).json({ message: "Aluno não encontrado." });
+      }
+    }
 
     const files = req.files as
       | {
@@ -264,20 +278,12 @@ export async function atualizarRelatorio(req: Request, res: Response) {
         }
       | undefined;
 
-    if (files) {
-      if (files.prontuario) {
-        relatorioExistente.prontuario = files.prontuario.map((file) => ({
-          id: new mongoose.Types.ObjectId(),
-          nome: file.originalname,
-        }));
-      }
+    if (req.fileIds?.prontuario) {
+      relatorioExistente.prontuario = req.fileIds.prontuario;
+    }
 
-      if (files.assinatura) {
-        relatorioExistente.assinatura = files.assinatura.map((file) => ({
-          id: new mongoose.Types.ObjectId(),
-          nome: file.originalname,
-        }));
-      }
+    if (req.fileIds?.assinatura) {
+      relatorioExistente.assinatura = req.fileIds.assinatura;
     }
 
     Object.assign(relatorioExistente, dadosAtualizados);
@@ -383,8 +389,8 @@ export async function baixarArquivo(req: Request, res: Response) {
         return res.status(404).json({ message: "Arquivo não encontrado." });
       }
 
-      res.set("Content-Type", file.contentType);
-      res.set("Content-Disposition", `attachment; filename=${file.filename}`);
+      res.set("Content-Type", file.contentType || "application/octet-stream");
+      res.set("Content-Disposition", `attachment; filename="${file.filename}"`);
     });
 
     readstream.pipe(res);

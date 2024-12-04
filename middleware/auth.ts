@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import mongoose from "mongoose";
-import { GridFSBucket } from "mongodb";
+import { Db, GridFSBucket } from "mongodb";
 import { getGridFSBucket } from "../config/gridfs";
 import multer from "multer";
 import Professor from "../models/professor";
@@ -50,51 +50,54 @@ export async function getFilesWithNames(ids: mongoose.Types.ObjectId[]) {
   return filesWithNames;
 }
 
-export const uploadFilesToGridFS = async (
+export async function uploadFilesToGridFS(
   req: Request,
   res: Response,
   next: NextFunction
-) => {
-  const bucket: GridFSBucket = getGridFSBucket();
-  const files = req.files as { [fieldname: string]: Express.Multer.File[] };
-
-  if (!req.fileIds) {
-    req.fileIds = { prontuario: [], assinatura: [] };
-  }
-
+) {
   try {
-    for (const field in files) {
-      if (field === "prontuario" || field === "assinatura") {
-        for (const file of files[field]) {
-          const uploadStream = bucket.openUploadStream(file.originalname, {
-            contentType: file.mimetype,
-          });
-          uploadStream.end(file.buffer);
+    const db: Db | undefined = mongoose.connection.db;
 
-          await new Promise<void>((resolve, reject) => {
-            uploadStream.on("finish", () => {
-              req.fileIds![field].push(uploadStream.id);
-              resolve();
+    if (!db) {
+      return res
+        .status(500)
+        .json({ error: "Database connection not available" });
+    }
+
+    const bucket = new GridFSBucket(db, { bucketName: "uploads" });
+    const fileIds: { prontuario: any[]; assinatura: any[] } = {
+      prontuario: [],
+      assinatura: [],
+    };
+
+    if (req.files) {
+      const files = req.files as {
+        prontuario?: Express.Multer.File[];
+        assinatura?: Express.Multer.File[];
+      };
+
+      for (const [key, fileGroup] of Object.entries(files)) {
+        if (fileGroup) {
+          for (const file of fileGroup) {
+            const uploadStream = bucket.openUploadStream(file.originalname);
+            uploadStream.end(file.buffer);
+
+            fileIds[key as keyof typeof fileIds].push({
+              id: uploadStream.id,
+              nome: file.originalname,
             });
-            uploadStream.on("error", (error) => {
-              console.error(
-                `Erro no upload do arquivo ${file.originalname}:`,
-                error
-              );
-              reject(error);
-            });
-          });
+          }
         }
       }
     }
+
+    req.fileIds = fileIds;
     next();
   } catch (error) {
-    console.error("Erro ao fazer upload dos arquivos:", error);
-    res
-      .status(500)
-      .json({ message: "Erro ao fazer upload dos arquivos", error });
+    console.error("Error in uploadFilesToGridFS:", error);
+    return res.status(500).json({ error: "Failed to upload files to GridFS" });
   }
-};
+}
 
 export const authMiddleware = (requiredRoles: number[]) => {
   return async (req: Request, res: Response, next: NextFunction) => {
