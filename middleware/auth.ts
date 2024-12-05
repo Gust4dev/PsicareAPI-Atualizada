@@ -80,21 +80,38 @@ export async function uploadFilesToGridFS(
         if (fileGroup) {
           for (const file of fileGroup) {
             const uploadStream = bucket.openUploadStream(file.originalname);
+            const uploadPromise = new Promise((resolve, reject) => {
+              uploadStream.on("finish", () => {
+                resolve(uploadStream.id);
+              });
+              uploadStream.on("error", (error) => {
+                console.error(
+                  `Erro durante o upload do arquivo ${file.originalname}:`,
+                  error
+                );
+                reject(error);
+              });
+            });
+
             uploadStream.end(file.buffer);
 
+            const fileId = await uploadPromise;
+
             fileIds[key as keyof typeof fileIds].push({
-              id: uploadStream.id,
+              id: fileId,
               nome: file.originalname,
             });
           }
         }
       }
+    } else {
+      console.warn("Nenhum arquivo foi enviado na requisição.");
     }
 
     req.fileIds = fileIds;
     next();
   } catch (error) {
-    console.error("Error in uploadFilesToGridFS:", error);
+    console.error("Erro na função uploadFilesToGridFS:", error);
     return res.status(500).json({ error: "Failed to upload files to GridFS" });
   }
 }

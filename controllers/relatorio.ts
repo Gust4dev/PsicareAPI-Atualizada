@@ -215,9 +215,7 @@ export async function atualizarRelatorio(req: Request, res: Response) {
   try {
     const { id } = req.params;
     if (!id) {
-      return res
-        .status(400)
-        .json({ message: "ID do relatório não fornecido." });
+      return res.status(400).json({ message: "ID do relatório não fornecido." });
     }
 
     const relatorioExistente = await Relatorio.findById(id).session(session);
@@ -271,20 +269,35 @@ export async function atualizarRelatorio(req: Request, res: Response) {
       }
     }
 
-    const files = req.files as
-      | {
-          prontuario?: Express.Multer.File[];
-          assinatura?: Express.Multer.File[];
-        }
-      | undefined;
+    const existingFilesProntuario = relatorioExistente.prontuario || [];
+    const newUploadedFilesProntuario = req.fileIds?.prontuario || [];
+    const mergedFilesProntuario = [...existingFilesProntuario];
 
-    if (req.fileIds?.prontuario) {
-      relatorioExistente.prontuario = req.fileIds.prontuario;
+    for (const newFile of newUploadedFilesProntuario) {
+      const duplicate = mergedFilesProntuario.find(
+        (file) => file.nome === newFile.nome
+      );
+      if (!duplicate) {
+        mergedFilesProntuario.push(newFile);
+      }
     }
 
-    if (req.fileIds?.assinatura) {
-      relatorioExistente.assinatura = req.fileIds.assinatura;
+    dadosAtualizados.prontuario = mergedFilesProntuario;
+
+    const existingFilesAssinatura = relatorioExistente.assinatura || [];
+    const newUploadedFilesAssinatura = req.fileIds?.assinatura || [];
+    const mergedFilesAssinatura = [...existingFilesAssinatura];
+
+    for (const newFile of newUploadedFilesAssinatura) {
+      const duplicate = mergedFilesAssinatura.find(
+        (file) => file.nome === newFile.nome
+      );
+      if (!duplicate) {
+        mergedFilesAssinatura.push(newFile);
+      }
     }
+
+    dadosAtualizados.assinatura = mergedFilesAssinatura;
 
     Object.assign(relatorioExistente, dadosAtualizados);
     relatorioExistente.ultimaAtualizacao = new Date();
@@ -301,12 +314,13 @@ export async function atualizarRelatorio(req: Request, res: Response) {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    console.error("Erro ao atualizar relatório:", error);
     return res.status(500).json({
       message: error.message || "Erro interno ao atualizar o relatório.",
     });
   }
 }
+
+
 
 //atualizar assinatura do professor
 export async function atualizarAssinaturaProfessor(
