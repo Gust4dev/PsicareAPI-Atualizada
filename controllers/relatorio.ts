@@ -215,7 +215,9 @@ export async function atualizarRelatorio(req: Request, res: Response) {
   try {
     const { id } = req.params;
     if (!id) {
-      return res.status(400).json({ message: "ID do relatório não fornecido." });
+      return res
+        .status(400)
+        .json({ message: "ID do relatório não fornecido." });
     }
 
     const relatorioExistente = await Relatorio.findById(id).session(session);
@@ -320,8 +322,6 @@ export async function atualizarRelatorio(req: Request, res: Response) {
   }
 }
 
-
-
 //atualizar assinatura do professor
 export async function atualizarAssinaturaProfessor(
   req: Request,
@@ -411,6 +411,61 @@ export async function baixarArquivo(req: Request, res: Response) {
   } catch (err) {
     console.error("Erro ao baixar o arquivo:", err);
     res.status(500).json({ message: "Erro ao baixar o arquivo.", error: err });
+  }
+}
+
+//deletar arquivo dentro do relatorio
+export async function deletarArquivo(req: Request, res: Response) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ message: "ID do arquivo não fornecido." });
+    }
+
+    const objectId = new mongoose.Types.ObjectId(id);
+    const bucket = getGridFSBucket();
+
+    const relatorio = await Relatorio.findOne({
+      $or: [{ "prontuario.id": objectId }, { "assinatura.id": objectId }],
+    }).session(session);
+
+    if (!relatorio) {
+      return res
+        .status(404)
+        .json({ message: "Relatório com o arquivo não encontrado." });
+    }
+
+    if (relatorio.prontuario?.some((file) => file.id.equals(objectId))) {
+      relatorio.prontuario = relatorio.prontuario.filter(
+        (file) => !file.id.equals(objectId)
+      );
+    } else if (relatorio.assinatura?.some((file) => file.id.equals(objectId))) {
+      relatorio.assinatura = relatorio.assinatura.filter(
+        (file) => !file.id.equals(objectId)
+      );
+    } else {
+      return res
+        .status(400)
+        .json({ message: "Arquivo não encontrado no relatório." });
+    }
+
+    await bucket.delete(objectId);
+
+    await relatorio.save({ session });
+    await session.commitTransaction();
+    session.endSession();
+
+    return res.status(200).json({ message: "Arquivo deletado com sucesso." });
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    return res.status(500).json({
+      message: error.message || "Erro ao deletar arquivo.",
+    });
   }
 }
 
