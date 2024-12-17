@@ -288,6 +288,8 @@ export async function atualizarConsulta(req: Request, res: Response) {
         TipoDeConsulta,
         alunoId,
         pacienteId,
+        nomeAluno: alunoExistente.nome,
+        nomePaciente: pacienteExistente.nome,
         sala,
         start,
         end,
@@ -295,7 +297,9 @@ export async function atualizarConsulta(req: Request, res: Response) {
         ...updateData,
       },
       { new: true }
-    );
+    )
+      .populate("alunoId", "nome")
+      .populate("pacienteId", "nome");
 
     if (!consultaAtualizada) {
       return res.status(404).send("Consulta não encontrada.");
