@@ -16,6 +16,7 @@ interface IRelatorio extends Document {
   ultimaAtualizacao: Date;
   conteudo: string;
   ativoRelatorio: boolean;
+  assinado: boolean;
   prontuario?: { id: mongoose.Types.ObjectId; nome: string }[];
   assinatura?: { id: mongoose.Types.ObjectId; nome: string }[];
 }
@@ -43,6 +44,7 @@ const RelatorioSchema: Schema = new Schema({
   ultimaAtualizacao: { type: Date, default: Date.now },
   conteudo: { type: String, required: true },
   ativoRelatorio: { type: Boolean, default: true },
+  assinado: { type: Boolean, default: false},
   prontuario: [
     {
       id: { type: mongoose.Schema.Types.ObjectId, required: true },

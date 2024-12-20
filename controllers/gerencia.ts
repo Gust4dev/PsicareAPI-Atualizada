@@ -5,55 +5,109 @@ import Paciente from "../models/Paciente";
 import Relatorio from "../models/relatorio";
 import Consulta from "../models/consulta";
 
-export const getGerencia = async (req: Request, res: Response) => {
+//Listar dados de toda a API
+export async function getGerencia(req: Request, res: Response) {
   try {
     const { start, end } = req.query;
 
-    const startDate = new Date(start as string);
-    const endDate = new Date(end as string);
+    const startDate = start ? new Date(start as string) : null;
+    const endDate = end ? new Date(end as string) : null;
 
-    // Contagem simples
+    const filter: any = {};
+    if (startDate) filter.start = { $gte: startDate };
+    if (endDate) filter.end = { ...filter.end, $lte: endDate };
+
     const alunoCount = await Aluno.countDocuments();
     const professorCount = await Professor.countDocuments();
     const pacienteCount = await Paciente.countDocuments();
     const relatorioCount = await Relatorio.countDocuments();
     const relatorioAssinadoCount = await Relatorio.countDocuments({
-      assinado: true,
+      "assinatura.0": { $exists: true },
     });
 
-    // Consultas filtradas pelo intervalo
-    const consultas = await Consulta.find({
-      start: { $gte: startDate },
-      end: { $lte: endDate },
-    });
+    const consultas = await Consulta.find(filter);
 
     const consultaStats = {
-      pendente: consultas.filter((c) => c.statusDaConsulta === "Pendente").length,
-      aluno_faltou: consultas.filter((c) => c.statusDaConsulta === "Aluno Faltou").length,
-      paciente_faltou: consultas.filter((c) => c.statusDaConsulta === "Paciente Faltou").length,
-      cancelada: consultas.filter((c) => c.statusDaConsulta === "Cancelada").length,
-      concluida: consultas.filter((c) => c.statusDaConsulta === "Concluída").length,
-      andamento: consultas.filter((c) => c.statusDaConsulta === "Em Andamento").length,
+      pendente: consultas.filter((c) => c.statusDaConsulta === "Pendente")
+        .length,
+      aluno_faltou: consultas.filter(
+        (c) => c.statusDaConsulta === "Aluno Faltou"
+      ).length,
+      paciente_faltou: consultas.filter(
+        (c) => c.statusDaConsulta === "Paciente Faltou"
+      ).length,
+      cancelada: consultas.filter((c) => c.statusDaConsulta === "Cancelada")
+        .length,
+      concluida: consultas.filter((c) => c.statusDaConsulta === "Concluída")
+        .length,
+      andamento: consultas.filter((c) => c.statusDaConsulta === "Em andamento")
+        .length,
     };
+
+    // Reestruturando lógica de tratamentos
+    const pacientes = await Paciente.find();
 
     const tratamentoStats = {
       iniciaram: {
-        psicoterapia: consultas.filter((c) => c.TipoDeConsulta === "Psicoterapia" && c.statusDaConsulta === "Iniciada").length,
-        plantao: consultas.filter((c) => c.TipoDeConsulta === "Plantão" && c.statusDaConsulta === "Iniciada").length,
-        psicodiagnostico: consultas.filter((c) => c.TipoDeConsulta === "Psicodiagnóstico" && c.statusDaConsulta === "Iniciada").length,
-        avaliacao_diagnostica: consultas.filter((c) => c.TipoDeConsulta === "Avaliação Diagnóstica" && c.statusDaConsulta === "Iniciada").length,
+        psicoterapia: pacientes.filter(
+          (p) => p.tipoDeTratamento === "Psicoterapia" && p.dataInicioTratamento
+        ).length,
+        plantao: pacientes.filter(
+          (p) => p.tipoDeTratamento === "Plantão" && p.dataInicioTratamento
+        ).length,
+        psicodiagnostico: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Psicodiagnóstico" && p.dataInicioTratamento
+        ).length,
+        avaliacao_diagnostica: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Avaliação Diagnóstica" &&
+            p.dataInicioTratamento
+        ).length,
       },
       terminaram: {
-        psicoterapia: consultas.filter((c) => c.TipoDeConsulta === "Psicoterapia" && c.statusDaConsulta === "Terminada").length,
-        plantao: consultas.filter((c) => c.TipoDeConsulta === "Plantão" && c.statusDaConsulta === "Terminada").length,
-        psicodiagnostico: consultas.filter((c) => c.TipoDeConsulta === "Psicodiagnóstico" && c.statusDaConsulta === "Terminada").length,
-        avaliacao_diagnostica: consultas.filter((c) => c.TipoDeConsulta === "Avaliação Diagnóstica" && c.statusDaConsulta === "Terminada").length,
+        psicoterapia: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Psicoterapia" && p.dataTerminoTratamento
+        ).length,
+        plantao: pacientes.filter(
+          (p) => p.tipoDeTratamento === "Plantão" && p.dataTerminoTratamento
+        ).length,
+        psicodiagnostico: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Psicodiagnóstico" && p.dataTerminoTratamento
+        ).length,
+        avaliacao_diagnostica: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Avaliação Diagnóstica" &&
+            p.dataTerminoTratamento
+        ).length,
       },
       acontecem: {
-        psicoterapia: consultas.filter((c) => c.TipoDeConsulta === "Psicoterapia" && c.statusDaConsulta === "Em Andamento").length,
-        plantao: consultas.filter((c) => c.TipoDeConsulta === "Plantão" && c.statusDaConsulta === "Em Andamento").length,
-        psicodiagnostico: consultas.filter((c) => c.TipoDeConsulta === "Psicodiagnóstico" && c.statusDaConsulta === "Em Andamento").length,
-        avaliacao_diagnostica: consultas.filter((c) => c.TipoDeConsulta === "Avaliação Diagnóstica" && c.statusDaConsulta === "Em Andamento").length,
+        psicoterapia: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Psicoterapia" &&
+            !p.dataTerminoTratamento &&
+            p.dataInicioTratamento
+        ).length,
+        plantao: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Plantão" &&
+            !p.dataTerminoTratamento &&
+            p.dataInicioTratamento
+        ).length,
+        psicodiagnostico: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Psicodiagnóstico" &&
+            !p.dataTerminoTratamento &&
+            p.dataInicioTratamento
+        ).length,
+        avaliacao_diagnostica: pacientes.filter(
+          (p) =>
+            p.tipoDeTratamento === "Avaliação Diagnóstica" &&
+            !p.dataTerminoTratamento &&
+            p.dataInicioTratamento
+        ).length,
       },
     };
 
@@ -67,6 +121,8 @@ export const getGerencia = async (req: Request, res: Response) => {
       tratamento: tratamentoStats,
     });
   } catch (error: any) {
-    res.status(500).json({ message: `Erro ao buscar dados de gerência: ${error.message}` });
+    res
+      .status(500)
+      .json({ message: `Erro ao buscar dados de gerência: ${error.message}` });
   }
-};
+}

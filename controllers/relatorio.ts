@@ -301,6 +301,10 @@ export async function atualizarRelatorio(req: Request, res: Response) {
 
     dadosAtualizados.assinatura = mergedFilesAssinatura;
 
+    if (dadosAtualizados.assinatura && dadosAtualizados.assinatura.length > 0) {
+      relatorioExistente.assinado = true;
+    }
+
     Object.assign(relatorioExistente, dadosAtualizados);
     relatorioExistente.ultimaAtualizacao = new Date();
 
