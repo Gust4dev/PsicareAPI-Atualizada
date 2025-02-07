@@ -10,7 +10,6 @@ import { getFilesWithNames } from "../middleware/auth";
 export async function criarRelatorio(req: Request, res: Response) {
   const session = await mongoose.startSession();
   session.startTransaction();
-
   try {
     const {
       pacienteId,
@@ -21,50 +20,38 @@ export async function criarRelatorio(req: Request, res: Response) {
       alunoId,
       dataCriacao,
     } = req.body;
-
     let alunoIdToUse = alunoId;
-
     if (req.user?.cargo === 3) {
       if (!req.user.alunoId) {
-        return res.status(401).json({
-          message: "Usuário não autenticado.",
-        });
+        return res.status(401).json({ message: "Usuário não autenticado." });
       }
       alunoIdToUse = req.user.alunoId;
     } else if (!alunoId && !nome_funcionario) {
-      return res.status(400).json({
-        message: "Aluno ou funcionário deve ser vinculado.",
-      });
+      return res
+        .status(400)
+        .json({ message: "Aluno ou funcionário deve ser vinculado." });
     }
-
     const paciente = await Paciente.findById(pacienteId)
       .populate("nome", "dataNascimento")
       .session(session);
-
     if (!paciente) {
       throw new Error("Paciente não encontrado.");
     }
-
     let aluno = null;
     let nomeAluno = null;
-
     if (alunoIdToUse) {
       aluno = await Aluno.findById(alunoIdToUse)
         .populate("nome")
         .session(session);
-
       if (!aluno) {
         throw new Error("Aluno não encontrado.");
       }
       nomeAluno = aluno.nome;
     }
-
     const prontuarioIds = req.fileIds?.prontuario || [];
     const assinaturaIds = req.fileIds?.assinatura || [];
-
     const prontuarioFiles = await getFilesWithNames(prontuarioIds);
     const assinaturaFiles = await getFilesWithNames(assinaturaIds);
-
     const novoRelatorio = new Relatorio({
       pacienteId,
       dataCriacao,
@@ -81,26 +68,22 @@ export async function criarRelatorio(req: Request, res: Response) {
       ultimaAtualizacao: ultimaAtualizacao || new Date(),
       conteudo,
       ativoRelatorio: ativoRelatorio ?? true,
-      prontuario: prontuarioFiles,
-      assinatura: assinaturaFiles,
+      prontuario: prontuarioFiles.map((file) => file.id),
+      assinatura: assinaturaFiles.map((file) => file.id),
     });
-
     await novoRelatorio.save({ session });
     await session.commitTransaction();
     session.endSession();
-
     return res.status(201).json({
       message: "Relatório criado com sucesso.",
       relatorio: novoRelatorio,
     });
   } catch (error: any) {
-    console.error("Erro ao criar relatório:", error.message);
-
     await session.abortTransaction();
     session.endSession();
-    return res.status(400).json({
-      message: error.message || "Erro ao criar o relatório.",
-    });
+    return res
+      .status(400)
+      .json({ message: error.message || "Erro ao criar o relatório." });
   }
 }
 
