@@ -8,19 +8,19 @@
     "forceConsistentCasingInFileNames": true,
     "outDir": "./dist",
     "rootDir": "./",
-    "typeRoots": ["./node_modules/@types", "./@types"],
+    "typeRoots": ["./node_modules/@types", "src/@types"],
     "baseUrl": "./",
     "paths": {
       "*": ["node_modules/*", "src/types/*"]
     }
   },
   "include": [
-    "controllers/**/*.ts",
-    "models/**/*.ts",
-    "routes/**/*.ts",
-    "middleware/**/*.ts",
-    "config/**/*.ts",
-    "@types/**/*.ts",
+    "src/controllers/**/*.ts",
+    "src/models/**/*.ts",
+    "src/routes/**/*.ts",
+    "src/middleware/**/*.ts",
+    "src/config/**/*.ts",
+    "src/@types/**/*.ts",
     "server.ts"
   ],
   "exclude": ["node_modules", "dist"]

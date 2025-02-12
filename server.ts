@@ -6,14 +6,14 @@ import swaggerJsDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
 
 // rotas
-import alunoRoutes from "./routes/aluno";
-import consultaRoutes from "./routes/consulta";
-import pacienteRoutes from "./routes/paciente";
-import professorRoutes from "./routes/professor";
-import secretarioRouter from "./routes/secretario";
-import relatoriorouter from "./routes/relatorio";
-import gerenciarouter from "./routes/gerencia";
-import userRouter from "./routes/user";
+import alunoRoutes from "./src/routes/aluno";
+import consultaRoutes from "./src/routes/consulta";
+import pacienteRoutes from "./src/routes/paciente";
+import professorRoutes from "./src/routes/professor";
+import secretarioRouter from "./src/routes/secretario";
+import relatoriorouter from "./src/routes/relatorio";
+import gerenciarouter from "./src/routes/gerencia";
+import userRouter from "./src/routes/user";
 
 dotenv.config();
 
