@@ -143,35 +143,27 @@ export async function getSecretarioByID(req: Request, res: Response) {
 export async function atualizarSecretario(req: Request, res: Response) {
   const session = await mongoose.startSession();
   session.startTransaction();
-
   try {
     const { id } = req.params;
     const { cpf, email, senha, nome, ...updateData } = req.body;
-
     const secretarioExistente = await Secretario.findById(id).session(session);
     if (!secretarioExistente) {
       throw new Error("Secretário não encontrado.");
     }
-
     let cpfFormatado;
     let senhaGerada;
-
     if (cpf) {
       cpfFormatado = cpf.replace(/\D/g, "");
-
       if (cpfFormatado !== secretarioExistente.cpf) {
         const secretarioExistenteCPF = await Secretario.findOne({
           cpf: cpfFormatado,
         }).session(session);
-
         const pacienteExistenteCPF = await Paciente.findOne({
           cpf: cpfFormatado,
         }).session(session);
-
         const usuarioExistenteCPF = await User.findOne({
           cpf: cpfFormatado,
         }).session(session);
-
         if (
           secretarioExistenteCPF ||
           pacienteExistenteCPF ||
@@ -179,25 +171,21 @@ export async function atualizarSecretario(req: Request, res: Response) {
         ) {
           return res.status(400).send("Já existe um usuário com este CPF.");
         }
-
         senhaGerada = cpfFormatado.slice(0, -2);
         updateData.cpf = cpfFormatado;
       }
     }
-
     if (email) {
       if (email !== secretarioExistente.email) {
         const secretarioExistenteEmail = await Secretario.findOne({
           email,
         }).session(session);
-
         const pacienteExistenteEmail = await Paciente.findOne({
           email,
         }).session(session);
         const usuarioExistenteEmail = await User.findOne({ email }).session(
           session
         );
-
         if (
           secretarioExistenteEmail ||
           pacienteExistenteEmail ||
@@ -208,41 +196,39 @@ export async function atualizarSecretario(req: Request, res: Response) {
       }
       updateData.email = email;
     }
-
-    let senhaCriptografada;
+    if (nome) {
+      updateData.nome = nome;
+    }
+    let senhaCriptografada: string | undefined;
     if (senhaGerada || senha) {
       const senhaParaCriptografar = senhaGerada || senha;
       senhaCriptografada = await bcrypt.hash(senhaParaCriptografar, 10);
     }
-
     const secretarioAtualizado = await Secretario.findByIdAndUpdate(
       id,
       updateData,
       { new: true }
     ).session(session);
-
-    if (cpf || email || senha || nome) {
-      const updateUserData = {
-        nome: nome || secretarioExistente.nome,
-        cpf: cpfFormatado || secretarioExistente.cpf,
-        email: email || secretarioExistente.email,
-        ...(senhaCriptografada && { senha: senhaCriptografada }),
-      };
-
-      const usuarioAtualizado = await User.findOneAndUpdate(
-        { cpf: secretarioExistente.cpf },
-        updateUserData,
-        { new: true }
-      ).session(session);
-
-      if (!usuarioAtualizado) {
-        throw new Error("Usuário relacionado não encontrado.");
-      }
+    const updateUserData = {
+      nome:
+        nome ||
+        (secretarioAtualizado
+          ? secretarioAtualizado.nome
+          : secretarioExistente.nome),
+      cpf: cpfFormatado || secretarioExistente.cpf,
+      email: email || secretarioExistente.email,
+      ...(senhaCriptografada && { senha: senhaCriptografada }),
+    };
+    const usuarioAtualizado = await User.findOneAndUpdate(
+      { cpf: secretarioExistente.cpf },
+      updateUserData,
+      { new: true }
+    ).session(session);
+    if (!usuarioAtualizado) {
+      throw new Error("Usuário relacionado não encontrado.");
     }
-
     await session.commitTransaction();
     session.endSession();
-
     res.json({
       message: "Secretário atualizado com sucesso.",
       secretario: secretarioAtualizado,
@@ -250,7 +236,6 @@ export async function atualizarSecretario(req: Request, res: Response) {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-
     if (error.code === 11000) {
       if (error.keyPattern?.cpf) {
         return res
@@ -263,7 +248,6 @@ export async function atualizarSecretario(req: Request, res: Response) {
           .json({ message: "Já existe um usuário com este email." });
       }
     }
-
     res.status(500).json({ message: error.message });
   }
 }

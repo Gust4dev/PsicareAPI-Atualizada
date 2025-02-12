@@ -116,7 +116,7 @@ export const listarAlunos = async (req: Request, res: Response) => {
           { matricula: { $regex: q, $options: "i" } },
           { telefone: { $regex: q, $options: "i" } },
           { periodo: { $regex: q, $options: "i" } },
-          { nomeProfessor: { $regex: nomeProfessor, $options: "i" } },
+          { nomeProfessor: { $regex: q, $options: "i" } },
         ],
       }),
       ...(nome && { nome: { $regex: nome, $options: "i" } }),
