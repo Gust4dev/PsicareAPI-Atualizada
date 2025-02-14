@@ -145,7 +145,7 @@ export async function listarRelatorios(req: Request, res: Response) {
     }
 
     const relatorios = await Relatorio.find(searchQuery)
-      .sort({ createdAt: -1 })
+      .sort({ dataCriacao: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();

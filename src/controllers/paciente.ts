@@ -331,14 +331,11 @@ export async function atualizarPaciente(req: Request, res: Response) {
       funcionarioUnieva,
       ...updateData
     } = req.body;
-
     const pacienteExistente = await Paciente.findById(id).session(session);
     if (!pacienteExistente) {
       throw new Error("Paciente não encontrado.");
     }
-
     const cpfFormatado = cpf?.replace(/\D/g, "");
-
     if (email && email !== pacienteExistente.email) {
       const pacienteExistenteEmail = await Paciente.findOne({ email }).session(
         session
@@ -346,13 +343,11 @@ export async function atualizarPaciente(req: Request, res: Response) {
       const usuarioExistenteEmail = await User.findOne({ email }).session(
         session
       );
-
       if (pacienteExistenteEmail || usuarioExistenteEmail) {
         return res.status(400).send("Já existe um usuário com este email.");
       }
       updateData.email = email;
     }
-
     if (cpfFormatado && cpfFormatado !== pacienteExistente.cpf) {
       const pacienteExistenteCPF = await Paciente.findOne({
         cpf: cpfFormatado,
@@ -360,42 +355,33 @@ export async function atualizarPaciente(req: Request, res: Response) {
       const usuarioExistenteCPF = await User.findOne({
         cpf: cpfFormatado,
       }).session(session);
-
       if (pacienteExistenteCPF || usuarioExistenteCPF) {
         return res.status(400).send("Já existe um usuário com este CPF.");
       }
-
       updateData.cpf = cpfFormatado;
     }
-
     if (alunoUnieva && !funcionarioUnieva) {
       if (alunoId) {
-        const alunoExistente = await Aluno.findById(alunoId).session(session);
-        if (!alunoExistente) {
-          return res.status(400).send("O aluno informado não existe.");
-        }
         updateData.alunoId = alunoId;
+      } else {
+        updateData.encaminhador = req.body.encaminhador;
       }
       updateData.alunoUnieva = true;
       updateData.funcionarioUnieva = false;
     } else if (!alunoUnieva && funcionarioUnieva) {
       updateData.funcionarioUnieva = true;
       updateData.alunoUnieva = false;
-
       await Paciente.updateOne({ _id: id }, { $unset: { alunoId: 1 } }).session(
         session
       );
     }
-
     const pacienteAtualizado = await Paciente.findByIdAndUpdate(
       id,
       updateData,
       { new: true }
     ).session(session);
-
     await session.commitTransaction();
     session.endSession();
-
     res.json({
       message: "Paciente atualizado com sucesso.",
       paciente: pacienteAtualizado,
@@ -403,9 +389,7 @@ export async function atualizarPaciente(req: Request, res: Response) {
   } catch (error: any) {
     await session.abortTransaction();
     session.endSession();
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 }
 
