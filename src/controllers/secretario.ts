@@ -85,9 +85,8 @@ export const listarSecretarios = async (req: Request, res: Response) => {
   const { q, nome, cpf, email, telefone, turno } = req.query;
   const page = parseInt(req.query.page as string, 10) || 1;
   const limit = 15;
-
   try {
-    const searchQuery = {
+    const searchQuery: any = {
       ...(q && {
         $or: [
           { nome: { $regex: q, $options: "i" } },
@@ -100,17 +99,21 @@ export const listarSecretarios = async (req: Request, res: Response) => {
       ...(nome && { nome: { $regex: nome, $options: "i" } }),
       ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
       ...(email && { email: { $regex: email, $options: "i" } }),
-      ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
+      ...(telefone && {
+        telefone: {
+          $regex: new RegExp(
+            telefone.toString().replace(/\D/g, "").split("").join("\\D*"),
+            "i"
+          ),
+        },
+      }),
       ...(turno && { turno: { $regex: turno, $options: "i" } }),
     };
-
     const secretarios = await Secretario.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
-
     const totalItems = await Secretario.countDocuments(searchQuery);
-
     res.json({
       secretarios,
       totalPages: Math.ceil(totalItems / limit),

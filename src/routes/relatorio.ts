@@ -32,7 +32,7 @@ router.get("/", authMiddleware([0, 2, 3]), listarRelatorios);
 
 router.delete("/:id", authMiddleware([0]), deletarRelatorio);
 
-router.delete("/arquivo/:id", authMiddleware([0, 1]), deletarArquivo);
+router.delete("/arquivo/:id", authMiddleware([0, 1, 3]), deletarArquivo);
 
 router.patch("/arquivar/:id", authMiddleware([0, 3]), arquivarRelatorio);
 

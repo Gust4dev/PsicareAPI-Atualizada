@@ -123,7 +123,14 @@ export const listarAlunos = async (req: Request, res: Response) => {
       ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
       ...(email && { email: { $regex: email, $options: "i" } }),
       ...(matricula && { matricula: { $regex: matricula, $options: "i" } }),
-      ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
+      ...(telefone && {
+        telefone: {
+          $regex: new RegExp(
+            telefone.toString().replace(/\D/g, "").split("").join("\\D*"),
+            "i"
+          ),
+        },
+      }),
       ...(periodo && { periodo: { $regex: periodo, $options: "i" } }),
       ...(nomeProfessor && {
         nomeProfessor: { $regex: nomeProfessor, $options: "i" },

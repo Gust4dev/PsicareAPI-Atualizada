@@ -89,46 +89,40 @@ export const listarProfessores = async (req: Request, res: Response) => {
   const { q, nome, cpf, telefone, email, disciplina } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
-
-  const { cargo, userId } = req.user as any;
-
+  const { cargo, userId } = (req as any).user;
   try {
     let searchQuery: any = {
       ...(q && {
         $or: [
           { nome: { $regex: q, $options: "i" } },
           { cpf: { $regex: q, $options: "i" } },
-          { telefone: { $regex: q, $options: "i" } },
+          {telefone: { $regex: q, $options: "i"}},
           { email: { $regex: q, $options: "i" } },
           { disciplina: { $regex: q, $options: "i" } },
         ],
       }),
       ...(nome && { nome: { $regex: nome, $options: "i" } }),
       ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
-      ...(telefone && { telefone: { $regex: telefone, $options: "i" } }),
+      ...(telefone && { 
+        telefone: { $regex: new RegExp(telefone.toString().replace(/\D/g, "").split("").join("\\D*"), "i") } 
+      }),
       ...(email && { email: { $regex: email, $options: "i" } }),
       ...(disciplina && { disciplina: { $regex: disciplina, $options: "i" } }),
     };
-
     if (cargo === 2) {
       const professor = await Professor.findOne({ userId });
       if (professor) {
         searchQuery = { ...searchQuery, _id: professor._id };
       } else {
-        return res
-          .status(403)
-          .json({ message: "Acesso restrito aos dados do próprio professor" });
+        return res.status(403).json({ message: "Acesso restrito aos dados do próprio professor" });
       }
     }
-
     const professores = await Professor.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
-
     const totalItems = await Professor.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
-
     res.json({
       professores,
       totalPages,
