@@ -1,0 +1,3917 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "PSICARE",
+    "description": "Documentação das rotas do sistema",
+    "version": "1.0.0"
+  },
+  "host": "localhost:8080",
+  "basePath": "/",
+  "schemes": [
+    "http"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/aluno": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "nome": {
+                  "example": "any"
+                },
+                "cpf": {
+                  "example": "any"
+                },
+                "telefone": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                },
+                "cargo": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Created",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      },
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "q",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "nome",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "cpf",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "telefone",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "email",
+            "in": "query",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      },
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/professor/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/gerencia/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/consulta/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/paciente/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/relatorio/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/secretario/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/user/{id}": {
+      "delete": {
+        "description": "",
+        "responses": {
+          "default": {
+            "description": "",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID parameter",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ]
+      }
+    },
+    "/aluno/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/ultimo/criado": {
+      "get": {
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/select": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/ultima/criada": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/arquivar/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/download/{id}": {
+      "get": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/arquivo/{id}": {
+      "delete": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          },
+          {
+            "name": "authorization",
+            "in": "header",
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "401": {
+            "description": "Unauthorized",
+            "schema": {}
+          },
+          "403": {
+            "description": "Forbidden",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/assinatura/{id}": {
+      "patch": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "404": {
+            "description": "Not Found",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    },
+    "/aluno/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Aluno"
+        ]
+      }
+    },
+    "/professor/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Professor"
+        ]
+      }
+    },
+    "/gerencia/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Gerencia"
+        ]
+      }
+    },
+    "/consulta/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Consulta"
+        ]
+      }
+    },
+    "/paciente/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Paciente"
+        ]
+      }
+    },
+    "/relatorio/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Relatorio"
+        ]
+      }
+    },
+    "/secretario/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "Secretario"
+        ]
+      }
+    },
+    "/user/login": {
+      "post": {
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "cpf": {
+                  "example": "any"
+                },
+                "email": {
+                  "example": "any"
+                },
+                "senha": {
+                  "example": "any"
+                }
+              }
+            },
+            "default": "123"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {}
+          },
+          "400": {
+            "description": "Bad Request",
+            "schema": {}
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "schema": {}
+          }
+        },
+        "tags": [
+          "User"
+        ]
+      }
+    }
+  }
+}

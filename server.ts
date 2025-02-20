@@ -34,19 +34,8 @@ mongoose
   });
 
 // Configuração do Swagger
-const swaggerOptions = {
-  swaggerDefinition: {
-    info: {
-      title: "PsicareApi",
-      version: "1.0.0",
-      description: "API do sistema para o curso de Psicologia da UniEvangélica",
-    },
-  },
-  apis: ["./routes/*.ts"],
-};
-
-const swaggerDocs = swaggerJsDoc(swaggerOptions);
-app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocs));
+const swaggerDocument = require('./swagger-output.json');
+app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
 // Middlewares
 app.use(cors());
