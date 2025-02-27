@@ -11,6 +11,7 @@ export interface AlunoInterface extends Document {
   professorId: Schema.Types.ObjectId;
   alunoUnieva: boolean;
   funcionarioUnieva: boolean;
+  termo: boolean;
 }
 
 const AlunoSchema: Schema = new Schema({
@@ -28,6 +29,7 @@ const AlunoSchema: Schema = new Schema({
   },
   alunoUnieva: { type: Boolean, default: true },
   funcionarioUnieva: { type: Boolean, default: false },
+  termo: { type: Boolean, default: false}
 });
 
 AlunoSchema.index({ professorId: 1 });
