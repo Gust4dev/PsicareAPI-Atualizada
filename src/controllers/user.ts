@@ -103,20 +103,32 @@ export async function loginUser(req: Request, res: Response) {
       return res.status(400).send("Senha incorreta.");
     }
 
-    const token = jwt.sign(
-      { cpf, email: userInDatabase.email, cargo: userInDatabase.cargo },
-      JWT_SECRET,
-      { expiresIn: "12h" }
-    );
+    const tokenPayload: any = {
+      cpf,
+      email: userInDatabase.email,
+      cargo: userInDatabase.cargo,
+    };
+
+    if (userInDatabase.cargo === 3) {
+      const aluno = await Aluno.findOne({ email: userInDatabase.email }).exec();
+      tokenPayload.termo = aluno?.termo || false;
+    }
+
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "12h" });
 
     return res
       .status(200)
-      .json({ token, userLevelAccess: userInDatabase.cargo });
+      .json({
+        token,
+        userLevelAccess: userInDatabase.cargo,
+        ...(userInDatabase.cargo === 3 && { termo: tokenPayload.termo }),
+      });
   } catch (error: any) {
     console.error("Erro ao realizar login:", error);
     return res.status(500).send("Erro ao realizar login.");
   }
 }
+
 
 // Listar todos os usuários
 export async function listarUsers(req: Request, res: Response) {
