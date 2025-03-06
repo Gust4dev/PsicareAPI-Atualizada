@@ -195,7 +195,6 @@ export async function listarRelatorios(req: Request, res: Response) {
 export async function atualizarRelatorio(req: Request, res: Response) {
   const session = await mongoose.startSession();
   session.startTransaction();
-
   try {
     const { id } = req.params;
     if (!id) {
@@ -203,12 +202,10 @@ export async function atualizarRelatorio(req: Request, res: Response) {
         .status(400)
         .json({ message: "ID do relatório não fornecido." });
     }
-
     const relatorioExistente = await Relatorio.findById(id).session(session);
     if (!relatorioExistente) {
       return res.status(404).json({ message: "Relatório não encontrado." });
     }
-
     const {
       pacienteId,
       dataNascimentoPaciente,
@@ -221,22 +218,22 @@ export async function atualizarRelatorio(req: Request, res: Response) {
       nome_funcionario,
       conteudo,
       ativoRelatorio,
+      ...rest
     } = req.body;
-
     const dadosAtualizados: any = {
+      ...rest,
       ...(pacienteId && { pacienteId }),
       ...(dataNascimentoPaciente && { dataNascimentoPaciente }),
       ...(dataInicioTratamento && { dataInicioTratamento }),
       ...(dataTerminoTratamento && { dataTerminoTratamento }),
       ...(tipoTratamento && { tipoTratamento }),
       ...(alunoUnieva !== undefined && { alunoUnieva }),
-      ...(alunoId && { alunoId }),
+      ...(alunoId !== undefined && { alunoId }),
       ...(funcionarioUnieva !== undefined && { funcionarioUnieva }),
       ...(nome_funcionario && { nome_funcionario }),
       ...(conteudo && { conteudo }),
       ...(ativoRelatorio !== undefined && { ativoRelatorio }),
     };
-
     if (pacienteId) {
       const paciente = await Paciente.findById(pacienteId);
       if (paciente) {
@@ -245,20 +242,18 @@ export async function atualizarRelatorio(req: Request, res: Response) {
         return res.status(400).json({ message: "Paciente não encontrado." });
       }
     }
-
     if (alunoId) {
       const aluno = await Aluno.findById(alunoId);
       if (aluno) {
         dadosAtualizados.nomeAluno = aluno.nome;
       } else {
-        return res.status(400).json({ message: "Aluno não encontrado." });
+        dadosAtualizados.encaminhador = req.body.encaminhador;
+        dadosAtualizados.alunoId = null;
       }
     }
-
     const existingFilesProntuario = relatorioExistente.prontuario || [];
     const newUploadedFilesProntuario = req.fileIds?.prontuario || [];
     const mergedFilesProntuario = [...existingFilesProntuario];
-
     for (const newFile of newUploadedFilesProntuario) {
       const duplicate = mergedFilesProntuario.find(
         (file) => file.nome === newFile.nome
@@ -267,13 +262,10 @@ export async function atualizarRelatorio(req: Request, res: Response) {
         mergedFilesProntuario.push(newFile);
       }
     }
-
     dadosAtualizados.prontuario = mergedFilesProntuario;
-
     const existingFilesAssinatura = relatorioExistente.assinatura || [];
     const newUploadedFilesAssinatura = req.fileIds?.assinatura || [];
     const mergedFilesAssinatura = [...existingFilesAssinatura];
-
     for (const newFile of newUploadedFilesAssinatura) {
       const duplicate = mergedFilesAssinatura.find(
         (file) => file.nome === newFile.nome
@@ -282,21 +274,15 @@ export async function atualizarRelatorio(req: Request, res: Response) {
         mergedFilesAssinatura.push(newFile);
       }
     }
-
     dadosAtualizados.assinatura = mergedFilesAssinatura;
-
     if (dadosAtualizados.assinatura && dadosAtualizados.assinatura.length > 0) {
       relatorioExistente.assinado = true;
     }
-
     Object.assign(relatorioExistente, dadosAtualizados);
     relatorioExistente.ultimaAtualizacao = new Date();
-
     await relatorioExistente.save({ session });
-
     await session.commitTransaction();
     session.endSession();
-
     return res.status(200).json({
       message: "Relatório atualizado com sucesso.",
       relatorio: relatorioExistente,

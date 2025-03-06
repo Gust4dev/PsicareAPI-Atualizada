@@ -130,103 +130,46 @@ export async function criarPaciente(req: Request, res: Response) {
 
 // Listar pacientes
 export const listarPacientes = async (req: Request, res: Response) => {
-  const {
-    q,
-    nome,
-    cpf,
-    email,
-    sexo,
-    tipoDeTratamento,
-    encaminhador,
-    dataInicioTratamento,
-    dataTerminoTratamento,
-    dataNascimento,
-    ativo,
-  } = req.query;
-
+  const { q, nome, telefone, email, tipoDeTratamento, dataNascimento, ativo } =
+    req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
-
   try {
     const searchQuery: any = {
       ...(q && {
         $or: [
           { nome: { $regex: q, $options: "i" } },
-          { cpf: { $regex: q, $options: "i" } },
-          { email: { $regex: q, $options: "i" } },
           { telefone: { $regex: q, $options: "i" } },
-          { sexo: { $regex: q, $options: "i" } },
-          { estadoCivil: { $regex: q, $options: "i" } },
-          { religiao: { $regex: q, $options: "i" } },
-          { rendaFamiliar: { $regex: q, $options: "i" } },
-          { profissao: { $regex: q, $options: "i" } },
-          { outroContato: { $regex: q, $options: "i" } },
-          { nomeDoContatoResponsavel: { $regex: q, $options: "i" } },
-          { naturalidade: { $regex: q, $options: "i" } },
-          { nacionalidade: { $regex: q, $options: "i" } },
-          { enderecoCep: { $regex: q, $options: "i" } },
-          { enderecoLogradouro: { $regex: q, $options: "i" } },
-          { enderecoBairro: { $regex: q, $options: "i" } },
-          { enderecoComplemento: { $regex: q, $options: "i" } },
-          { enderecoCidade: { $regex: q, $options: "i" } },
-          { enderecoUF: { $regex: q, $options: "i" } },
+          { email: { $regex: q, $options: "i" } },
           { tipoDeTratamento: { $regex: q, $options: "i" } },
-          { encaminhador: { $regex: q, $options: "i" } },
         ],
       }),
       ...(nome && { nome: { $regex: nome, $options: "i" } }),
-      ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
+      ...(telefone && {
+        telefone: {
+          $regex: new RegExp(
+            telefone.toString().replace(/\D/g, "").split("").join("\\D*"),
+            "i"
+          ),
+        },
+      }),
       ...(email && { email: { $regex: email, $options: "i" } }),
-      ...(sexo && { sexo: { $regex: sexo, $options: "i" } }),
       ...(tipoDeTratamento && {
         tipoDeTratamento: { $regex: tipoDeTratamento, $options: "i" },
       }),
-      ...(encaminhador && {
-        encaminhador: { $regex: encaminhador, $options: "i" },
+      ...(dataNascimento && {
+        dataNascimento: {
+          $gte: new Date(dataNascimento as string),
+          $lt: new Date(
+            new Date(dataNascimento as string).getTime() + 24 * 60 * 60 * 1000
+          ),
+        },
       }),
       ativoPaciente: ativo === undefined ? true : ativo === "true",
     };
-
-    if (dataInicioTratamento) {
-      const dateStr = dataInicioTratamento as string;
-      const date = new Date(dateStr);
-      date.setHours(0, 0, 0, 0);
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      searchQuery.dataInicioTratamento = {
-        $gte: date,
-        $lt: nextDate,
-      };
-    }
-
-    if (dataTerminoTratamento) {
-      const dateStr = dataTerminoTratamento as string;
-      const date = new Date(dateStr);
-      date.setHours(0, 0, 0, 0);
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      searchQuery.dataTerminoTratamento = {
-        $gte: date,
-        $lt: nextDate,
-      };
-    }
-
-    if (dataNascimento) {
-      const dateStr = dataNascimento as string;
-      const date = new Date(dateStr);
-      date.setHours(0, 0, 0, 0);
-      const nextDate = new Date(date);
-      nextDate.setDate(nextDate.getDate() + 1);
-      searchQuery.dataNascimento = {
-        $gte: date,
-        $lt: nextDate,
-      };
-    }
-
     if (req.user && req.user.cargo === 3 && req.user.alunoId) {
       searchQuery.alunoId = req.user.alunoId;
     }
-
     if (req.user && req.user.cargo === 2 && req.user.professorId) {
       const alunos = await Aluno.find({
         professorId: req.user.professorId,
@@ -234,15 +177,12 @@ export const listarPacientes = async (req: Request, res: Response) => {
       const alunoIds = alunos.map((aluno) => aluno._id);
       searchQuery.alunoId = { $in: alunoIds };
     }
-
     const pacientes = await Paciente.find(searchQuery)
       .skip((page - 1) * limit)
       .limit(limit)
       .lean();
-
     const totalItems = await Paciente.countDocuments(searchQuery);
     const totalPages = Math.ceil(totalItems / limit);
-
     res.json({
       pacientes,
       totalItems,
