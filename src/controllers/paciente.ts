@@ -130,8 +130,7 @@ export async function criarPaciente(req: Request, res: Response) {
 
 // Listar pacientes
 export const listarPacientes = async (req: Request, res: Response) => {
-  const { q, nome, telefone, email, tipoDeTratamento, dataNascimento, ativo } =
-    req.query;
+  const { q, nome, cpf, email, telefone, sexo, tipoDeTratamento, encaminhador, dataNascimento, dataInicioTratamento, dataTerminoTratamento, ativo } = req.query;
   const page: number = parseInt(req.query.page as string, 10) || 1;
   const limit: number = 15;
   try {
@@ -139,41 +138,53 @@ export const listarPacientes = async (req: Request, res: Response) => {
       ...(q && {
         $or: [
           { nome: { $regex: q, $options: "i" } },
-          { telefone: { $regex: q, $options: "i" } },
+          { cpf: { $regex: q, $options: "i" } },
           { email: { $regex: q, $options: "i" } },
+          { telefone: { $regex: q, $options: "i" } },
+          { sexo: { $regex: q, $options: "i" } },
           { tipoDeTratamento: { $regex: q, $options: "i" } },
+          { encaminhador: { $regex: q, $options: "i" } },
         ],
       }),
       ...(nome && { nome: { $regex: nome, $options: "i" } }),
+      ...(cpf && { cpf: { $regex: cpf, $options: "i" } }),
+      ...(email && { email: { $regex: email, $options: "i" } }),
       ...(telefone && {
         telefone: {
           $regex: new RegExp(
             telefone.toString().replace(/\D/g, "").split("").join("\\D*"),
             "i"
-          ),
-        },
+          )
+        }
       }),
-      ...(email && { email: { $regex: email, $options: "i" } }),
-      ...(tipoDeTratamento && {
-        tipoDeTratamento: { $regex: tipoDeTratamento, $options: "i" },
-      }),
+      ...(sexo && { sexo: { $regex: sexo, $options: "i" } }),
+      ...(tipoDeTratamento && { tipoDeTratamento: { $regex: tipoDeTratamento, $options: "i" } }),
+      ...(encaminhador && { encaminhador: { $regex: encaminhador, $options: "i" } }),
       ...(dataNascimento && {
         dataNascimento: {
           $gte: new Date(dataNascimento as string),
-          $lt: new Date(
-            new Date(dataNascimento as string).getTime() + 24 * 60 * 60 * 1000
-          ),
-        },
+          $lt: new Date(new Date(dataNascimento as string).getTime() + 24 * 60 * 60 * 1000)
+        }
       }),
-      ativoPaciente: ativo === undefined ? true : ativo === "true",
+      ...(dataInicioTratamento && {
+        dataInicioTratamento: {
+          $gte: new Date(dataInicioTratamento as string),
+          $lt: new Date(new Date(dataInicioTratamento as string).getTime() + 24 * 60 * 60 * 1000)
+        }
+      }),
+      ...(dataTerminoTratamento && {
+        dataTerminoTratamento: {
+          $gte: new Date(dataTerminoTratamento as string),
+          $lt: new Date(new Date(dataTerminoTratamento as string).getTime() + 24 * 60 * 60 * 1000)
+        }
+      }),
+      ativoPaciente: ativo === undefined ? true : ativo === "true"
     };
     if (req.user && req.user.cargo === 3 && req.user.alunoId) {
       searchQuery.alunoId = req.user.alunoId;
     }
     if (req.user && req.user.cargo === 2 && req.user.professorId) {
-      const alunos = await Aluno.find({
-        professorId: req.user.professorId,
-      }).select("_id");
+      const alunos = await Aluno.find({ professorId: req.user.professorId }).select("_id");
       const alunoIds = alunos.map((aluno) => aluno._id);
       searchQuery.alunoId = { $in: alunoIds };
     }
@@ -193,6 +204,7 @@ export const listarPacientes = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Erro ao buscar pacientes", error });
   }
 };
+
 
 // Obter dados do paciente
 export async function obterPacientePorID(req: Request, res: Response) {

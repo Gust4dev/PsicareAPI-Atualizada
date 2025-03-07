@@ -228,7 +228,6 @@ export async function atualizarRelatorio(req: Request, res: Response) {
       ...(dataTerminoTratamento && { dataTerminoTratamento }),
       ...(tipoTratamento && { tipoTratamento }),
       ...(alunoUnieva !== undefined && { alunoUnieva }),
-      ...(alunoId !== undefined && { alunoId }),
       ...(funcionarioUnieva !== undefined && { funcionarioUnieva }),
       ...(nome_funcionario && { nome_funcionario }),
       ...(conteudo && { conteudo }),
@@ -246,9 +245,15 @@ export async function atualizarRelatorio(req: Request, res: Response) {
       const aluno = await Aluno.findById(alunoId);
       if (aluno) {
         dadosAtualizados.nomeAluno = aluno.nome;
+        dadosAtualizados.alunoId = aluno._id;
       } else {
-        dadosAtualizados.encaminhador = req.body.encaminhador;
-        dadosAtualizados.alunoId = null;
+        if (req.body.nomeAluno) {
+          dadosAtualizados.nomeAluno = req.body.nomeAluno;
+        }
+      }
+    } else {
+      if (req.body.nomeAluno) {
+        dadosAtualizados.nomeAluno = req.body.nomeAluno;
       }
     }
     const existingFilesProntuario = relatorioExistente.prontuario || [];
