@@ -217,6 +217,28 @@ export async function patchUser(req: Request, res: Response) {
   }
 }
 
+//Atualizar informacoes pessoais
+export async function updateSelfUser(req: Request, res: Response) {
+  try {
+    const email = req.user?.email;
+    if (!email) {
+      return res.status(400).send("Usuário não autenticado.");
+    }
+    const updateData = { ...req.body };
+    if (updateData.senha) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.senha = await bcrypt.hash(updateData.senha, salt);
+    }
+    const updatedUser = await User.findOneAndUpdate({ email }, updateData, { new: true });
+    if (!updatedUser) {
+      return res.status(404).send("Usuário não encontrado.");
+    }
+    res.json(updatedUser);
+  } catch (error: any) {
+    res.status(500).json({ message: "Erro ao atualizar informações.", error: error.message });
+  }
+}
+
 // Deletar usuário
 export const deleteUser = async (req: Request, res: Response) => {
   try {
