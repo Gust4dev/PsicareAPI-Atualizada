@@ -8,6 +8,7 @@ import {
   deletarAluno,
   obterUltimoAlunoCriado,
   deletarAlunoSelecionados,
+  atualizarInformacoesPessoais,
 } from "../controllers/aluno";
 import { authMiddleware } from "../middleware/auth";
 
@@ -24,6 +25,7 @@ router.get(
 );
 router.get("/ultimo/criado", authMiddleware([0, 1]), obterUltimoAlunoCriado);
 router.patch("/:id", authMiddleware([0]), atualizarAluno);
+router.patch("/alterar/eu", authMiddleware([3]), atualizarInformacoesPessoais);
 router.delete("/:id", authMiddleware([0]), deletarAluno);
 router.delete("/", authMiddleware([0]), deletarAlunoSelecionados);
 

@@ -303,6 +303,45 @@ export async function atualizarAluno(req: Request, res: Response) {
     res.status(500).json({ message: error.message });
   }
 }
+//Atualizar informacoes pessoais
+export async function atualizarInformacoesPessoais(
+  req: Request,
+  res: Response
+) {
+  const session = await mongoose.startSession();
+  session.startTransaction();
+  try {
+    const userData = req.user;
+    if (!userData || !userData.alunoId) {
+      return res
+        .status(401)
+        .json({ message: "Usuário aluno não autenticado." });
+    }
+    const { nome, cpf, email, telefone, periodo, termo } = req.body;
+    const cpfFormatado = cpf ? cpf.replace(/\D/g, "") : undefined;
+    const alunoAtualizado = await Aluno.findByIdAndUpdate(
+      userData.alunoId,
+      { nome, cpf: cpfFormatado, email, telefone, periodo, termo },
+      { new: true, session }
+    );
+    const userAtualizado = await User.findOneAndUpdate(
+      { email: userData.email },
+      { nome, cpf: cpfFormatado, email },
+      { new: true, session }
+    );
+    await session.commitTransaction();
+    session.endSession();
+    return res.json({
+      message: "Informações atualizadas com sucesso.",
+      aluno: alunoAtualizado,
+      user: userAtualizado,
+    });
+  } catch (error: any) {
+    await session.abortTransaction();
+    session.endSession();
+    return res.status(500).json({ message: error.message });
+  }
+}
 
 // Excluir um aluno
 export async function deletarAluno(req: Request, res: Response) {
