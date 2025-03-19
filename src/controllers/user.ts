@@ -92,7 +92,6 @@ export async function createUser(req: Request, res: Response) {
 // Login de usuário
 export async function loginUser(req: Request, res: Response) {
   const { cpf, email, senha } = req.body;
-
   try {
     const userInDatabase = await User.findOne({ email }).exec();
     if (!userInDatabase) {
@@ -102,33 +101,32 @@ export async function loginUser(req: Request, res: Response) {
     if (!isSenhaValida) {
       return res.status(400).send("Senha incorreta.");
     }
-
     const tokenPayload: any = {
       cpf,
       email: userInDatabase.email,
       cargo: userInDatabase.cargo,
     };
-
     if (userInDatabase.cargo === 3) {
       const aluno = await Aluno.findOne({ email: userInDatabase.email }).exec();
+      if (aluno && aluno._id) {
+        tokenPayload.alunoId = aluno._id.toString();
+      }
       tokenPayload.termo = aluno?.termo || false;
     }
-
     const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: "12h" });
-
-    return res
-      .status(200)
-      .json({
-        token,
-        userLevelAccess: userInDatabase.cargo,
-        ...(userInDatabase.cargo === 3 && { termo: tokenPayload.termo }),
-      });
+    return res.status(200).json({
+      token,
+      userLevelAccess: userInDatabase.cargo,
+      ...(userInDatabase.cargo === 3 && {
+        termo: tokenPayload.termo,
+        alunoId: tokenPayload.alunoId,
+      }),
+    });
   } catch (error: any) {
     console.error("Erro ao realizar login:", error);
     return res.status(500).send("Erro ao realizar login.");
   }
 }
-
 
 // Listar todos os usuários
 export async function listarUsers(req: Request, res: Response) {
@@ -229,13 +227,20 @@ export async function updateSelfUser(req: Request, res: Response) {
       const salt = await bcrypt.genSalt(10);
       updateData.senha = await bcrypt.hash(updateData.senha, salt);
     }
-    const updatedUser = await User.findOneAndUpdate({ email }, updateData, { new: true });
+    const updatedUser = await User.findOneAndUpdate({ email }, updateData, {
+      new: true,
+    });
     if (!updatedUser) {
       return res.status(404).send("Usuário não encontrado.");
     }
     res.json(updatedUser);
   } catch (error: any) {
-    res.status(500).json({ message: "Erro ao atualizar informações.", error: error.message });
+    res
+      .status(500)
+      .json({
+        message: "Erro ao atualizar informações.",
+        error: error.message,
+      });
   }
 }
 

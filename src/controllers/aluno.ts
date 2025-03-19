@@ -312,29 +312,54 @@ export async function atualizarInformacoesPessoais(
   session.startTransaction();
   try {
     const userData = req.user;
-    if (!userData || !userData.alunoId) {
-      return res
-        .status(401)
-        .json({ message: "Usuário aluno não autenticado." });
+    if (!userData) {
+      return res.status(401).json({ message: "Usuário não autenticado." });
     }
+
+    const alunoId = userData.alunoId || null;
     const { nome, cpf, email, telefone, periodo, termo } = req.body;
+
+    if (!alunoId && !userData.email) {
+      return res
+        .status(400)
+        .json({ message: "Dados insuficientes para atualização." });
+    }
+
     const cpfFormatado = cpf ? cpf.replace(/\D/g, "") : undefined;
-    const alunoAtualizado = await Aluno.findByIdAndUpdate(
-      userData.alunoId,
-      { nome, cpf: cpfFormatado, email, telefone, periodo, termo },
-      { new: true, session }
-    );
-    const userAtualizado = await User.findOneAndUpdate(
-      { email: userData.email },
-      { nome, cpf: cpfFormatado, email },
-      { new: true, session }
-    );
+
+    let alunoAtualizado = null;
+    let userAtualizado = null;
+
+    if (alunoId) {
+      if (Object.keys(req.body).length === 1 && termo !== undefined) {
+        alunoAtualizado = await Aluno.findByIdAndUpdate(
+          alunoId,
+          { termo },
+          { new: true, session }
+        );
+      } else {
+        alunoAtualizado = await Aluno.findByIdAndUpdate(
+          alunoId,
+          { nome, cpf: cpfFormatado, email, telefone, periodo, termo },
+          { new: true, session }
+        );
+      }
+    }
+
+    if (userData.email && (nome || cpfFormatado || email)) {
+      userAtualizado = await User.findOneAndUpdate(
+        { email: userData.email },
+        { nome, cpf: cpfFormatado, email },
+        { new: true, session }
+      );
+    }
+
     await session.commitTransaction();
     session.endSession();
+
     return res.json({
       message: "Informações atualizadas com sucesso.",
-      aluno: alunoAtualizado,
-      user: userAtualizado,
+      aluno: alunoAtualizado
     });
   } catch (error: any) {
     await session.abortTransaction();
